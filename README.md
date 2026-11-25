@@ -8,7 +8,7 @@ Web chạy local mô phỏng luồng **Kế hoạch định biên** và thiết 
 > Dữ liệu cá nhân trong bản công khai đã được ẩn: tên nhân viên thay bằng "Nhân viên A, B, …", mức lương là số giả lập. Ứng dụng không kết nối KOI và không chứa API key.
 
 ## Chạy chung nhiều người trên Render
-Repo có sẵn `render.yaml`: vào Render → **New → Blueprint** → chọn repo này. Render tạo web service (gói Starter, có ổ đĩa 1 GB lưu dữ liệu tại `/var/data`).
+Repo có sẵn `render.yaml`: vào Render → **New → Blueprint** → chọn repo này. Render tạo web service gói Free. Lưu ý: gói Free không có ổ đĩa riêng, dữ liệu về trắng mỗi khi server khởi động lại — nhớ bấm Sao lưu thường xuyên.
 - `APP_PASSWORD`: mật khẩu chung để vào web (trình duyệt hỏi khi mở; tên đăng nhập gõ gì cũng được).
 - Mỗi người được hỏi tên một lần; tên này ghi vào nhật ký, người tạo/duyệt.
 - Kế hoạch định biên và cấu hình ngân sách lưu chung trên server; bắt đầu trắng.

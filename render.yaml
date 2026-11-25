@@ -2,7 +2,7 @@ services:
   - type: web
     name: dinh-bien-ngan-sach
     runtime: node
-    plan: starter
+    plan: free
     region: singapore
     buildCommand: echo "khong can build"
     startCommand: node server.js
@@ -11,11 +11,5 @@ services:
         value: 0.0.0.0
       - key: TZ
         value: Asia/Ho_Chi_Minh
-      - key: DATA_DIR
-        value: /var/data
       - key: APP_PASSWORD
         sync: false
-    disk:
-      name: du-lieu
-      mountPath: /var/data
-      sizeGB: 1
