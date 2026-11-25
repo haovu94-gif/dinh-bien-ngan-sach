@@ -108,6 +108,21 @@ function orgAction(b) {
   fail('Thao tác không hợp lệ');
 }
 
+
+// ---------- Định biên cho trang Ngân sách (align) ----------
+function budgetHc(year) {
+  const R = { year, scenarios: DB.scenarios, depts: DB.departments.filter(d => d.active !== false).map(d => ({ id: d.id, full: d.full, name: d.name, parent_id: d.parent_id })),
+    jobs: DB.jobs.filter(j => j.active !== false).map(j => ({ id: j.id, name: j.name, dept_id: j.dept_id, employees: j.employees || 0 })), hc: {}, plans: {} };
+  for (const sc of DB.scenarios) {
+    const ps = DB.plans.filter(p => p.scenario_id === sc.id && p.year === year && ['validate', 'confirm', 'draft'].includes(p.status))
+      .sort((a, b) => (RANK[b.status] - RANK[a.status]) || (a.version - b.version)); // ưu tiên duyệt sau cùng ghi đè
+    const m = {}; R.plans[sc.id] = ps.map(p => ({ code: p.code, status: ST[p.status], scope: (dept(p.scope_id) || {}).full }));
+    for (const p of ps) { const ids = childIds(p.scope_id); DB.jobs.filter(j => ids.includes(j.dept_id)).forEach(j => { m[j.id] = Array(12).fill(0); }); }
+    for (const p of ps) seatLines(p.id).forEach(l => { (m[l.job_id] = m[l.job_id] || Array(12).fill(0))[l.month] = p.status === 'validate' ? currentHc(l) : (l.plan_status === 'in_plan' ? l.planned_hc : 0); });
+    R.hc[sc.id] = m;
+  }
+  return R;
+}
 // ---------- Lưới ----------
 function grid(deptId, scenarioId, year, planId) {
   const root = dept(deptId) || fail('Không tìm thấy đơn vị');
@@ -404,6 +419,7 @@ const routes = {
   'GET /api/pending': () => pending(),
   'GET /api/org': q => ({ levels: LEVELS, depts: orgList(Number(q.company_id)), log: (DB.orglog || []).slice(-100).reverse() }),
   'POST /api/org': (q, b) => orgAction(b),
+  'GET /api/budget-hc': q => budgetHc(Number(q.year) || 2027),
   'GET /api/budget': () => (fs.existsSync(BUDGET) ? JSON.parse(fs.readFileSync(BUDGET, 'utf8')) : null),
   'POST /api/budget': (q, b) => { if (!b || typeof b !== 'object') fail('Cấu hình không hợp lệ'); if (fs.existsSync(BUDGET)) fs.copyFileSync(BUDGET, path.join(BAK, `ngan-sach-${new Date().toISOString().slice(0, 10)}.json`)); fs.writeFileSync(BUDGET, JSON.stringify(b)); return { ok: true }; },
   'GET /api/data': () => DB,

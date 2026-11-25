@@ -148,7 +148,7 @@ const ACT={resize:'Tăng/giảm',add:'Thêm',remove:'Xoá',change_period:'Đổi
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const nm=v=>Array.isArray(v)?v[1]:(v||'');
 function who(force){let n='';try{n=localStorage.getItem('ten-nguoi-dung')||''}catch(e){}if(!n||force){n=(prompt('Tên của bạn (ghi vào nhật ký, người tạo/duyệt):',n)||n||'').trim();try{localStorage.setItem('ten-nguoi-dung',n)}catch(e){}}return n;}
-async function api(p,b){const hd={'x-user':encodeURIComponent(who())};const r=await fetch(p,b?{method:'POST',headers:{...hd,'Content-Type':'application/json'},body:JSON.stringify(b)}:{headers:hd});const d=await r.json();if(d&&d.error)throw new Error(d.error);return d;}
+async function api(p,b){if(b&&!/\/api\/budget/.test(p))window.__hcChanged=true;const hd={'x-user':encodeURIComponent(who())};const r=await fetch(p,b?{method:'POST',headers:{...hd,'Content-Type':'application/json'},body:JSON.stringify(b)}:{headers:hd});const d=await r.json();if(d&&d.error)throw new Error(d.error);return d;}
 function msg(t,k='err'){$('#msg').innerHTML=t?`<div class="msg ${k}">${t}</div>`:'';if(t)window.scrollTo({top:0,behavior:'smooth'});}
 async function busy(btn,fn){const t=btn.textContent;btn.disabled=true;btn.textContent='Đang xử lý…';try{return await fn();}finally{btn.disabled=false;btn.textContent=t;}}
 function modal(html,onMount){$('#modal').innerHTML=`<div class="modal-bg"><div class="modal">${html}</div></div>`;const bg=$('#modal .modal-bg');bg.onclick=e=>{if(e.target===bg)closeModal();};onMount&&onMount($('#modal .modal'));}
@@ -161,7 +161,7 @@ const S={data:null,edit:{},checked:new Set(),proposal:false};
 // ---------- Khởi động ----------
 (async function init(){
   try{
-    const me=await api('/api/me'); $('#me').textContent=`${me.name} · dữ liệu gốc chụp từ KOI ngày ${me.snapshot||'?'}`;
+    const me=await api('/api/me'); $('#me').textContent=me.source==='DEMO'?`${me.name} · dữ liệu demo Phòng KD GT`:`${me.name} · dữ liệu gốc chụp từ KOI ngày ${me.snapshot||'?'}`;
     $('#app').classList.remove('hidden');
     const [comps,scs]=await Promise.all([api('/api/companies'),api('/api/scenarios')]);
     $('#f-company').innerHTML=comps.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');
@@ -497,7 +497,7 @@ function showView(v){
   $('#dash').classList.toggle('hidden',v!=='dash');
   $('#budget').classList.toggle('hidden',v!=='budget');
   $('#org').classList.toggle('hidden',v!=='org');
-  if(v==='budget'&&!$('#budget-frame').src)$('#budget-frame').src='/ngan-sach-mau.html?embed=1';
+  if(v==='budget'&&(!$('#budget-frame').src||window.__hcChanged)){$('#budget-frame').src='/ngan-sach-mau.html?embed=1&t='+Date.now();window.__hcChanged=false;}
   ['#planbar','#kpis','#work'].forEach(x=>$(x).classList.toggle('hidden',v!=='plan'||!S.data));
   $('#filters').classList.toggle('hidden',v==='budget'||v==='org');$('#pending').classList.toggle('hidden',v==='budget'||v==='org');
   try{history.replaceState(null,'',v==='plan'?location.pathname:'#'+v)}catch(e){}

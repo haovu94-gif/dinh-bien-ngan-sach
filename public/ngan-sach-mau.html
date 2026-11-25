@@ -105,7 +105,7 @@ body.mgr [data-admin]{display:none!important}body.mgr [data-mgr]{display:block!i
   <nav class="top"><a href="/" target="_top">Tạo và xem Kế hoạch định biên</a><a href="/#dash" target="_top">Dashboard hoạch định nhân sự</a><a class="on" href="/#budget" target="_top">Ngân sách</a></nav>
 </header>
 <main>
-  <div class="mock"><b>BẢN MẪU để hình dung giao diện.</b> Cấu hình áp cho toàn T02 (vị trí, đơn vị, địa điểm, phụ cấp lấy từ KOI). Bảng số ngân sách đang tính bằng <b>dữ liệu demo Phòng Kinh doanh GT – 10 người</b> (lương giả lập), chưa nạp dữ liệu thật.</div>
+  <div class="mock"><b>BẢN MẪU để hình dung giao diện.</b> Cấu hình áp cho toàn T02 (vị trí, đơn vị, địa điểm, phụ cấp lấy từ KOI). Bảng số ngân sách đang tính bằng <b>dữ liệu demo Phòng Kinh doanh GT – 10 người</b> (lương giả lập), chưa nạp dữ liệu thật. <span id="srv-note"></span></div>
 
   <div class="card row between">
     <div class="row"><b>Năm 2027 · Kịch bản:</b> <span id="scn-chips" class="row" style="gap:6px"></span>
@@ -326,13 +326,26 @@ const titleKey=n=>String(n||'').split(' / ')[0].trim().toLowerCase();
 function bandOf(job){const B=(typeof COMMON!=='undefined'&&COMMON.bands)||[];const k=titleKey(job.title||job.name);return B.find(b=>b.t.trim().toLowerCase()===k)||null;}
 function bandPrice(b,lv){const i=(lv||3)-1,q1=+b.lv[i]||0,d=(b.lvd||[])[i]||{};const lcb=d.lcb!=null&&d.lcb!==''?+d.lcb:Math.round(q1*(+b.lcbr||0));const q2m=d.q2!=null&&d.q2!==''?+d.q2:Math.round(q1*(+b.q2r||0));return {lcb,tdg:q1-lcb,q2m,q2q:0};}
 function bandNg(b,lv){const d=(b.lvd||[])[(lv||3)-1];return d&&d.ng||'';}
+// ---- Align với màn hình Định biên (cùng web): cơ cấu, vị trí, định biên theo tháng lấy từ server ----
+const HC_SRV={};let SRV=null;
+(function(){try{if(!/^https?:/.test(location.protocol))return;const x=new XMLHttpRequest();x.open('GET','/api/budget-hc?year=2027',false);x.send();if(x.status!==200)return;SRV=JSON.parse(x.responseText);if(!SRV||!SRV.jobs||!SRV.jobs.length){SRV=null;return;}
+  const bands=BANDS0(),ngOf=n=>{const b=bands.find(b=>b.t.trim().toLowerCase()===n.split(' / ')[0].trim().toLowerCase());return (b&&b.lvd&&b.lvd[2]&&b.lvd[2].ng)||'NV3';};
+  const D=Object.fromEntries(SRV.depts.map(d=>[d.id,d])),root=id=>{let d=D[id];while(d&&d.parent_id&&D[d.parent_id])d=D[d.parent_id];return d?d.id:id;};
+  CO_DEPTS.splice(0,CO_DEPTS.length,...SRV.depts.map(d=>[d.id,d.name,d.parent_id||0]));Object.keys(CO_D).forEach(k=>delete CO_D[k]);CO_DEPTS.forEach(x=>CO_D[x[0]]={id:x[0],name:x[1],parent:x[2]});
+  CO_ROOTS.splice(0,CO_ROOTS.length,...CO_DEPTS.filter(x=>!x[2]).map(x=>[x[0],x[1]]));
+  CO_JOBS.splice(0,CO_JOBS.length,...SRV.jobs.map(j=>[j.id,j.name,root(j.dept_id),j.dept_id,j.employees]));
+  DEPTS.splice(0,DEPTS.length,...SRV.depts.filter(d=>SRV.jobs.some(j=>j.dept_id===d.id)).map(d=>({id:'s'+d.id,name:d.full})));
+  const old=Object.fromEntries(JOBS.map(j=>[j.id,j])),a=SRV.hc[SRV.scenarios[0].id]||{};
+  JOBS.splice(0,JOBS.length,...SRV.jobs.map(sj=>{const o=old[sj.id];const j=o?{...o}:{id:sj.id,name:sj.name,ng:ngOf(sj.name),people:[],hc:[]};j.d='s'+sj.dept_id;j.name=sj.name;j.hc=a[sj.id]||Array(12).fill(sj.employees);return j;}));
+  ['A','B','C'].forEach((k,i)=>{const sc=SRV.scenarios[i];const m=sc&&SRV.hc[sc.id];if(m&&Object.keys(m).length)HC_SRV[k]=m;});
+}catch(e){console.warn('Không đọc được định biên',e);SRV=null;}})();
 const SCN={
  A:{name:'A – Thuận lợi',color:COLORS[0],vars:{q3mode:'pct',q3pct:5,q3base:['lcb','tdg'],q3fund:0,incmin:6,incbasis:'fe',incrule:'reach',inc:8,incm:3,incon:['lcb','tdg'],q2base:['lcb','tdg','responsibility_allowance','q2m','q2q'],q2kpi:'m',q2n:1,kpi:100,kpiq:100,q3:90,ins:23.5},pay:{mode:'accrual',q2y:[11],q2q:[2,5,8,11],q3q:[2,5,8,11]},ben:BEN_V5(),ovr:[],hc:{}},
  B:{name:'B – Cơ sở',color:COLORS[1],vars:{q3mode:'pct',q3pct:5,q3base:['lcb','tdg'],q3fund:0,incmin:6,incbasis:'fe',incrule:'reach',inc:5,incm:3,incon:['lcb','tdg'],q2base:['lcb','tdg','responsibility_allowance','q2m','q2q'],q2kpi:'m',q2n:1,kpi:90,kpiq:85,q3:80,ins:23.5},pay:{mode:'accrual',q2y:[11],q2q:[2,5,8,11],q3q:[2,5,8,11]},ben:BEN_V5(),ovr:[],hc:{747:Array(12).fill(0)}},
  C:{name:'C – Bất lợi',color:COLORS[2],vars:{q3mode:'pct',q3pct:5,q3base:['lcb','tdg'],q3fund:0,incmin:6,incbasis:'fe',incrule:'reach',inc:3,incm:6,incon:['lcb'],q2base:['lcb','tdg','responsibility_allowance','q2m','q2q'],q2kpi:'m',q2n:1,kpi:75,kpiq:70,q3:60,ins:23.5},pay:{mode:'accrual',q2y:[11],q2q:[2,5,8,11],q3q:[2,5,8,11]},ben:BEN_V5(),ovr:[{scope:'d:hrbp',v:'kpi',val:70}],hc:{3579:Array(12).fill(0),807:Array(12).fill(1),747:Array(12).fill(0),821:[1,1,1,1,1,1,0,0,0,0,0,0]}},
 };
 let CUR='A';const CFG=()=>SCN[CUR];
-const hcOf=(job,cfg=CFG())=>cfg.hc[job.id]||job.hc;
+const hcOf=(job,cfg=CFG())=>{const k=Object.keys(SCN).find(k=>SCN[k]===cfg);return (k&&HC_SRV[k]&&HC_SRV[k][job.id])||cfg.hc[job.id]||job.hc;};
 
 // ---- Biến số ----
 function vars(job,cfg=CFG()){
@@ -836,5 +849,6 @@ function renderAll(){setTimeout(markSave,0);if(document.body.classList.contains(
 $$('#tabs button').forEach(b=>b.onclick=()=>{$$('#tabs button').forEach(x=>x.classList.toggle('on',x===b));$$('[data-p]').forEach(p=>p.classList.toggle('hidden',p.dataset.p!==b.dataset.t));});
 loadInputs();renderChips();renderOvr();renderAlw();renderPrice();renderBen();renderPay();renderAll();SAVED_SNAP=core();markSave();
 </script>
+<script>try{if(SRV){const nm=k=>(SCN[k]||{}).name||k;$('#srv-note').innerHTML='<br><b>Định biên lấy từ màn hình Định biên:</b> '+['A','B','C'].map((k,i)=>{const sc=SRV.scenarios[i];const ps=sc?SRV.plans[sc.id]||[]:[];return `${nm(k)}: ${ps.length?ps.map(p=>p.code+' ('+p.status+')').join(', '):'chưa có kế hoạch → dùng theo '+nm('A')}`;}).join(' · ')+'. Muốn đổi số định biên thì sửa ở màn hình Định biên.';}}catch(e){}</script>
 </body>
 </html>
