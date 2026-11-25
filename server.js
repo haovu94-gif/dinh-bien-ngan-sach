@@ -110,17 +110,29 @@ function orgAction(b) {
 
 
 // ---------- Định biên cho trang Ngân sách (align) ----------
-function budgetHc(year) {
-  const R = { year, scenarios: DB.scenarios, depts: DB.departments.filter(d => d.active !== false).map(d => ({ id: d.id, full: d.full, name: d.name, parent_id: d.parent_id })),
-    jobs: DB.jobs.filter(j => j.active !== false).map(j => ({ id: j.id, name: j.name, dept_id: j.dept_id, employees: j.employees || 0 })), hc: {}, plans: {} };
-  for (const sc of DB.scenarios) {
-    const ps = DB.plans.filter(p => p.scenario_id === sc.id && p.year === year && ['validate', 'confirm', 'draft'].includes(p.status))
-      .sort((a, b) => (RANK[b.status] - RANK[a.status]) || (a.version - b.version)); // ưu tiên duyệt sau cùng ghi đè
-    const m = {}; R.plans[sc.id] = ps.map(p => ({ code: p.code, status: ST[p.status], scope: (dept(p.scope_id) || {}).full }));
-    for (const p of ps) { const ids = childIds(p.scope_id); DB.jobs.filter(j => ids.includes(j.dept_id)).forEach(j => { m[j.id] = Array(12).fill(0); }); }
-    for (const p of ps) seatLines(p.id).forEach(l => { (m[l.job_id] = m[l.job_id] || Array(12).fill(0))[l.month] = p.status === 'validate' ? currentHc(l) : (l.plan_status === 'in_plan' ? l.planned_hc : 0); });
-    R.hc[sc.id] = m;
-  }
+function budgetHc(year, q = {}) {
+  const st = q.status === 'validate' ? ['validate'] : q.status === 'vc' ? ['validate', 'confirm'] : ['validate', 'confirm', 'draft'];
+  const unit = q.unit ? Number(q.unit) : null, inUnit = unit ? new Set(childIds(unit)) : null;
+  const depts = DB.departments.filter(d => d.active !== false && (!inUnit || inUnit.has(d.id)));
+  const jobs = DB.jobs.filter(j => j.active !== false && (!inUnit || inUnit.has(j.dept_id)));
+  const ancestors = id => { const out = []; let d = dept(id); while (d) { out.push(d.id); d = d.parent_id ? dept(d.parent_id) : null; } return out; };
+  const R = { year, scenarios: DB.scenarios, status: st, unit, depts: depts.map(d => ({ id: d.id, full: d.full, name: d.name, parent_id: inUnit && d.id === unit ? null : d.parent_id })),
+    jobs: jobs.map(j => ({ id: j.id, name: j.name, dept_id: j.dept_id, employees: j.employees || 0 })), hck: {}, plansk: {}, map: {}, coverage: [] };
+  const KEYS = ['A', 'B', 'C'];
+  KEYS.forEach((k, i) => {
+    const raw = q[k] !== undefined ? q[k] : (DB.scenarios[i] ? String(DB.scenarios[i].id) : '');
+    const sid = raw === '' ? null : Number(raw); R.map[k] = sid; if (!sid) return;
+    const ps = DB.plans.filter(p => p.scenario_id === sid && p.year === year && st.includes(p.status) && (!inUnit || inUnit.has(p.scope_id) || ancestors(unit).includes(p.scope_id)))
+      .sort((a, b) => (RANK[b.status] - RANK[a.status]) || (a.version - b.version));
+    const m = {};
+    for (const p of ps) { const ids = childIds(p.scope_id); jobs.filter(j => ids.includes(j.dept_id)).forEach(j => { m[j.id] = Array(12).fill(0); }); }
+    for (const p of ps) seatLines(p.id).forEach(l => { if (!m[l.job_id]) return; m[l.job_id][l.month] = p.status === 'validate' ? currentHc(l) : (l.plan_status === 'in_plan' ? l.planned_hc : 0); });
+    R.plansk[k] = ps.map(p => ({ id: p.id, code: p.code, version: p.version, status: ST[p.status], st: p.status, scope_id: p.scope_id, scope: (dept(p.scope_id) || {}).full }));
+    if (ps.length) R.hck[k] = m;
+  });
+  const withJobs = depts.filter(d => jobs.some(j => j.dept_id === d.id));
+  R.coverage = withJobs.map(d => { const anc = ancestors(d.id); const row = { dept_id: d.id, full: d.full, jobs: jobs.filter(j => j.dept_id === d.id).length };
+    KEYS.forEach(k => { const p = (R.plansk[k] || []).filter(p => anc.includes(p.scope_id)).sort((a, b) => RANK[a.st] - RANK[b.st])[0]; row[k] = p ? { code: p.code, status: p.status, st: p.st } : null; }); return row; });
   return R;
 }
 // ---------- Lưới ----------
@@ -419,7 +431,7 @@ const routes = {
   'GET /api/pending': () => pending(),
   'GET /api/org': q => ({ levels: LEVELS, depts: orgList(Number(q.company_id)), log: (DB.orglog || []).slice(-100).reverse() }),
   'POST /api/org': (q, b) => orgAction(b),
-  'GET /api/budget-hc': q => budgetHc(Number(q.year) || 2027),
+  'GET /api/budget-hc': q => budgetHc(Number(q.year) || 2027, q),
   'GET /api/budget': () => (fs.existsSync(BUDGET) ? JSON.parse(fs.readFileSync(BUDGET, 'utf8')) : null),
   'POST /api/budget': (q, b) => { if (!b || typeof b !== 'object') fail('Cấu hình không hợp lệ'); if (fs.existsSync(BUDGET)) fs.copyFileSync(BUDGET, path.join(BAK, `ngan-sach-${new Date().toISOString().slice(0, 10)}.json`)); fs.writeFileSync(BUDGET, JSON.stringify(b)); return { ok: true }; },
   'GET /api/data': () => DB,
