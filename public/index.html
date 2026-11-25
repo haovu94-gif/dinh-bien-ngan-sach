@@ -145,7 +145,8 @@ const ST={draft:'Nháp',confirm:'Chờ phê duyệt',validate:'Đã phê duyệt
 const ACT={resize:'Tăng/giảm',add:'Thêm',remove:'Xoá',change_period:'Đổi kỳ',transfer:'Điều chuyển đơn vị'};
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const nm=v=>Array.isArray(v)?v[1]:(v||'');
-async function api(p,b){const r=await fetch(p,b?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)}:{});const d=await r.json();if(d&&d.error)throw new Error(d.error);return d;}
+function who(force){let n='';try{n=localStorage.getItem('ten-nguoi-dung')||''}catch(e){}if(!n||force){n=(prompt('Tên của bạn (ghi vào nhật ký, người tạo/duyệt):',n)||n||'').trim();try{localStorage.setItem('ten-nguoi-dung',n)}catch(e){}}return n;}
+async function api(p,b){const hd={'x-user':encodeURIComponent(who())};const r=await fetch(p,b?{method:'POST',headers:{...hd,'Content-Type':'application/json'},body:JSON.stringify(b)}:{headers:hd});const d=await r.json();if(d&&d.error)throw new Error(d.error);return d;}
 function msg(t,k='err'){$('#msg').innerHTML=t?`<div class="msg ${k}">${t}</div>`:'';if(t)window.scrollTo({top:0,behavior:'smooth'});}
 async function busy(btn,fn){const t=btn.textContent;btn.disabled=true;btn.textContent='Đang xử lý…';try{return await fn();}finally{btn.disabled=false;btn.textContent=t;}}
 function modal(html,onMount){$('#modal').innerHTML=`<div class="modal-bg"><div class="modal">${html}</div></div>`;const bg=$('#modal .modal-bg');bg.onclick=e=>{if(e.target===bg)closeModal();};onMount&&onMount($('#modal .modal'));}

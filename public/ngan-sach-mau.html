@@ -230,6 +230,11 @@ body.mgr [data-admin]{display:none!important}body.mgr [data-mgr]{display:block!i
   </section>
 </main>
 <script>
+// Dùng chung cấu hình ngân sách qua server (bản web nhiều người dùng)
+(function(){var K='ngan-sach-cau-hinh-v1';try{var x=new XMLHttpRequest();x.open('GET','/api/budget',false);x.send();if(x.status===200){var t=x.responseText;if(t&&t!=='null')localStorage.setItem(K,t);else localStorage.removeItem(K);}}catch(e){}
+var _set=Storage.prototype.setItem;Storage.prototype.setItem=function(k,v){_set.call(this,k,v);if(k===K&&this===window.localStorage){fetch('/api/budget',{method:'POST',headers:{'Content-Type':'application/json'},body:v}).catch(function(){});}};})();
+</script>
+<script>
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const fmt=n=>Math.round(n).toLocaleString('vi-VN');
 const M=Array.from({length:12},(_,i)=>'T'+(i+1));

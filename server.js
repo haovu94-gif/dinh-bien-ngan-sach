@@ -11,13 +11,16 @@ const BOOT = Date.now();
 // Tự khởi động lại khi server.js được cập nhật (start.bat chạy lại ngay)
 fs.watchFile(__filename, { interval: 1500 }, (c, p) => { if (c.mtimeMs !== p.mtimeMs) { console.log('[CAP NHAT] server.js thay doi - khoi dong lai'); process.exit(0); } });
 const PORT = Number(process.env.PORT || 5180);
-const DIR = path.join(__dirname, 'data');
+const DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
 const FILE = path.join(DIR, 'du-lieu.json');
-const SEED = path.join(DIR, 'du-lieu-goc-tu-KOI.json');
+const SEED = path.join(__dirname, 'data', 'du-lieu-goc-tu-KOI.json');
+const BUDGET = path.join(DIR, 'ngan-sach-cau-hinh.json');
 const BAK = path.join(DIR, 'sao-luu');
 
 // ---------- Kho dữ liệu ----------
 fs.mkdirSync(BAK, { recursive: true });
+const HOST = process.env.HOST || '127.0.0.1';
+const PASS = process.env.APP_PASSWORD || '';
 if (!fs.existsSync(FILE)) fs.copyFileSync(SEED, FILE);
 // Mỗi lần khởi động (kể cả khi tự cập nhật) sao lưu dữ liệu đang có, giữ 30 bản gần nhất
 try {
@@ -44,7 +47,7 @@ function save() {
 }
 const nextId = k => DB.seq[k]++;
 const now = () => { const d = new Date(), z = n => String(n).padStart(2, '0'); return `${d.getFullYear()}-${z(d.getMonth() + 1)}-${z(d.getDate())} ${z(d.getHours())}:${z(d.getMinutes())}`; };
-const USER = 'Vũ Thị Hảo';
+let USER = process.env.DEFAULT_USER || 'Người dùng';
 class UserError extends Error {}
 const fail = m => { throw new UserError(m); };
 function log(plan, text) { DB.log.push({ plan_code: plan.code, plan_id: plan.id, date: now(), author: USER, body: text }); }
@@ -355,6 +358,8 @@ const routes = {
   'POST /api/plan/comment': (q, b) => addComment(b),
   'GET /api/dashboard': q => dashboard(Number(q.company_id), Number(q.scenario_id), Number(q.year)),
   'GET /api/pending': () => pending(),
+  'GET /api/budget': () => (fs.existsSync(BUDGET) ? JSON.parse(fs.readFileSync(BUDGET, 'utf8')) : null),
+  'POST /api/budget': (q, b) => { if (!b || typeof b !== 'object') fail('Cấu hình không hợp lệ'); if (fs.existsSync(BUDGET)) fs.copyFileSync(BUDGET, path.join(BAK, `ngan-sach-${new Date().toISOString().slice(0, 10)}.json`)); fs.writeFileSync(BUDGET, JSON.stringify(b)); return { ok: true }; },
   'GET /api/data': () => DB,
   'POST /api/data': (q, b) => {
     if (!b || !Array.isArray(b.departments) || !Array.isArray(b.jobs) || !Array.isArray(b.plans)) fail('File không đúng định dạng dữ liệu của app');
@@ -367,7 +372,9 @@ function send(res, code, obj) { res.writeHead(code, { 'Content-Type': 'applicati
 function body(req) { return new Promise((ok, no) => { let s = ''; req.on('data', c => (s += c)); req.on('end', () => { try { ok(s ? JSON.parse(s) : {}); } catch (e) { no(e); } }); }); }
 
 http.createServer(async (req, res) => {
+  if (PASS) { const h = req.headers.authorization || ''; const pw = h.startsWith('Basic ') ? Buffer.from(h.slice(6), 'base64').toString().split(':').slice(1).join(':') : ''; if (pw !== PASS) { res.writeHead(401, { 'WWW-Authenticate': 'Basic realm="Dinh bien", charset="UTF-8"' }); return res.end('Can mat khau'); } }
   const url = new URL(req.url, 'http://x');
+  try { USER = req.headers['x-user'] ? decodeURIComponent(req.headers['x-user']).slice(0, 60) : (process.env.DEFAULT_USER || 'Người dùng'); } catch (e) { USER = 'Người dùng'; }
   const key = `${req.method} ${url.pathname}`;
   if (routes[key]) {
     try { send(res, 200, await routes[key](Object.fromEntries(url.searchParams), req.method === 'POST' ? await body(req) : {})); }
@@ -383,4 +390,4 @@ http.createServer(async (req, res) => {
 }).on('error', e => {
   if (e.code === 'EADDRINUSE') { console.error(`[LOI] Cong ${PORT} dang bi chiem - thu lai sau 3 giay`); setTimeout(() => process.exit(3), 3000); }
   else console.error('[LOI]', e.message);
-}).listen(PORT, '127.0.0.1', () => console.log(`[OK] Dinh bien (local doc lap) dang chay: http://localhost:${PORT} (${process.version})`));
+}).listen(PORT, HOST, () => console.log(`[OK] Dinh bien (local doc lap) dang chay: http://localhost:${PORT} (${process.version})`));

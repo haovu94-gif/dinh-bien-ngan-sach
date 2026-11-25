@@ -1,0 +1,9 @@
+{
+  "name": "dinh-bien-ngan-sach",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Định biên & Ngân sách nhân sự",
+  "main": "server.js",
+  "scripts": { "start": "node server.js" },
+  "engines": { "node": ">=18" }
+}
