@@ -89,7 +89,7 @@ th.qs{border-left:2px solid #d0d5dd} td.qs{border-left:2px solid #eef0f3}
 <header>
   <h1>Định biên & Ngân sách</h1>
   <span class="sub">bản local độc lập · không kết nối KOI</span>
-  <nav class="top" id="topnav"><button data-v="plan" class="on">Tạo và xem Kế hoạch định biên</button><button data-v="dash">Dashboard hoạch định nhân sự</button><button data-v="org">Cơ cấu tổ chức</button><button data-v="budget">Ngân sách</button><button data-v="link">Lập &amp; xuất ngân sách</button></nav>
+  <nav class="top" id="topnav"><button data-v="plan" class="on">Tạo và xem Kế hoạch định biên</button><button data-v="dash">Dashboard hoạch định nhân sự</button><button data-v="org">Cơ cấu tổ chức</button><button data-v="budget">Ngân sách</button></nav>
   <div class="me" id="me">Đang tải…</div>
   <button class="btn" id="d-backup" title="Tải toàn bộ dữ liệu về máy">Sao lưu</button>
   <label class="btn" style="flex-direction:row;color:var(--text);font-size:13.5px" title="Nạp lại từ file sao lưu">Khôi phục<input type="file" id="d-restore" accept=".json" hidden></label>
@@ -323,8 +323,16 @@ function stats(){
 function renderKpis(){
   const t=stats();
   const k=[[`Định biên T${t.rm+1} (tham chiếu)`,t.ref],['Định biên cuối kỳ (T12)',t.eop],['Bình quân tháng',t.avg.toLocaleString('vi-VN',{maximumFractionDigits:1})],['Hiện có',t.emp],['Cần tuyển',t.vac],['Vượt định biên',t.over],['Tỷ lệ bao phủ',t.cov.toFixed(0)+'%']];
-  $('#kpis').innerHTML=k.map(([l,v])=>`<div class="kpi"><div class="l">${l}</div><div class="v">${v}</div></div>`).join('');
+  $('#kpis').innerHTML=k.map(([l,v])=>`<div class="kpi"><div class="l">${l}</div><div class="v">${v}</div></div>`).join('')+`<div class="kpi" id="k-ns" style="min-width:230px" title="Chi phí doanh nghiệp cả năm (gồm BH DN đóng) theo cấu hình Ngân sách: khung thu nhập, phụ cấp, phúc lợi, tăng lương, KPI, tỷ lệ full FTE của kịch bản tương ứng"><div class="l">Ngân sách dự kiến cả năm</div><div class="v">…</div></div>`;
+  nsEst();
 }
+// ---- Ngân sách dự kiến ngay trên màn Định biên ----
+let NSF=null,NST=null;
+function nsFrame(reload){if(!NSF){NSF=document.createElement('iframe');NSF.style.display='none';NSF.title='calc';document.body.appendChild(NSF);reload=true;}if(reload){NSF.dataset.ready='';NSF.onload=()=>{NSF.dataset.ready='1';nsEst();};NSF.src='/ngan-sach-mau.html?calc=1&t='+Date.now();}return NSF;}
+function nsEst(){clearTimeout(NST);NST=setTimeout(()=>{const el=document.getElementById('k-ns');if(!el||!S.data||!S.data.rows)return;const f=nsFrame(window.__hcChanged);window.__hcChanged=false;if(f.dataset.ready!=='1'||!f.contentWindow.nsEstimate)return;
+  try{const sc=+$('#f-scenario').value,cur=S.data.rows.map(r=>({job_id:r.job_id,hc:[...Array(12)].map((_,m)=>val(r,m)||0)})),base=S.data.rows.map(r=>({job_id:r.job_id,hc:[...Array(12)].map((_,m)=>(orig(r,m)??(S.proposal?r.employees.length:0))||0)}));
+    const a=f.contentWindow.nsEstimate(sc,cur),b=f.contentWindow.nsEstimate(sc,base),d=a.total-b.total,M=x=>(x/1e9).toLocaleString('vi-VN',{maximumFractionDigits:2})+' tỷ';
+    el.innerHTML=`<div class="l">Ngân sách dự kiến cả năm · ${esc(a.name)}</div><div class="v">${M(a.total)}</div><div class="sub">${Math.abs(d)>1000?`<b style="color:${d>0?'#b42318':'#12805c'}">${d>0?'+':''}${(d/1e6).toLocaleString('vi-VN',{maximumFractionDigits:0})} tr</b> so với số đã lưu`:'chi phí DN, gồm BH'} · <a class="link" onclick="showView('budget')">chi tiết</a></div>`;}catch(e){el.querySelector('.v').textContent='—';}},250);}
 function renderAdj(){
   const a=S.data.adjustments||[];$('#adj-count').textContent=a.length?`(${a.length})`:'';
   if(!S.data.plan){$('#adj').innerHTML='<div class="empty">Chưa có kế hoạch.</div>';return;}
@@ -504,8 +512,7 @@ function showView(v){
   if(v==='dash')loadDash();
   if(v==='org')loadOrg();
 }
-$$('#topnav button').forEach(b=>b.onclick=()=>{if(b.dataset.v==='link'){openLink();return;}showView(b.dataset.v);});
-function openLink(){showView('budget');$$('#topnav button').forEach(x=>x.classList.toggle('on',x.dataset.v==='link'));const f=$('#budget-frame');const go=()=>{try{f.contentWindow.document.querySelector('#tabs button[data-t="link"]').click();}catch(e){}};if(f.contentWindow&&f.contentWindow.document.readyState==='complete'&&f.contentWindow.document.querySelector('#tabs'))go();else f.addEventListener('load',go,{once:true});try{history.replaceState(null,'','#link')}catch(e){}}
+$$('#topnav button').forEach(b=>b.onclick=()=>showView(b.dataset.v));
 async function loadDash(){
   $('#dash').innerHTML='<div class="card muted">Đang tải…</div>';
   try{const y=+$('#f-year').value,d=await api(`/api/dashboard?company_id=${$('#f-company').value}&scenario_id=${$('#f-scenario').value}&year=${y}`);
@@ -652,6 +659,6 @@ $('#d-backup').onclick=async()=>{const d=await api('/api/data');const a=document
 $('#d-restore').onchange=async e=>{const f=e.target.files[0];if(!f)return;if(!confirm('Thay toàn bộ dữ liệu hiện tại bằng file "'+f.name+'"? (dữ liệu hiện tại được tự sao lưu trước)'))return;
   try{await api('/api/data',JSON.parse(await f.text()));msg('Đã khôi phục dữ liệu.','ok');S.data&&openPlan();}catch(err){msg('Không khôi phục được: '+esc(err.message));}e.target.value='';};
 </script>
-<script>(function(){const v=location.hash.slice(1);if(!['dash','budget','org','link'].includes(v))return;let n=0;const t=setInterval(()=>{n++;const app=document.querySelector('#app');if((app&&!app.classList.contains('hidden')&&document.querySelector('#f-dept').options.length)||n>40){clearInterval(t);setTimeout(()=>v==='link'?openLink():showView(v),200);}},150);})();</script>
+<script>(function(){const v=location.hash.slice(1);const v0=v;if(v==='link')v='budget';if(!['dash','budget','org'].includes(v))return;let n=0;const t=setInterval(()=>{n++;const app=document.querySelector('#app');if((app&&!app.classList.contains('hidden')&&document.querySelector('#f-dept').options.length)||n>40){clearInterval(t);setTimeout(()=>showView(v),200);}},150);})();</script>
 </body>
 </html>
