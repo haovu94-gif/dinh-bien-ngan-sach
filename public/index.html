@@ -89,7 +89,7 @@ th.qs{border-left:2px solid #d0d5dd} td.qs{border-left:2px solid #eef0f3}
 <header>
   <h1>Định biên & Ngân sách</h1>
   <span class="sub">bản local độc lập · không kết nối KOI</span>
-  <nav class="top" id="topnav"><button data-v="plan" class="on">Tạo và xem Kế hoạch định biên</button><button data-v="dash">Dashboard hoạch định nhân sự</button></nav>
+  <nav class="top" id="topnav"><button data-v="plan" class="on">Tạo và xem Kế hoạch định biên</button><button data-v="dash">Dashboard hoạch định nhân sự</button><button data-v="budget">Ngân sách</button></nav>
   <div class="me" id="me">Đang tải…</div>
   <button class="btn" id="d-backup" title="Tải toàn bộ dữ liệu về máy">Sao lưu</button>
   <label class="btn" style="flex-direction:row;color:var(--text);font-size:13.5px" title="Nạp lại từ file sao lưu">Khôi phục<input type="file" id="d-restore" accept=".json" hidden></label>
@@ -99,7 +99,7 @@ th.qs{border-left:2px solid #d0d5dd} td.qs{border-left:2px solid #eef0f3}
 
   <!-- ỨNG DỤNG -->
   <section id="app" class="hidden">
-    <div class="card row">
+    <div class="card row" id="filters">
       <label>Công ty<select id="f-company" style="min-width:240px"></select></label>
       <label style="flex:1;min-width:320px">Đơn vị (gồm các đơn vị con)<select id="f-dept"></select></label>
       <label>Kịch bản<select id="f-scenario"></select></label>
@@ -109,6 +109,7 @@ th.qs{border-left:2px solid #d0d5dd} td.qs{border-left:2px solid #eef0f3}
 
     <div id="pending"></div>
     <div id="dash" class="hidden"></div>
+    <div id="budget" class="hidden"><iframe id="budget-frame" title="Ngân sách" style="width:100%;height:calc(100vh - 110px);border:0;display:block"></iframe></div>
     <div id="planbar" class="card hidden"></div>
     <div id="kpis" class="kpis hidden" style="margin-bottom:12px"></div>
 
@@ -133,7 +134,7 @@ th.qs{border-left:2px solid #d0d5dd} td.qs{border-left:2px solid #eef0f3}
       <div data-p="adj" class="hidden"><div class="card" id="adj"></div></div>
       <div data-p="talk" class="hidden"><div class="card" id="talk"></div></div>
       <div data-p="hist" class="hidden"><div class="card" id="hist"></div></div>
-      <div data-p="budget" class="hidden"><div class="card empty">Phần <b>Ngân sách</b> đang thiết kế. <a href="/ngan-sach-mau.html" target="_blank">Mở bản mẫu để hình dung ↗</a></div></div>
+      <div data-p="budget" class="hidden"><div class="card empty">Phần <b>Ngân sách</b> đang thiết kế. <a href="#budget" onclick="showView('budget');return false">Mở trang Ngân sách</a></div></div>
     </div>
   </section>
 </main>
@@ -434,7 +435,11 @@ function showView(v){
   msg('');
   $$('#topnav button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
   $('#dash').classList.toggle('hidden',v!=='dash');
-  ['#planbar','#kpis','#work'].forEach(x=>$(x).classList.toggle('hidden',v==='dash'||!S.data));
+  $('#budget').classList.toggle('hidden',v!=='budget');
+  if(v==='budget'&&!$('#budget-frame').src)$('#budget-frame').src='/ngan-sach-mau.html?embed=1';
+  ['#planbar','#kpis','#work'].forEach(x=>$(x).classList.toggle('hidden',v!=='plan'||!S.data));
+  $('#filters').classList.toggle('hidden',v==='budget');$('#pending').classList.toggle('hidden',v==='budget');
+  try{history.replaceState(null,'',v==='plan'?location.pathname:'#'+v)}catch(e){}
   if(v==='dash')loadDash();
 }
 $$('#topnav button').forEach(b=>b.onclick=()=>showView(b.dataset.v));
@@ -584,5 +589,6 @@ $('#d-backup').onclick=async()=>{const d=await api('/api/data');const a=document
 $('#d-restore').onchange=async e=>{const f=e.target.files[0];if(!f)return;if(!confirm('Thay toàn bộ dữ liệu hiện tại bằng file "'+f.name+'"? (dữ liệu hiện tại được tự sao lưu trước)'))return;
   try{await api('/api/data',JSON.parse(await f.text()));msg('Đã khôi phục dữ liệu.','ok');S.data&&openPlan();}catch(err){msg('Không khôi phục được: '+esc(err.message));}e.target.value='';};
 </script>
+<script>(function(){const v=location.hash.slice(1);if(!['dash','budget'].includes(v))return;let n=0;const t=setInterval(()=>{n++;const app=document.querySelector('#app');if((app&&!app.classList.contains('hidden')&&document.querySelector('#f-dept').options.length)||n>40){clearInterval(t);setTimeout(()=>showView(v),200);}},150);})();</script>
 </body>
 </html>
