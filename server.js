@@ -64,6 +64,50 @@ const RANK = { validate: 0, confirm: 1, draft: 2, refuse: 3, cancel: 4 };
 const ST = { draft: 'Nháp', confirm: 'Chờ phê duyệt', validate: 'Đã phê duyệt', refuse: 'Từ chối', cancel: 'Đã huỷ' };
 function vld(j, hc) { if (j.controlled && hc < j.employees) fail(`${j.name}: định biên ${hc} thấp hơn ${j.employees} người đang giữ (VLD-HC-05). Tăng định biên hoặc bỏ "Kiểm soát vị trí".`); }
 
+
+// ---------- Cơ cấu tổ chức (quản lý độc lập trên web) ----------
+const LEVELS = ['Khối', 'Ban', 'Phòng', 'Bộ phận', 'Tổ nhóm'];
+function guessLevel(n) { const u = (n || '').toUpperCase(); if (u.startsWith('KHỐI')) return 'Khối'; if (u.startsWith('BAN')) return 'Ban'; if (u.startsWith('PHÒNG')) return 'Phòng'; if (u.startsWith('BỘ PHẬN') || u.startsWith('BP')) return 'Bộ phận'; if (u.startsWith('NHÓM') || u.startsWith('TỔ')) return 'Tổ nhóm'; return ''; }
+function refreshFull(id) { const d = dept(id); const p = d.parent_id ? dept(d.parent_id) : null; d.full = p ? `${p.full} / ${d.name}` : d.name; DB.departments.filter(x => x.parent_id === id).forEach(x => refreshFull(x.id)); }
+function orgLog(text) { DB.orglog = DB.orglog || []; DB.orglog.push({ date: now(), author: USER, body: text }); }
+function orgList(companyId) {
+  return DB.departments.filter(d => d.company_id === companyId && d.id !== 0).map(d => {
+    const ids = childIds(d.id); const js = DB.jobs.filter(j => ids.includes(j.dept_id) && j.active !== false);
+    const own = DB.jobs.filter(j => j.dept_id === d.id && j.active !== false);
+    return { id: d.id, parent_id: d.parent_id, name: d.name, full: d.full, level: d.level || guessLevel(d.name), active: d.active !== false, local: !!d.created_local,
+      jobs: own.length, people: own.reduce((s, j) => s + (j.employees || 0), 0), jobs_all: js.length, people_all: js.reduce((s, j) => s + (j.employees || 0), 0) };
+  });
+}
+function orgAction(b) {
+  const name = (b.name || '').trim();
+  const checkParent = (pid, selfId) => { if (!pid) return null; const p = dept(pid) || fail('Không tìm thấy đơn vị cha'); if (p.active === false) fail('Đơn vị cha đang ngừng hoạt động'); if (selfId && childIds(selfId).includes(pid)) fail('Không thể chuyển đơn vị vào chính nó hoặc đơn vị con của nó'); return p; };
+  const dupe = (pid, nm, selfId) => { if (DB.departments.some(d => d.id !== selfId && (d.parent_id || null) === (pid || null) && d.active !== false && d.name.trim().toLowerCase() === nm.toLowerCase())) fail(`Đã có đơn vị "${nm}" cùng cấp này`); };
+  if (b.action === 'create') {
+    if (!name) fail('Nhập tên đơn vị'); const pid = b.parent_id ? Number(b.parent_id) : null; const p = checkParent(pid); dupe(pid, name);
+    if (b.level && !LEVELS.includes(b.level)) fail('Cấp đơn vị không hợp lệ');
+    DB.seq.dept = Math.max(DB.seq.dept || 0, ...DB.departments.map(d => d.id)) + 1;
+    const d = { id: DB.seq.dept, company_id: Number(b.company_id) || (p && p.company_id) || DB.companies[0].id, parent_id: pid, name, full: '', level: b.level || guessLevel(name), active: true, created_local: true, create_date: now(), owner: USER };
+    DB.departments.push(d); refreshFull(d.id); orgLog(`Thêm đơn vị "${d.full}" (${d.level || 'chưa chọn cấp'})`); save(); return { ok: true, id: d.id };
+  }
+  const d = dept(Number(b.id)) || fail('Không tìm thấy đơn vị');
+  if (b.action === 'update') {
+    if (!name) fail('Nhập tên đơn vị'); dupe(d.parent_id, name, d.id); if (b.level && !LEVELS.includes(b.level)) fail('Cấp đơn vị không hợp lệ');
+    const old = d.full; d.name = name; if (b.level !== undefined) d.level = b.level; refreshFull(d.id);
+    orgLog(old === d.full ? `Đổi cấp "${d.full}" thành ${d.level || '—'}` : `Đổi tên "${old}" thành "${d.full}"`); save(); return { ok: true };
+  }
+  if (b.action === 'move') {
+    const pid = b.parent_id ? Number(b.parent_id) : null; checkParent(pid, d.id); dupe(pid, d.name, d.id);
+    const old = d.full; d.parent_id = pid; refreshFull(d.id); orgLog(`Chuyển "${old}" thành "${d.full}"`); save(); return { ok: true };
+  }
+  if (b.action === 'deactivate') {
+    const kids = DB.departments.filter(x => x.parent_id === d.id && x.active !== false); if (kids.length) fail(`Còn ${kids.length} đơn vị con đang hoạt động – ngừng hoặc chuyển chúng trước`);
+    const ppl = DB.jobs.filter(j => j.dept_id === d.id && (j.employees || 0) > 0); if (ppl.length) fail(`Còn ${ppl.reduce((s, j) => s + j.employees, 0)} người đang giữ vị trí trong đơn vị – chuyển vị trí/người trước`);
+    d.active = false; orgLog(`Ngừng hoạt động "${d.full}"`); save(); return { ok: true };
+  }
+  if (b.action === 'activate') { if (d.parent_id) checkParent(d.parent_id); d.active = true; orgLog(`Mở lại "${d.full}"`); save(); return { ok: true }; }
+  fail('Thao tác không hợp lệ');
+}
+
 // ---------- Lưới ----------
 function grid(deptId, scenarioId, year, planId) {
   const root = dept(deptId) || fail('Không tìm thấy đơn vị');
@@ -342,7 +386,7 @@ const routes = {
   'GET /api/version': () => { const f = path.join(__dirname, 'public', 'index.html'); return { boot: BOOT, page: fs.existsSync(f) ? fs.statSync(f).mtimeMs : 0 }; },
   'GET /api/me': () => ({ name: USER, mode: 'local', snapshot: DB.meta && DB.meta.snapshot, source: DB.meta && DB.meta.source }),
   'GET /api/companies': () => DB.companies,
-  'GET /api/departments': q => DB.departments.filter(d => d.company_id === Number(q.company_id) && d.id !== 0).sort((a, b) => a.full.localeCompare(b.full)).map(d => ({ id: d.id, complete_name: d.full })),
+  'GET /api/departments': q => DB.departments.filter(d => d.company_id === Number(q.company_id) && d.id !== 0 && d.active !== false).sort((a, b) => a.full.localeCompare(b.full)).map(d => ({ id: d.id, complete_name: d.full })),
   'GET /api/scenarios': () => DB.scenarios,
   'GET /api/grid': q => grid(Number(q.dept_id), Number(q.scenario_id), Number(q.year), q.plan_id ? Number(q.plan_id) : null),
   'POST /api/plan/create': (q, b) => createPlan(b),
@@ -358,6 +402,8 @@ const routes = {
   'POST /api/plan/comment': (q, b) => addComment(b),
   'GET /api/dashboard': q => dashboard(Number(q.company_id), Number(q.scenario_id), Number(q.year)),
   'GET /api/pending': () => pending(),
+  'GET /api/org': q => ({ levels: LEVELS, depts: orgList(Number(q.company_id)), log: (DB.orglog || []).slice(-100).reverse() }),
+  'POST /api/org': (q, b) => orgAction(b),
   'GET /api/budget': () => (fs.existsSync(BUDGET) ? JSON.parse(fs.readFileSync(BUDGET, 'utf8')) : null),
   'POST /api/budget': (q, b) => { if (!b || typeof b !== 'object') fail('Cấu hình không hợp lệ'); if (fs.existsSync(BUDGET)) fs.copyFileSync(BUDGET, path.join(BAK, `ngan-sach-${new Date().toISOString().slice(0, 10)}.json`)); fs.writeFileSync(BUDGET, JSON.stringify(b)); return { ok: true }; },
   'GET /api/data': () => DB,

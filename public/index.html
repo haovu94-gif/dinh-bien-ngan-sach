@@ -89,7 +89,7 @@ th.qs{border-left:2px solid #d0d5dd} td.qs{border-left:2px solid #eef0f3}
 <header>
   <h1>Định biên & Ngân sách</h1>
   <span class="sub">bản local độc lập · không kết nối KOI</span>
-  <nav class="top" id="topnav"><button data-v="plan" class="on">Tạo và xem Kế hoạch định biên</button><button data-v="dash">Dashboard hoạch định nhân sự</button><button data-v="budget">Ngân sách</button></nav>
+  <nav class="top" id="topnav"><button data-v="plan" class="on">Tạo và xem Kế hoạch định biên</button><button data-v="dash">Dashboard hoạch định nhân sự</button><button data-v="org">Cơ cấu tổ chức</button><button data-v="budget">Ngân sách</button></nav>
   <div class="me" id="me">Đang tải…</div>
   <button class="btn" id="d-backup" title="Tải toàn bộ dữ liệu về máy">Sao lưu</button>
   <label class="btn" style="flex-direction:row;color:var(--text);font-size:13.5px" title="Nạp lại từ file sao lưu">Khôi phục<input type="file" id="d-restore" accept=".json" hidden></label>
@@ -109,6 +109,7 @@ th.qs{border-left:2px solid #d0d5dd} td.qs{border-left:2px solid #eef0f3}
 
     <div id="pending"></div>
     <div id="dash" class="hidden"></div>
+    <div id="org" class="hidden"></div>
     <div id="budget" class="hidden"><iframe id="budget-frame" title="Ngân sách" style="width:100%;height:calc(100vh - 110px);border:0;display:block"></iframe></div>
     <div id="planbar" class="card hidden"></div>
     <div id="kpis" class="kpis hidden" style="margin-bottom:12px"></div>
@@ -430,17 +431,78 @@ function renderReport(){
     <tr class="total"><td class="l">Tổng</td>${tot.map(x=>`<td>${f(x)}</td>`).join('')}</tr></tbody></table></div>`;
   $$('#rep [data-rm]').forEach(b=>b.onclick=()=>{REP_MODE=b.dataset.rm;renderReport();});
 }
+
+// ---------- Cơ cấu tổ chức ----------
+const ORG={open:new Set(),q:'',inactive:false,data:null,log:false};
+async function loadOrg(){
+  $('#org').innerHTML='<div class="card muted">Đang tải…</div>';
+  try{ORG.data=await api('/api/org?company_id='+$('#f-company').value);if(!ORG.open.size)ORG.data.depts.filter(d=>!d.parent_id).forEach(d=>ORG.open.add(d.id));renderOrg();}
+  catch(e){$('#org').innerHTML=`<div class="card msg err">${esc(e.message)}</div>`;}
+}
+function renderOrg(){
+  const D=ORG.data.depts,by={};D.forEach(d=>(by[d.parent_id||0]=by[d.parent_id||0]||[]).push(d));
+  Object.values(by).forEach(a=>a.sort((x,y)=>x.name.localeCompare(y.name,'vi')));
+  const q=ORG.q.trim().toLowerCase(),show=d=>ORG.inactive||d.active;
+  const hit=new Set();if(q){D.forEach(d=>{if(d.name.toLowerCase().includes(q)){let x=d;while(x){hit.add(x.id);x=D.find(y=>y.id===x.parent_id);}}});}
+  const rows=[];const walk=(pid,lv)=>(by[pid]||[]).filter(show).forEach(d=>{
+    if(q&&!hit.has(d.id))return;const kids=(by[d.id]||[]).filter(show).length;const open=q||ORG.open.has(d.id);
+    rows.push(`<tr style="${d.active?'':'opacity:.5'}"><td class="l" style="padding-left:${8+lv*22}px">${kids?`<a class="link" data-tg="${d.id}" style="display:inline-block;width:18px">${open?'▾':'▸'}</a>`:'<span style="display:inline-block;width:18px"></span>'}<b style="font-weight:${lv?500:700}">${esc(d.name)}</b>${d.local?' <span class="tag new">tạo trên web</span>':''}${d.active?'':' <span class="tag">ngừng</span>'}</td>
+      <td class="l">${esc(d.level||'—')}</td><td>${d.jobs_all}</td><td>${d.people_all}</td>
+      <td class="l" style="white-space:nowrap">${d.active?`<button class="btn" data-add="${d.id}" title="Thêm đơn vị con">+ Con</button> <button class="btn" data-ed="${d.id}">Sửa</button> <button class="btn" data-mv="${d.id}">Chuyển</button> <button class="btn danger" data-off="${d.id}">Ngừng</button>`:`<button class="btn" data-on="${d.id}">Mở lại</button>`}</td></tr>`);
+    if(open)walk(d.id,lv+1);});
+  walk(0,0);
+  const act=D.filter(d=>d.active).length;
+  $('#org').innerHTML=`<div class="card"><div class="row between"><div class="row"><input id="o-q" placeholder="Tìm đơn vị…" value="${esc(ORG.q)}" style="min-width:260px"><label style="flex-direction:row;align-items:center;gap:6px"><input type="checkbox" id="o-in" ${ORG.inactive?'checked':''}> Hiện đơn vị đã ngừng</label><a class="link" id="o-all">Mở tất cả</a> · <a class="link" id="o-none">Thu gọn</a></div>
+    <div class="row"><span class="muted">${act} đơn vị đang hoạt động</span><button class="btn" id="o-log">Nhật ký thay đổi</button><button class="btn primary" id="o-new">+ Thêm đơn vị cấp cao nhất</button></div></div>
+    <p class="muted" style="margin:8px 0 0">Cơ cấu quản lý độc lập trên web (ban đầu lấy từ KOI 23/11). Sửa ở đây không thay đổi KOI. Số vị trí / người tính cả đơn vị con.</p></div>
+    ${ORG.log?`<div class="card"><h3 style="margin:0 0 8px">Nhật ký thay đổi cơ cấu</h3>${ORG.data.log.length?`<table class="hist"><tr><th class="l">Thời gian</th><th class="l">Người sửa</th><th class="l">Nội dung</th></tr>${ORG.data.log.map(l=>`<tr><td class="l">${esc(l.date)}</td><td class="l">${esc(l.author)}</td><td class="l">${esc(l.body)}</td></tr>`).join('')}</table>`:'<span class="muted">Chưa có thay đổi nào.</span>'}</div>`:''}
+    <div class="card wrap"><table><tr><th class="l">Đơn vị</th><th class="l">Cấp</th><th>Vị trí</th><th>Người</th><th class="l">Thao tác</th></tr>${rows.join('')||'<tr><td class="l muted" colspan="5">Không tìm thấy đơn vị.</td></tr>'}</table></div>`;
+  const q$=$('#o-q');q$.oninput=()=>{ORG.q=q$.value;const pos=q$.selectionStart;renderOrg();const n=$('#o-q');n.focus();n.setSelectionRange(pos,pos);};
+  $('#o-in').onchange=e=>{ORG.inactive=e.target.checked;renderOrg();};
+  $('#o-all').onclick=()=>{D.forEach(d=>ORG.open.add(d.id));renderOrg();};$('#o-none').onclick=()=>{ORG.open.clear();renderOrg();};
+  $('#o-log').onclick=()=>{ORG.log=!ORG.log;renderOrg();};
+  $('#o-new').onclick=()=>orgForm({parent_id:null});
+  $$('#org [data-tg]').forEach(a=>a.onclick=()=>{const id=+a.dataset.tg;ORG.open.has(id)?ORG.open.delete(id):ORG.open.add(id);renderOrg();});
+  $$('#org [data-add]').forEach(b=>b.onclick=()=>orgForm({parent_id:+b.dataset.add}));
+  $$('#org [data-ed]').forEach(b=>b.onclick=()=>orgForm(D.find(d=>d.id==b.dataset.ed)));
+  $$('#org [data-mv]').forEach(b=>b.onclick=()=>orgMove(D.find(d=>d.id==b.dataset.mv)));
+  $$('#org [data-off]').forEach(b=>b.onclick=()=>{const d=D.find(x=>x.id==b.dataset.off);if(confirm(`Ngừng hoạt động "${d.full}"?\nĐơn vị sẽ không còn trong danh sách chọn khi lập định biên (có thể mở lại).`))orgDo({action:'deactivate',id:d.id});});
+  $$('#org [data-on]').forEach(b=>b.onclick=()=>orgDo({action:'activate',id:+b.dataset.on}));
+}
+async function orgDo(body,after){try{const r=await api('/api/org',{company_id:+$('#f-company').value,...body});closeModal();msg('Đã lưu thay đổi cơ cấu.','ok');if(body.parent_id)ORG.open.add(+body.parent_id);await loadOrg();await loadDepts($('#f-dept').value);after&&after(r);}catch(e){const m=$('#modal .msg');if(m){m.textContent=e.message;m.classList.remove('hidden');}else msg(e.message);}}
+function orgForm(d){
+  const isNew=!d.id,par=d.parent_id?ORG.data.depts.find(x=>x.id===d.parent_id):null;
+  modal(`<h3>${isNew?'Thêm đơn vị':'Sửa đơn vị'}</h3><div class="msg err hidden"></div>
+    ${isNew?`<p class="muted">Thuộc: <b>${par?esc(par.full):'(cấp cao nhất)'}</b></p>`:`<p class="muted">${esc(d.full)}</p>`}
+    <label>Tên đơn vị<input id="m-name" value="${esc(isNew?'':d.name)}" placeholder="VD: Phòng Đào tạo"></label>
+    <label>Cấp<select id="m-level"><option value="">— chọn —</option>${ORG.data.levels.map(l=>`<option ${l===(d.level||'')?'selected':''}>${l}</option>`).join('')}</select></label>
+    <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="btn" onclick="closeModal()">Huỷ</button><button class="btn primary" id="m-ok">${isNew?'Thêm':'Lưu'}</button></div>`,m=>{
+    const n=m.querySelector('#m-name');n.focus();
+    if(isNew&&!d.level){const nx={'Khối':'Ban','Ban':'Phòng','Phòng':'Bộ phận','Bộ phận':'Tổ nhóm'}[par&&par.level];if(nx)m.querySelector('#m-level').value=nx;}
+    const go=()=>orgDo(isNew?{action:'create',parent_id:d.parent_id,name:n.value,level:m.querySelector('#m-level').value}:{action:'update',id:d.id,name:n.value,level:m.querySelector('#m-level').value});
+    m.querySelector('#m-ok').onclick=go;n.onkeydown=e=>{if(e.key==='Enter')go();};});
+}
+function orgMove(d){
+  const bad=new Set();const mark=id=>{bad.add(id);ORG.data.depts.filter(x=>x.parent_id===id).forEach(x=>mark(x.id));};mark(d.id);
+  const opts=ORG.data.depts.filter(x=>x.active&&!bad.has(x.id)).sort((a,b)=>a.full.localeCompare(b.full,'vi'));
+  modal(`<h3>Chuyển đơn vị</h3><div class="msg err hidden"></div><p class="muted">${esc(d.full)}</p>
+    <label>Chuyển vào<select id="m-par"><option value="">(cấp cao nhất)</option>${opts.map(x=>`<option value="${x.id}" ${x.id===d.parent_id?'selected':''}>${esc(x.full)}</option>`).join('')}</select></label>
+    <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="btn" onclick="closeModal()">Huỷ</button><button class="btn primary" id="m-ok">Chuyển</button></div>`,m=>{
+    m.querySelector('#m-ok').onclick=()=>orgDo({action:'move',id:d.id,parent_id:m.querySelector('#m-par').value||null});});
+}
 // ---------- Dashboard ----------
 function showView(v){
   msg('');
   $$('#topnav button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
   $('#dash').classList.toggle('hidden',v!=='dash');
   $('#budget').classList.toggle('hidden',v!=='budget');
+  $('#org').classList.toggle('hidden',v!=='org');
   if(v==='budget'&&!$('#budget-frame').src)$('#budget-frame').src='/ngan-sach-mau.html?embed=1';
   ['#planbar','#kpis','#work'].forEach(x=>$(x).classList.toggle('hidden',v!=='plan'||!S.data));
-  $('#filters').classList.toggle('hidden',v==='budget');$('#pending').classList.toggle('hidden',v==='budget');
+  $('#filters').classList.toggle('hidden',v==='budget'||v==='org');$('#pending').classList.toggle('hidden',v==='budget'||v==='org');
   try{history.replaceState(null,'',v==='plan'?location.pathname:'#'+v)}catch(e){}
   if(v==='dash')loadDash();
+  if(v==='org')loadOrg();
 }
 $$('#topnav button').forEach(b=>b.onclick=()=>showView(b.dataset.v));
 async function loadDash(){
@@ -589,6 +651,6 @@ $('#d-backup').onclick=async()=>{const d=await api('/api/data');const a=document
 $('#d-restore').onchange=async e=>{const f=e.target.files[0];if(!f)return;if(!confirm('Thay toàn bộ dữ liệu hiện tại bằng file "'+f.name+'"? (dữ liệu hiện tại được tự sao lưu trước)'))return;
   try{await api('/api/data',JSON.parse(await f.text()));msg('Đã khôi phục dữ liệu.','ok');S.data&&openPlan();}catch(err){msg('Không khôi phục được: '+esc(err.message));}e.target.value='';};
 </script>
-<script>(function(){const v=location.hash.slice(1);if(!['dash','budget'].includes(v))return;let n=0;const t=setInterval(()=>{n++;const app=document.querySelector('#app');if((app&&!app.classList.contains('hidden')&&document.querySelector('#f-dept').options.length)||n>40){clearInterval(t);setTimeout(()=>showView(v),200);}},150);})();</script>
+<script>(function(){const v=location.hash.slice(1);if(!['dash','budget','org'].includes(v))return;let n=0;const t=setInterval(()=>{n++;const app=document.querySelector('#app');if((app&&!app.classList.contains('hidden')&&document.querySelector('#f-dept').options.length)||n>40){clearInterval(t);setTimeout(()=>showView(v),200);}},150);})();</script>
 </body>
 </html>
