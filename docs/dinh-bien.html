@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Định biên & Ngân sách – KOI local</title>
+<style>
+:root{--bg:#f5f6f8;--card:#fff;--line:#e3e6eb;--text:#1c2430;--muted:#687385;--brand:#0a6bc4;--brand-2:#e7f0fb;--ok:#12805c;--ok-2:#e6f5ee;--warn:#b54708;--warn-2:#fff3e2;--bad:#b42318;--bad-2:#fdeceb;--chg:#fff6d6}
+*{box-sizing:border-box}
+body{margin:0;font:13.5px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text)}
+header{display:flex;align-items:center;gap:14px;padding:10px 18px;background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20}
+header h1{font-size:15px;margin:0}
+header .me{margin-left:auto;color:var(--muted);font-size:12.5px}
+main{padding:14px 18px;max-width:1700px;margin:0 auto}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:12px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:end}
+.between{justify-content:space-between;align-items:center}
+label{display:flex;flex-direction:column;gap:3px;font-size:11.5px;color:var(--muted)}
+select,input,textarea{font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:7px;background:#fff;color:var(--text)}
+textarea{min-height:64px;resize:vertical}
+.btn{font:inherit;padding:6px 12px;border-radius:7px;border:1px solid var(--line);background:#fff;cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:#c7ccd4}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff;font-weight:600}
+.btn.ok{background:var(--ok);border-color:var(--ok);color:#fff;font-weight:600}
+.btn.danger{color:var(--bad)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.badge{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11.5px;font-weight:600}
+.s-draft{background:#eef1f5;color:#475467}.s-confirm{background:var(--warn-2);color:var(--warn)}.s-validate{background:var(--ok-2);color:var(--ok)}.s-refuse,.s-cancel{background:var(--bad-2);color:var(--bad)}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.tabs button{border:0;background:none;padding:8px 12px;cursor:pointer;font:inherit;color:var(--muted);border-bottom:2px solid transparent}
+.tabs button.on{color:var(--brand);border-bottom-color:var(--brand);font-weight:600}
+.msg{padding:9px 12px;border-radius:8px;margin-bottom:10px}
+.msg.err{background:var(--bad-2);color:var(--bad)}.msg.ok{background:var(--ok-2);color:var(--ok)}.msg.info{background:var(--brand-2);color:var(--brand)}
+.muted{color:var(--muted)} .sub{font-size:11px;color:var(--muted)} .hidden{display:none!important}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.kpi{border:1px solid var(--line);border-radius:9px;padding:8px 11px;background:#fff}
+.kpi .v{font-size:19px;font-weight:700;font-variant-numeric:tabular-nums}.kpi .l{font-size:11.5px;color:var(--muted)}
+.wrap{overflow:auto;max-height:68vh;border:1px solid var(--line);border-radius:9px;background:#fff}
+table{border-collapse:separate;border-spacing:0;width:100%;font-variant-numeric:tabular-nums}
+th,td{padding:4px 6px;border-bottom:1px solid var(--line);white-space:nowrap;text-align:center}
+th{background:#f8f9fb;position:sticky;top:0;z-index:3;font-size:11.5px;color:var(--muted);font-weight:600}
+th.cur,td.cur{background:#f2f7fd}
+td.l,th.l{text-align:left}
+.sticky{position:sticky;left:0;background:#fff;z-index:2;min-width:300px;max-width:360px;overflow:hidden;text-overflow:ellipsis}
+th.sticky{z-index:4;background:#f8f9fb}
+tr.grp td{background:#f3f5f8;font-weight:600;font-size:12px}
+tr.grp td.sticky{background:#f3f5f8}
+tr.total td{background:#eef3fa;font-weight:700;position:sticky;bottom:0;z-index:2}
+tr.total td.sticky{background:#eef3fa;z-index:3}
+td input.c{width:44px;text-align:center;padding:3px 2px;border-radius:5px}
+td input.c.chg{background:var(--chg);border-color:#e8c650}
+td input.c.under{border-color:var(--bad);color:var(--bad);font-weight:700}
+td .ro{display:inline-block;min-width:30px}
+td .ro.zero{color:#c0c6cf}
+.dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--warn);margin-left:2px;vertical-align:top}
+.link{color:var(--brand);cursor:pointer;text-decoration:underline dotted}
+.tag{display:inline-block;font-size:10.5px;padding:0 6px;border-radius:4px;margin-left:4px;vertical-align:middle}
+.tag.new{background:#efe7fd;color:#6b3fc7}.tag.unp{background:var(--warn-2);color:var(--warn)}
+.bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.modal-bg{position:fixed;inset:0;background:rgba(16,24,40,.35);display:flex;align-items:center;justify-content:center;z-index:50}
+.modal{background:#fff;border-radius:12px;padding:16px 18px;width:min(640px,94vw);max-height:88vh;overflow:auto;box-shadow:0 12px 40px rgba(0,0,0,.18)}
+.modal h3{margin:0 0 10px;font-size:15px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.list{max-height:240px;overflow:auto;border:1px solid var(--line);border-radius:8px;padding:6px 8px}
+.list label{flex-direction:row;align-items:center;gap:6px;color:var(--text);font-size:13px;padding:2px 0}
+.hist td,.hist th{text-align:left}
+.empty{padding:28px;text-align:center;color:var(--muted)}
+nav.top{display:flex;gap:4px;margin-left:12px}
+nav.top button{border:0;background:none;padding:6px 12px;border-radius:7px;cursor:pointer;font:inherit;color:var(--muted)}
+nav.top button.on{background:var(--brand-2);color:var(--brand);font-weight:600}
+.steps{display:flex;align-items:center;gap:6px;margin-top:6px;font-size:12px}
+.steps span{padding:2px 10px;border-radius:999px;background:#eef1f5;color:#98a2b3}
+.steps span.done{background:var(--ok-2);color:var(--ok)}.steps span.cur{background:var(--brand);color:#fff;font-weight:600}
+.steps span.bad{background:var(--bad-2);color:var(--bad);font-weight:600}
+.pend{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:var(--warn-2);border:1px solid #f3d19c;color:var(--warn);border-radius:10px;padding:8px 12px;margin-bottom:12px}
+.pend .btn{padding:3px 10px;font-size:12.5px}
+th.q{background:#eef2f7;color:#344054;border-bottom:1px solid var(--line)}
+th.qs{border-left:2px solid #d0d5dd} td.qs{border-left:2px solid #eef0f3}
+.checks li{margin:4px 0}.checks .ok{color:var(--ok)}.checks .bad{color:var(--bad)}.checks .warn{color:var(--warn)}
+.chart{width:100%;height:260px}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--muted)}.legend i{display:inline-block;width:14px;height:3px;vertical-align:middle;margin-right:5px}
+.note-btn{border:0;background:none;cursor:pointer;color:#98a2b3;font-size:13px;padding:0 4px}.note-btn.has{color:var(--brand)}
+.note-txt{font-size:11.5px;color:#5b6b85;font-style:italic;white-space:normal;max-width:330px;margin-top:2px}
+.cmt{padding:8px 0;border-bottom:1px solid var(--line)}.cmt .h{font-size:11.5px;color:var(--muted)}
+.note-cell:hover{background:#f5f9ff}
+</style>
+</head>
+<body>
+<header>
+  <h1>Định biên & Ngân sách</h1>
+  <span class="sub">bản local độc lập · không kết nối KOI</span>
+  <nav class="top" id="topnav"><button data-v="plan" class="on">Tạo và xem Kế hoạch định biên</button><button data-v="dash">Dashboard hoạch định nhân sự</button><a href="./" style="margin-left:8px">Ngân sách</a></nav>
+  <div class="me" id="me">Đang tải…</div>
+  <button class="btn" id="d-backup" title="Tải toàn bộ dữ liệu về máy">Sao lưu</button>
+  <label class="btn" style="flex-direction:row;color:var(--text);font-size:13.5px" title="Nạp lại từ file sao lưu">Khôi phục<input type="file" id="d-restore" accept=".json" hidden></label>
+</header>
+<main>
+  <div id="msg"></div>
+
+  <!-- ỨNG DỤNG -->
+  <section id="app" class="hidden">
+    <div class="card row">
+      <label>Công ty<select id="f-company" style="min-width:240px"></select></label>
+      <label style="flex:1;min-width:320px">Đơn vị (gồm các đơn vị con)<select id="f-dept"></select></label>
+      <label>Kịch bản<select id="f-scenario"></select></label>
+      <label>Năm<select id="f-year"></select></label>
+      <button class="btn primary" id="f-open">Mở kế hoạch</button>
+    </div>
+
+    <div id="pending"></div>
+    <div id="dash" class="hidden"></div>
+    <div id="planbar" class="card hidden"></div>
+    <div id="kpis" class="kpis hidden" style="margin-bottom:12px"></div>
+
+    <div id="work" class="hidden">
+      <div class="tabs" id="tabs">
+        <button data-t="matrix" class="on">Ma trận định biên</button>
+        <button data-t="chk">Biểu đồ & kiểm tra</button>
+        <button data-t="rep">Báo cáo Quý / Năm</button>
+        <button data-t="adj">Điều chỉnh <span id="adj-count"></span></button>
+        <button data-t="talk">Trao đổi <span id="talk-count"></span></button>
+        <button data-t="hist">Lịch sử & phiên bản</button>
+        <button data-t="budget">Ngân sách</button>
+      </div>
+
+      <div data-p="matrix">
+        <div class="card bar" id="tools"></div>
+        <div class="wrap"><table id="grid"></table></div>
+        <div class="sub" style="margin-top:6px">Ô vàng = đã sửa, chưa lưu · Ô đỏ = thấp hơn số người đang giữ (bị chặn với vị trí có Kiểm soát vị trí – VLD-HC-05) · <span class="dot"></span> = đang có điều chỉnh chờ duyệt · Tick ô đầu dòng để chọn vị trí cho Điền nhanh.</div>
+      </div>
+      <div data-p="chk" class="hidden"><div class="card" id="chk"></div></div>
+      <div data-p="rep" class="hidden"><div class="card" id="rep"></div></div>
+      <div data-p="adj" class="hidden"><div class="card" id="adj"></div></div>
+      <div data-p="talk" class="hidden"><div class="card" id="talk"></div></div>
+      <div data-p="hist" class="hidden"><div class="card" id="hist"></div></div>
+      <div data-p="budget" class="hidden"><div class="card empty">Phần <b>Ngân sách</b> đang thiết kế. <a href="./" target="_blank">Mở bản mẫu để hình dung ↗</a></div></div>
+    </div>
+  </section>
+</main>
+<div id="modal"></div>
+
+<script>
+// ===== Bản chạy trên trình duyệt (GitHub Pages): không có server, dữ liệu lưu trong trình duyệt =====
+(function(){
+const SEEDDB={"meta": {"source": "KOI office.karofi.com", "snapshot": "2026-11-23", "note": "Ảnh chụp cơ cấu & vị trí T02 từ KOI", "current_hc_month": "11/2026", "current_hc_note": "Định biên đã duyệt đang hiệu lực T11/2026 trên KOI"}, "companies": [{"id": 6, "code": "T02", "name": "T02 - Công ty Cổ phần Tập đoàn Karofi"}], "scenarios": [{"id": 1, "name": "Kịch bản A", "code": "KBA"}], "departments": [{"id": 254, "company_id": 6, "parent_id": null, "full": "BAN GIÁM ĐỐC", "name": "BAN GIÁM ĐỐC"}, {"id": 255, "company_id": 6, "parent_id": null, "full": "BỘ PHẬN HÀNH CHÍNH MIỀN BẮC", "name": "BỘ PHẬN HÀNH CHÍNH MIỀN BẮC"}, {"id": 260, "company_id": 6, "parent_id": 310, "full": "PHÒNG KINH DOANH MT / BỘ PHẬN VẬN HÀNH SELL OUT MT", "name": "BỘ PHẬN VẬN HÀNH SELL OUT MT"}, {"id": 261, "company_id": 6, "parent_id": 260, "full": "PHÒNG KINH DOANH MT / BỘ PHẬN VẬN HÀNH SELL OUT MT / Cao Phong", "name": "Cao Phong"}, {"id": 262, "company_id": 6, "parent_id": 732, "full": "Trung tâm dịch vụ khách hàng / CHĂM SÓC KHÁCH HÀNG", "name": "CHĂM SÓC KHÁCH HÀNG"}, {"id": 263, "company_id": 6, "parent_id": null, "full": "CÔNG NGHỆ THÔNG TIN", "name": "CÔNG NGHỆ THÔNG TIN"}, {"id": 265, "company_id": 6, "parent_id": 260, "full": "PHÒNG KINH DOANH MT / BỘ PHẬN VẬN HÀNH SELL OUT MT / Điện máy xanh Miền Đông", "name": "Điện máy xanh Miền Đông"}, {"id": 266, "company_id": 6, "parent_id": 260, "full": "PHÒNG KINH DOANH MT / BỘ PHẬN VẬN HÀNH SELL OUT MT / ĐIỆN MÁY XANH MIỀN TRUNG", "name": "ĐIỆN MÁY XANH MIỀN TRUNG"}, {"id": 267, "company_id": 6, "parent_id": 262, "full": "Trung tâm dịch vụ khách hàng / CHĂM SÓC KHÁCH HÀNG / Giám sát dịch vụ", "name": "Giám sát dịch vụ"}, {"id": 273, "company_id": 6, "parent_id": 303, "full": "PHÒNG CÔNG NGHỆ THÔNG TIN / KIỂM SOÁT DỊCH VỤ", "name": "KIỂM SOÁT DỊCH VỤ"}, {"id": 280, "company_id": 6, "parent_id": 1181, "full": "PHÒNG KINH DOANH GT / Bộ phận kinh doanh ngành 1 / KV1_LVT / KV1", "name": "KV1"}, {"id": 282, "company_id": 6, "parent_id": 2870, "full": "PHÒNG KINH DOANH GT / Bộ phận GT - Lọc nước Miền Nam / KV10A", "name": "KV10A"}, {"id": 284, "company_id": 6, "parent_id": 2870, "full": "PHÒNG KINH DOANH GT / Bộ phận GT - Lọc nước Miền Nam / KV11", "name": "KV11"}, {"id": 285, "company_id": 6, "parent_id": 2515, "full": "PHÒNG KINH DOANH GT / Bộ phận kinh doanh ngành 1 / KV2", "name": "KV2"}, {"id": 287, "company_id": 6, "parent_id": 2515, "full": "PHÒNG KINH DOANH GT / Bộ phận kinh doanh ngành 1 / KV3A", "name": "KV3A"}, {"id": 288, "company_id": 6, "parent_id": 2515, "full": "PHÒNG KINH DOANH GT / Bộ phận kinh doanh ngành 1 / KV3B", "name": "KV3B"}, {"id": 289, "company_id": 6, "parent_id": 2515, "full": "PHÒNG KINH DOANH GT / Bộ phận kinh doanh ngành 1 / KV4", "name": "KV4"}, {"id": 290, "company_id": 6, "parent_id": 2515, "full": "PHÒNG KINH DOANH GT / Bộ phận kinh doanh ngành 1 / KV5", "name": "KV5"}, {"id": 292, "company_id": 6, "parent_id": 2515, "full": "PHÒNG KINH DOANH GT / Bộ phận kinh doanh ngành 1 / KV6", "name": "KV6"}, {"id": 293, "company_id": 6, "parent_id": 2870, "full": "PHÒNG KINH DOANH GT / Bộ phận GT - Lọc nước Miền Nam / KV8A", "name": "KV8A"}, {"id": 294, "company_id": 6, "parent_id": 2870, "full": "PHÒNG KINH DOANH GT / Bộ phận GT - Lọc nước Miền Nam / KV8B", "name": "KV8B"}, {"id": 296, "company_id": 6, "parent_id": 2870, "full": "PHÒNG KINH DOANH GT / Bộ phận GT - Lọc nước Miền Nam / KV9A", "name": "KV9A"}, {"id": 297, "company_id": 6, "parent_id": 732, "full": "Trung tâm dịch vụ khách hàng / Kỹ Thuật Dịch vụ Bảo hành", "name": "Kỹ Thuật Dịch vụ Bảo hành"}, {"id": 301, "company_id": 6, "parent_id": null, "full": "Nhóm Thiết kế Sáng tạo", "name": "Nhóm Thiết kế Sáng tạo"}, {"id": 302, "company_id": 6, "parent_id": null, "full": "PHÒNG BÁN LẺ", "name": "PHÒNG BÁN LẺ"}, {"id": 303, "company_id": 6, "parent_id": null, "full": "PHÒNG CÔNG NGHỆ THÔNG TIN", "name": "PHÒNG CÔNG NGHỆ THÔNG TIN"}, {"id": 306, "company_id": 6, "parent_id": 652, "full": "KHỐI TÀI CHÍNH - KẾ TOÁN / PHÒNG KẾ TOÁN", "name": "PHÒNG KẾ TOÁN"}, {"id": 308, "company_id": 6, "parent_id": null, "full": "PHÒNG KINH DOANH GT", "name": "PHÒNG KINH DOANH GT"}, {"id": 309, "company_id": 6, "parent_id": null, "full": "PHÒNG KINH DOANH LỌC TỔNG", "name": "PHÒNG KINH DOANH LỌC TỔNG"}, {"id": 310, "company_id": 6, "parent_id": null, "full": "PHÒNG KINH DOANH MT", "name": "PHÒNG KINH DOANH MT"}, {"id": 313, "company_id": 6, "parent_id": null, "full": "PHÒNG MARKETING QUỐC TẾ", "name": "PHÒNG MARKETING QUỐC TẾ"}, {"id": 315, "company_id": 6, "parent_id": null, "full": "PHÒNG VẬN HÀNH KINH DOANH", "name": "PHÒNG VẬN HÀNH KINH DOANH"}, {"id": 453, "company_id": 6, "parent_id": null, "full": "Phòng Quản lý chất lượng", "name": "Phòng Quản lý chất lượng"}, {"id": 460, "company_id": 6, "parent_id": 260, "full": "PHÒNG KINH DOANH MT / BỘ PHẬN VẬN HÀNH SELL OUT MT / Điện máy xanh Miền Nam", "name": "Điện máy xanh Miền Nam"}, {"id": 461, "company_id": 6, "parent_id": 260, "full": "PHÒNG KINH DOANH MT / BỘ PHẬN VẬN HÀNH SELL OUT MT / Nguyễn Kim Miền Nam", "name": "Nguyễn Kim Miền Nam"}, {"id": 462, "company_id": 6, "parent_id": 260, "full": "PHÒNG KINH DOANH MT / BỘ PHẬN VẬN HÀNH SELL OUT MT / ĐIỆN MÁY XANH MIỀN BẮC", "name": "ĐIỆN MÁY XANH MIỀN BẮC"}, {"id": 463, "company_id": 6, "parent_id": 260, "full": "PHÒNG KINH DOANH MT / BỘ PHẬN VẬN HÀNH SELL OUT MT / CPN", "name": "CPN"}, {"id": 464, "company_id": 6, "parent_id": 260, "full": "PHÒNG KINH DOANH MT / BỘ PHẬN VẬN HÀNH SELL OUT MT / HC", "name": "HC"}, {"id": 465, "company_id": 6, "parent_id": 260, "full": "PHÒNG KINH DOANH MT / BỘ PHẬN VẬN HÀNH SELL OUT MT / PICO", "name": "PICO"}, {"id": 466, "company_id": 6, "parent_id": null, "full": "PHÒNG KINH DOANH QUỐC TẾ", "name": "PHÒNG KINH DOANH QUỐC TẾ"}, {"id": 583, "company_id": 6, "parent_id": null, "full": "PHÒNG TRUYỀN THÔNG MARKETING", "name": "PHÒNG TRUYỀN THÔNG MARKETING"}, {"id": 648, "company_id": 6, "parent_id": 2601, "full": "PHÒNG KINH DOANH MT / Bộ phận Quản lý Khách hàng trọng điểm / BỘ PHẬN QUẢN LÝ KHÁCH HÀNG TRỌNG ĐIỂM MT", "name": "BỘ PHẬN QUẢN LÝ KHÁCH HÀNG TRỌNG ĐIỂM MT"}, {"id": 651, "company_id": 6, "parent_id": null, "full": "KHỐI NHÂN SỰ", "name": "KHỐI NHÂN SỰ"}, {"id": 652, "company_id": 6, "parent_id": null, "full": "KHỐI TÀI CHÍNH - KẾ TOÁN", "name": "KHỐI TÀI CHÍNH - KẾ TOÁN"}, {"id": 696, "company_id": 6, "parent_id": null, "full": "BAN HOẠCH ĐỊNH VÀ PHÁT TRIỂN NGUỒN NHÂN LỰC", "name": "BAN HOẠCH ĐỊNH VÀ PHÁT TRIỂN NGUỒN NHÂN LỰC"}, {"id": 697, "company_id": 6, "parent_id": 696, "full": "BAN HOẠCH ĐỊNH VÀ PHÁT TRIỂN NGUỒN NHÂN LỰC / Phòng Đồng hành và Đối tác nhân sự", "name": "Phòng Đồng hành và Đối tác nhân sự"}, {"id": 698, "company_id": 6, "parent_id": 696, "full": "BAN HOẠCH ĐỊNH VÀ PHÁT TRIỂN NGUỒN NHÂN LỰC / PHÒNG PHÁT TRIỂN TỔ CHỨC HẠNH PHÚC", "name": "PHÒNG PHÁT TRIỂN TỔ CHỨC HẠNH PHÚC"}, {"id": 700, "company_id": 6, "parent_id": 697, "full": "BAN HOẠCH ĐỊNH VÀ PHÁT TRIỂN NGUỒN NHÂN LỰC / Phòng Đồng hành và Đối tác nhân sự / BỘ PHẬN CHÍNH SÁCH", "name": "BỘ PHẬN CHÍNH SÁCH"}, {"id": 701, "company_id": 6, "parent_id": 697, "full": "BAN HOẠCH ĐỊNH VÀ PHÁT TRIỂN NGUỒN NHÂN LỰC / Phòng Đồng hành và Đối tác nhân sự / BỘ PHẬN HRBP", "name": "BỘ PHẬN HRBP"}, {"id": 702, "company_id": 6, "parent_id": 698, "full": "BAN HOẠCH ĐỊNH VÀ PHÁT TRIỂN NGUỒN NHÂN LỰC / PHÒNG PHÁT TRIỂN TỔ CHỨC HẠNH PHÚC / BỘ PHẬN HỌC HỎI PHÁT TRIỂN", "name": "BỘ PHẬN HỌC HỎI PHÁT TRIỂN"}, {"id": 703, "company_id": 6, "parent_id": 698, "full": "BAN HOẠCH ĐỊNH VÀ PHÁT TRIỂN NGUỒN NHÂN LỰC / PHÒNG PHÁT TRIỂN TỔ CHỨC HẠNH PHÚC / BỘ PHẬN PHÁT TRIỂN VĂN HÓA", "name": "BỘ PHẬN PHÁT TRIỂN VĂN HÓA"}, {"id": 709, "company_id": 6, "parent_id": null, "full": "PHÒNG PHÁP CHẾ", "name": "PHÒNG PHÁP CHẾ"}, {"id": 710, "company_id": 6, "parent_id": 652, "full": "KHỐI TÀI CHÍNH - KẾ TOÁN / PHÒNG TÀI CHÍNH", "name": "PHÒNG TÀI CHÍNH"}, {"id": 711, "company_id": 6, "parent_id": 652, "full": "KHỐI TÀI CHÍNH - KẾ TOÁN / NHÓM ĐẦU TƯ", "name": "NHÓM ĐẦU TƯ"}, {"id": 722, "company_id": 6, "parent_id": null, "full": "Bộ phận Thư ký - trợ lý", "name": "Bộ phận Thư ký - trợ lý"}, {"id": 724, "company_id": 6, "parent_id": 583, "full": "PHÒNG TRUYỀN THÔNG MARKETING / Phòng Retail Marketing", "name": "Phòng Retail Marketing"}, {"id": 725, "company_id": 6, "parent_id": 583, "full": "PHÒNG TRUYỀN THÔNG MARKETING / Phòng Retail Marketing", "name": "Phòng Retail Marketing"}, {"id": 726, "company_id": 6, "parent_id": 583, "full": "PHÒNG TRUYỀN THÔNG MARKETING / Phòng Retail Marketing", "name": "Phòng Retail Marketing"}, {"id": 728, "company_id": 6, "parent_id": 583, "full": "PHÒNG TRUYỀN THÔNG MARKETING / Phòng Retail Marketing", "name": "Phòng Retail Marketing"}, {"id": 729, "company_id": 6, "parent_id": null, "full": "Kho vận", "name": "Kho vận"}, {"id": 730, "company_id": 6, "parent_id": 729, "full": "Kho vận / Bộ phận Kho Vận Miền Nam", "name": "Bộ phận Kho Vận Miền Nam"}, {"id": 731, "company_id": 6, "parent_id": 729, "full": "Kho vận / Bộ phận Kho Vận Miền Bắc", "name": "Bộ phận Kho Vận Miền Bắc"}, {"id": 732, "company_id": 6, "parent_id": null, "full": "Trung tâm dịch vụ khách hàng", "name": "Trung tâm dịch vụ khách hàng"}, {"id": 738, "company_id": 6, "parent_id": 583, "full": "PHÒNG TRUYỀN THÔNG MARKETING / Bộ phận Trade Marketing", "name": "Bộ phận Trade Marketing"}, {"id": 1162, "company_id": 6, "parent_id": 2885, "full": "PHÒNG MARKETING QUỐC TẾ / Bộ phận Thiết kế sáng tạo / 2D", "name": "2D"}, {"id": 1163, "company_id": 6, "parent_id": 2885, "full": "PHÒNG MARKETING QUỐC TẾ / Bộ phận Thiết kế sáng tạo / 3D", "name": "3D"}, {"id": 1164, "company_id": 6, "parent_id": 2885, "full": "PHÒNG MARKETING QUỐC TẾ / Bộ phận Thiết kế sáng tạo / Video", "name": "Video"}, {"id": 1168, "company_id": 6, "parent_id": 726, "full": "PHÒNG TRUYỀN THÔNG MARKETING / Phòng Retail Marketing / 2D", "name": "2D"}, {"id": 1169, "company_id": 6, "parent_id": 726, "full": "PHÒNG TRUYỀN THÔNG MARKETING / Phòng Retail Marketing / 3D", "name": "3D"}, {"id": 1170, "company_id": 6, "parent_id": 726, "full": "PHÒNG TRUYỀN THÔNG MARKETING / Phòng Retail Marketing / Video", "name": "Video"}, {"id": 1171, "company_id": 6, "parent_id": 2870, "full": "PHÒNG KINH DOANH GT / Bộ phận GT - Lọc nước Miền Nam / KV9B", "name": "KV9B"}, {"id": 1181, "company_id": 6, "parent_id": 2515, "full": "PHÒNG KINH DOANH GT / Bộ phận kinh doanh ngành 1 / KV1_LVT", "name": "KV1_LVT"}, {"id": 1190, "company_id": 6, "parent_id": 309, "full": "PHÒNG KINH DOANH LỌC TỔNG / KV6", "name": "KV6"}, {"id": 1193, "company_id": 6, "parent_id": 309, "full": "PHÒNG KINH DOANH LỌC TỔNG / KV2", "name": "KV2"}, {"id": 1194, "company_id": 6, "parent_id": 309, "full": "PHÒNG KINH DOANH LỌC TỔNG / KV3", "name": "KV3"}, {"id": 1195, "company_id": 6, "parent_id": 309, "full": "PHÒNG KINH DOANH LỌC TỔNG / KV4", "name": "KV4"}, {"id": 1199, "company_id": 6, "parent_id": 309, "full": "PHÒNG KINH DOANH LỌC TỔNG / KV1A", "name": "KV1A"}, {"id": 2515, "company_id": 6, "parent_id": 308, "full": "PHÒNG KINH DOANH GT / Bộ phận kinh doanh ngành 1", "name": "Bộ phận kinh doanh ngành 1"}, {"id": 2516, "company_id": 6, "parent_id": 1181, "full": "PHÒNG KINH DOANH GT / Bộ phận kinh doanh ngành 1 / KV1_LVT / Livotec", "name": "Livotec"}, {"id": 2548, "company_id": 6, "parent_id": 466, "full": "PHÒNG KINH DOANH QUỐC TẾ / Phil", "name": "Phil"}, {"id": 2549, "company_id": 6, "parent_id": 466, "full": "PHÒNG KINH DOANH QUỐC TẾ / Indo", "name": "Indo"}, {"id": 2571, "company_id": 6, "parent_id": 309, "full": "PHÒNG KINH DOANH LỌC TỔNG / KV8B", "name": "KV8B"}, {"id": 2575, "company_id": 6, "parent_id": null, "full": "Phòng Kinh doanh Online", "name": "Phòng Kinh doanh Online"}, {"id": 2591, "company_id": 6, "parent_id": 302, "full": "PHÒNG BÁN LẺ / Bộ phận Bán lẻ Miền Bắc", "name": "Bộ phận Bán lẻ Miền Bắc"}, {"id": 2592, "company_id": 6, "parent_id": 302, "full": "PHÒNG BÁN LẺ / Bộ phận Bán lẻ Miền Nam", "name": "Bộ phận Bán lẻ Miền Nam"}, {"id": 2593, "company_id": 6, "parent_id": 309, "full": "PHÒNG KINH DOANH LỌC TỔNG / KV7", "name": "KV7"}, {"id": 2594, "company_id": 6, "parent_id": 309, "full": "PHÒNG KINH DOANH LỌC TỔNG / KV8A", "name": "KV8A"}, {"id": 2598, "company_id": 6, "parent_id": 315, "full": "PHÒNG VẬN HÀNH KINH DOANH / Bộ phận Vận hành thương hiệu quốc tế & OEM", "name": "Bộ phận Vận hành thương hiệu quốc tế & OEM"}, {"id": 2599, "company_id": 6, "parent_id": 315, "full": "PHÒNG VẬN HÀNH KINH DOANH / Bộ phận Vận hành thương hiệu nội địa", "name": "Bộ phận Vận hành thương hiệu nội địa"}, {"id": 2600, "company_id": 6, "parent_id": 2601, "full": "PHÒNG KINH DOANH MT / Bộ phận Quản lý Khách hàng trọng điểm / Bộ Phận Quản Lý Khách Hàng Trọng Điểm MT Miền Bắc", "name": "Bộ Phận Quản Lý Khách Hàng Trọng Điểm MT Miền Bắc"}, {"id": 2601, "company_id": 6, "parent_id": 310, "full": "PHÒNG KINH DOANH MT / Bộ phận Quản lý Khách hàng trọng điểm", "name": "Bộ phận Quản lý Khách hàng trọng điểm"}, {"id": 2603, "company_id": 6, "parent_id": 262, "full": "Trung tâm dịch vụ khách hàng / CHĂM SÓC KHÁCH HÀNG / Bộ phận Chăm sóc hàng", "name": "Bộ phận Chăm sóc hàng"}, {"id": 2604, "company_id": 6, "parent_id": 262, "full": "Trung tâm dịch vụ khách hàng / CHĂM SÓC KHÁCH HÀNG / Bộ phận Giải quyết khiếu nại", "name": "Bộ phận Giải quyết khiếu nại"}, {"id": 2608, "company_id": 6, "parent_id": 308, "full": "PHÒNG KINH DOANH GT / Bộ phận Telesales", "name": "Bộ phận Telesales"}, {"id": 2870, "company_id": 6, "parent_id": 308, "full": "PHÒNG KINH DOANH GT / Bộ phận GT - Lọc nước Miền Nam", "name": "Bộ phận GT - Lọc nước Miền Nam"}, {"id": 2871, "company_id": 6, "parent_id": 2575, "full": "Phòng Kinh doanh Online / Nhóm Kinh doanh Nội sàn", "name": "Nhóm Kinh doanh Nội sàn"}, {"id": 2872, "company_id": 6, "parent_id": 2575, "full": "Phòng Kinh doanh Online / Nhóm Kinh doanh Ngoại sàn", "name": "Nhóm Kinh doanh Ngoại sàn"}, {"id": 2877, "company_id": 6, "parent_id": 309, "full": "PHÒNG KINH DOANH LỌC TỔNG / KV5", "name": "KV5"}, {"id": 2878, "company_id": 6, "parent_id": 260, "full": "PHÒNG KINH DOANH MT / BỘ PHẬN VẬN HÀNH SELL OUT MT / Điện Máy Xanh Miền Bắc 2", "name": "Điện Máy Xanh Miền Bắc 2"}, {"id": 2879, "company_id": 6, "parent_id": 260, "full": "PHÒNG KINH DOANH MT / BỘ PHẬN VẬN HÀNH SELL OUT MT / Cao Phong 2", "name": "Cao Phong 2"}, {"id": 2880, "company_id": 6, "parent_id": 260, "full": "PHÒNG KINH DOANH MT / BỘ PHẬN VẬN HÀNH SELL OUT MT / Cao Phong 3", "name": "Cao Phong 3"}, {"id": 2881, "company_id": 6, "parent_id": 260, "full": "PHÒNG KINH DOANH MT / BỘ PHẬN VẬN HÀNH SELL OUT MT / Nguyễn Kim 1", "name": "Nguyễn Kim 1"}, {"id": 2882, "company_id": 6, "parent_id": 260, "full": "PHÒNG KINH DOANH MT / BỘ PHẬN VẬN HÀNH SELL OUT MT / Điện Máy Xanh Miền Nam 2", "name": "Điện Máy Xanh Miền Nam 2"}, {"id": 2885, "company_id": 6, "parent_id": 313, "full": "PHÒNG MARKETING QUỐC TẾ / Bộ phận Thiết kế sáng tạo", "name": "Bộ phận Thiết kế sáng tạo"}, {"id": 2895, "company_id": 6, "parent_id": null, "full": "Phòng Dịch vụ", "name": "Phòng Dịch vụ"}, {"id": 2896, "company_id": 6, "parent_id": 2895, "full": "Phòng Dịch vụ / Bộ phận Hành chính", "name": "Bộ phận Hành chính"}, {"id": 2897, "company_id": 6, "parent_id": 2895, "full": "Phòng Dịch vụ / Bộ phận Pháp chế", "name": "Bộ phận Pháp chế"}, {"id": 2898, "company_id": 6, "parent_id": 2895, "full": "Phòng Dịch vụ / Bộ phận Công nghệ thông tin", "name": "Bộ phận Công nghệ thông tin"}, {"id": 1192, "company_id": 6, "parent_id": 309, "full": "PHÒNG KINH DOANH LỌC TỔNG / KV1", "name": "KV1"}, {"id": 0, "company_id": 6, "parent_id": null, "full": "(Chưa gán đơn vị)", "name": "(Chưa gán đơn vị)"}], "jobs": [{"id": 346, "company_id": 6, "dept_id": 731, "name": "Nhân viên Admin Kho", "employees": 2, "controlled": false, "current_hc": 1}, {"id": 347, "company_id": 6, "dept_id": 731, "name": "Nhân viên Lái xe nâng", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 348, "company_id": 6, "dept_id": 731, "name": "Thủ kho", "employees": 2, "controlled": true, "current_hc": 2}, {"id": 350, "company_id": 6, "dept_id": 315, "name": "Chuyên viên Hỗ trợ", "employees": 1, "controlled": true, "current_hc": null}, {"id": 351, "company_id": 6, "dept_id": 315, "name": "Chuyên viên Technical Sales", "employees": 1, "controlled": true, "current_hc": null}, {"id": 352, "company_id": 6, "dept_id": 1168, "name": "Chuyên viên Thiết kế", "employees": 4, "controlled": true, "current_hc": 4}, {"id": 356, "company_id": 6, "dept_id": 302, "name": "Nhân viên Kỹ thuật", "employees": 2, "controlled": true, "current_hc": 8}, {"id": 357, "company_id": 6, "dept_id": 2871, "name": "Trưởng nhóm Thương mại Điện tử", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 366, "company_id": 6, "dept_id": 289, "name": "Trưởng Kinh doanh Khu vực", "employees": 1, "controlled": true, "current_hc": 2}, {"id": 368, "company_id": 6, "dept_id": 648, "name": "Giám sát Khách hàng trọng điểm", "employees": 1, "controlled": false, "current_hc": 1}, {"id": 370, "company_id": 6, "dept_id": 648, "name": "Quản lý Khách hàng trọng điểm", "employees": 2, "controlled": false, "current_hc": 2}, {"id": 371, "company_id": 6, "dept_id": 308, "name": "Trợ lý Kinh doanh", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 372, "company_id": 6, "dept_id": 2594, "name": "Chuyên viên Kinh doanh", "employees": 1, "controlled": false, "current_hc": 1}, {"id": 375, "company_id": 6, "dept_id": 1193, "name": "Trưởng phòng Kinh doanh Lọc tổng", "employees": 1, "controlled": false, "current_hc": 1}, {"id": 376, "company_id": 6, "dept_id": 461, "name": "Trưởng nhóm Tư vấn Sản phẩm", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 378, "company_id": 6, "dept_id": 315, "name": "Chuyên viên Data", "employees": 1, "controlled": true, "current_hc": null}, {"id": 379, "company_id": 6, "dept_id": 466, "name": "Chuyên viên Hệ thống", "employees": 3, "controlled": false, "current_hc": 1}, {"id": 380, "company_id": 6, "dept_id": 315, "name": "Nhân viên Sales Admin", "employees": 4, "controlled": true, "current_hc": null}, {"id": 381, "company_id": 6, "dept_id": 2871, "name": "Nhân viên TeleSales", "employees": 4, "controlled": false, "current_hc": 4}, {"id": 382, "company_id": 6, "dept_id": 315, "name": "Phó phòng Vận hành Kinh doanh", "employees": 1, "controlled": true, "current_hc": null}, {"id": 383, "company_id": 6, "dept_id": 315, "name": "Trưởng nhóm Data", "employees": 1, "controlled": true, "current_hc": null}, {"id": 384, "company_id": 6, "dept_id": 315, "name": "Trưởng nhóm Sales Admin", "employees": 1, "controlled": true, "current_hc": null}, {"id": 385, "company_id": 6, "dept_id": 315, "name": "Trưởng phòng Vận hành Kinh doanh", "employees": 1, "controlled": true, "current_hc": null}, {"id": 386, "company_id": 6, "dept_id": 301, "name": "Giám đốc Marketing", "employees": 0, "controlled": true, "current_hc": 1}, {"id": 388, "company_id": 6, "dept_id": 2872, "name": "Chuyên viên Digital Marketing", "employees": 3, "controlled": false, "current_hc": 2}, {"id": 389, "company_id": 6, "dept_id": 725, "name": "Chuyên viên Digital Marketing", "employees": 0, "controlled": true, "current_hc": 1}, {"id": 391, "company_id": 6, "dept_id": 313, "name": "Trưởng nhóm Digital Marketing", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 392, "company_id": 6, "dept_id": 724, "name": "Chuyên viên Content", "employees": 2, "controlled": true, "current_hc": 2}, {"id": 395, "company_id": 6, "dept_id": 313, "name": "Giám đốc Marketing", "employees": 0, "controlled": true, "current_hc": 1}, {"id": 396, "company_id": 6, "dept_id": 738, "name": "Chuyên viên Marketing Điểm bán", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 397, "company_id": 6, "dept_id": 738, "name": "Chuyên viên Hình ảnh", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 398, "company_id": 6, "dept_id": 651, "name": "Chuyên viên Hành chính", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 401, "company_id": 6, "dept_id": 306, "name": "Chuyên viên Kế toán Thanh toán", "employees": 0, "controlled": true, "current_hc": 2}, {"id": 402, "company_id": 6, "dept_id": 306, "name": "Chuyên viên Kế toán Tổng hợp", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 403, "company_id": 6, "dept_id": 306, "name": "Kế toán trưởng", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 404, "company_id": 6, "dept_id": 306, "name": "Nhân viên Kế toán Bán hàng phải thu", "employees": 2, "controlled": true, "current_hc": 2}, {"id": 405, "company_id": 6, "dept_id": 306, "name": "Nhân viên Kế toán Kho", "employees": 2, "controlled": true, "current_hc": 2}, {"id": 406, "company_id": 6, "dept_id": 306, "name": "Nhân viên Kế toán Thanh toán", "employees": 1, "controlled": true, "current_hc": null}, {"id": 407, "company_id": 6, "dept_id": 306, "name": "Thủ quỹ", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 408, "company_id": 6, "dept_id": 306, "name": "Trưởng nhóm Kế toán Bán hàng phải thu", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 409, "company_id": 6, "dept_id": 267, "name": "Chuyên viên Kiểm soát Chất lượng dịch vụ", "employees": 1, "controlled": true, "current_hc": null}, {"id": 410, "company_id": 6, "dept_id": 273, "name": "Nhân viên Kiểm soát Chất lượng dịch vụ", "employees": 1, "controlled": true, "current_hc": 2}, {"id": 416, "company_id": 6, "dept_id": 453, "name": "Nhân viên Quản lý Chất lượng", "employees": 5, "controlled": true, "current_hc": 8}, {"id": 417, "company_id": 6, "dept_id": 453, "name": "Trưởng nhóm Quản lý Chất lượng", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 420, "company_id": 6, "dept_id": 262, "name": "Chuyên viên Giải quyết Khiếu nại", "employees": 1, "controlled": true, "current_hc": null}, {"id": 421, "company_id": 6, "dept_id": 262, "name": "Nhân viên Chăm sóc Khách hàng", "employees": 32, "controlled": false, "current_hc": null}, {"id": 422, "company_id": 6, "dept_id": 262, "name": "Trưởng nhóm Chăm sóc Khách hàng", "employees": 1, "controlled": true, "current_hc": null}, {"id": 423, "company_id": 6, "dept_id": 262, "name": "Trưởng Phòng Chăm sóc Khách hàng", "employees": 1, "controlled": true, "current_hc": null}, {"id": 424, "company_id": 6, "dept_id": 297, "name": "Nhân viên Kỹ thuật Dịch vụ Bảo hành", "employees": 3, "controlled": true, "current_hc": null}, {"id": 425, "company_id": 6, "dept_id": 297, "name": "Trưởng nhóm Kỹ thuật Dịch vụ bảo hành", "employees": 1, "controlled": true, "current_hc": null}, {"id": 443, "company_id": 6, "dept_id": 2871, "name": "Nhân viên Thương mại Điện tử", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 485, "company_id": 6, "dept_id": 302, "name": "Giám sát Bán lẻ", "employees": 1, "controlled": true, "current_hc": 6}, {"id": 487, "company_id": 6, "dept_id": 309, "name": "Nhân viên Sales Online", "employees": 1, "controlled": true, "current_hc": 4}, {"id": 507, "company_id": 6, "dept_id": 738, "name": "Nhân viên Hình Ảnh", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 509, "company_id": 6, "dept_id": 728, "name": "Chuyên viên Brand Marketing", "employees": 2, "controlled": false, "current_hc": 1}, {"id": 513, "company_id": 6, "dept_id": 724, "name": "Nhân viên Content", "employees": 2, "controlled": false, "current_hc": 2}, {"id": 629, "company_id": 6, "dept_id": 651, "name": "Nhân viên Tạp vụ", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 630, "company_id": 6, "dept_id": 731, "name": "Công nhân", "employees": 3, "controlled": true, "current_hc": 5}, {"id": 632, "company_id": 6, "dept_id": 284, "name": "Chuyên viên Task Force", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 633, "company_id": 6, "dept_id": 261, "name": "Nhân viên Tư vấn Sản phẩm", "employees": 7, "controlled": true, "current_hc": 8}, {"id": 634, "company_id": 6, "dept_id": 1199, "name": "Nhân viên Kinh doanh", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 636, "company_id": 6, "dept_id": 738, "name": "Trưởng nhóm Retail Marketing", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 637, "company_id": 6, "dept_id": 738, "name": "Trưởng nhóm Hình ảnh", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 639, "company_id": 6, "dept_id": 2871, "name": "Chuyên viên Thương mại Điện tử", "employees": 4, "controlled": false, "current_hc": 4}, {"id": 641, "company_id": 6, "dept_id": 2871, "name": "Nhân viên Livestream", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 642, "company_id": 6, "dept_id": 1164, "name": "Chuyên viên Media", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 643, "company_id": 6, "dept_id": 1168, "name": "Thực tập sinh", "employees": 1, "controlled": false, "current_hc": 1}, {"id": 644, "company_id": 6, "dept_id": 726, "name": "Trưởng nhóm Thiết kế", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 645, "company_id": 6, "dept_id": 725, "name": "Nhân viên Digital Marketing", "employees": 1, "controlled": false, "current_hc": 1}, {"id": 646, "company_id": 6, "dept_id": 308, "name": "Giám đốc Phát triển Kinh doanh Nội địa", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 647, "company_id": 6, "dept_id": 310, "name": "Giám đốc Kinh doanh MT", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 648, "company_id": 6, "dept_id": 466, "name": "Chuyên viên Phân tích Dữ liệu", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 649, "company_id": 6, "dept_id": 466, "name": "Giám đốc Phát triển Kinh doanh Quốc tế", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 651, "company_id": 6, "dept_id": 309, "name": "Giám đốc Kinh doanh Lọc tổng", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 654, "company_id": 6, "dept_id": 297, "name": "Trưởng phòng Kỹ thuật Dịch vụ Bảo hành", "employees": 1, "controlled": true, "current_hc": null}, {"id": 666, "company_id": 6, "dept_id": 308, "name": "Trưởng nhóm Đào tạo Kinh doanh", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 670, "company_id": 6, "dept_id": 313, "name": "Trưởng phòng Trade Marketing", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 716, "company_id": 6, "dept_id": 700, "name": "Chuyên viên Chính sách & Phúc lợi", "employees": 2, "controlled": false, "current_hc": 2}, {"id": 720, "company_id": 6, "dept_id": 306, "name": "Chuyên viên Kế toán Bán hàng phải thu", "employees": 3, "controlled": true, "current_hc": 3}, {"id": 722, "company_id": 6, "dept_id": 310, "name": "Trợ lý Kinh doanh", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 743, "company_id": 6, "dept_id": 698, "name": "Trưởng phòng Phát triển Tổ chức Hạnh phúc", "employees": 0, "controlled": true, "current_hc": 1}, {"id": 747, "company_id": 6, "dept_id": 702, "name": "Chuyên viên Đào tạo", "employees": 0, "controlled": true, "current_hc": null}, {"id": 754, "company_id": 6, "dept_id": 701, "name": "Trưởng Bộ phận Đồng hành và Đối tác Nhân sự", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 757, "company_id": 6, "dept_id": 701, "name": "Trưởng nhóm HRBP", "employees": 1, "controlled": false, "current_hc": 1}, {"id": 758, "company_id": 6, "dept_id": 700, "name": "Trưởng nhóm Chính sách & Phúc lợi", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 759, "company_id": 6, "dept_id": 700, "name": "Nhân viên Chính sách & Phúc lợi", "employees": 1, "controlled": false, "current_hc": 1}, {"id": 760, "company_id": 6, "dept_id": 703, "name": "Trưởng bộ phận Phát triển văn hóa", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 761, "company_id": 6, "dept_id": 703, "name": "Nhân viên Truyền thông Nội bộ", "employees": 1, "controlled": false, "current_hc": 1}, {"id": 762, "company_id": 6, "dept_id": 711, "name": "Chuyên viên Đầu tư", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 763, "company_id": 6, "dept_id": 702, "name": "Trưởng nhóm Học hỏi Phát triển", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 782, "company_id": 6, "dept_id": 262, "name": "Trưởng nhóm Hỗ trợ Kỹ thuật", "employees": 1, "controlled": true, "current_hc": null}, {"id": 783, "company_id": 6, "dept_id": 313, "name": "Trưởng phòng Marketing", "employees": 1, "controlled": false, "current_hc": 1}, {"id": 787, "company_id": 6, "dept_id": 703, "name": "Thực tập sinh", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 807, "company_id": 6, "dept_id": 701, "name": "Chuyên viên HRBP", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 809, "company_id": 6, "dept_id": 722, "name": "Trợ lý Phó Tổng Giám đốc", "employees": 1, "controlled": false, "current_hc": 1}, {"id": 821, "company_id": 6, "dept_id": 702, "name": "Thực tập sinh", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 831, "company_id": 6, "dept_id": 254, "name": "Tổng Giám đốc Đơn vị", "employees": 1, "controlled": false, "current_hc": 1}, {"id": 838, "company_id": 6, "dept_id": 710, "name": "Chuyên viên tài chính", "employees": 0, "controlled": true, "current_hc": 3}, {"id": 840, "company_id": 6, "dept_id": 313, "name": "Trưởng nhóm Thiết kế", "employees": 0, "controlled": true, "current_hc": 0}, {"id": 841, "company_id": 6, "dept_id": 2548, "name": "Trưởng phòng Kinh doanh Quốc tế", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 854, "company_id": 6, "dept_id": 2571, "name": "Giám sát Bán hàng", "employees": 1, "controlled": false, "current_hc": 2}, {"id": 858, "company_id": 6, "dept_id": 2575, "name": "Giám đốc Phát triển Kinh doanh online", "employees": 1, "controlled": false, "current_hc": 1}, {"id": 860, "company_id": 6, "dept_id": 301, "name": "Chuyên viên Marketing", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 949, "company_id": 6, "dept_id": 1181, "name": "Đại diện Bán hàng", "employees": 12, "controlled": true, "current_hc": 18}, {"id": 950, "company_id": 6, "dept_id": 462, "name": "Nhân viên Tư vấn Sản phẩm", "employees": 13, "controlled": false, "current_hc": 13}, {"id": 951, "company_id": 6, "dept_id": 289, "name": "Đại diện Bán hàng", "employees": 8, "controlled": false, "current_hc": 9}, {"id": 952, "company_id": 6, "dept_id": 296, "name": "Đại diện Bán hàng", "employees": 6, "controlled": false, "current_hc": 6}, {"id": 953, "company_id": 6, "dept_id": 460, "name": "Nhân viên Tư vấn Sản phẩm", "employees": 3, "controlled": true, "current_hc": 3}, {"id": 955, "company_id": 6, "dept_id": 284, "name": "Đại diện Bán hàng", "employees": 5, "controlled": true, "current_hc": 7}, {"id": 957, "company_id": 6, "dept_id": 464, "name": "Nhân viên Tư vấn Sản phẩm", "employees": 2, "controlled": true, "current_hc": 2}, {"id": 958, "company_id": 6, "dept_id": 463, "name": "Nhân viên Tư vấn Sản phẩm", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 959, "company_id": 6, "dept_id": 266, "name": "Nhân viên Tư vấn Sản phẩm", "employees": 9, "controlled": true, "current_hc": 9}, {"id": 962, "company_id": 6, "dept_id": 466, "name": "Giám sát Bán lẻ", "employees": 2, "controlled": true, "current_hc": 5}, {"id": 964, "company_id": 6, "dept_id": 1169, "name": "Chuyên viên Thiết kế", "employees": 4, "controlled": false, "current_hc": 1}, {"id": 965, "company_id": 6, "dept_id": 308, "name": "Trưởng nhóm Tư vấn Sản phẩm", "employees": 1, "controlled": false, "current_hc": 2}, {"id": 968, "company_id": 6, "dept_id": 461, "name": "Nhân viên Tư vấn Sản phẩm", "employees": 4, "controlled": true, "current_hc": 3}, {"id": 970, "company_id": 6, "dept_id": 313, "name": "Chuyên viên Digital Marketing", "employees": 2, "controlled": false, "current_hc": 1}, {"id": 971, "company_id": 6, "dept_id": 290, "name": "Trưởng Kinh doanh Khu vực", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 972, "company_id": 6, "dept_id": 313, "name": "Cộng tác viên", "employees": 3, "controlled": false, "current_hc": 3}, {"id": 973, "company_id": 6, "dept_id": 309, "name": "Nhân viên Kỹ thuật", "employees": 2, "controlled": false, "current_hc": 2}, {"id": 974, "company_id": 6, "dept_id": 285, "name": "Trưởng Kinh doanh Khu vực", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 981, "company_id": 6, "dept_id": 651, "name": "Nhân viên Lái xe", "employees": 2, "controlled": false, "current_hc": 2}, {"id": 982, "company_id": 6, "dept_id": 308, "name": "Nhân viên TeleSales", "employees": 3, "controlled": true, "current_hc": 3}, {"id": 983, "company_id": 6, "dept_id": 725, "name": "Trưởng nhóm Digital Marketing", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 984, "company_id": 6, "dept_id": 2872, "name": "Trưởng nhóm Digital Marketing", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 985, "company_id": 6, "dept_id": 265, "name": "Nhân viên Tư vấn Sản phẩm", "employees": 2, "controlled": true, "current_hc": 2}, {"id": 990, "company_id": 6, "dept_id": 460, "name": "Trưởng nhóm Tư vấn Sản phẩm", "employees": 1, "controlled": false, "current_hc": 1}, {"id": 992, "company_id": 6, "dept_id": 313, "name": "Nhân viên Content", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 999, "company_id": 6, "dept_id": 731, "name": "Trưởng Bộ phận Kho vận", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 1001, "company_id": 6, "dept_id": 308, "name": "Giám đốc Kinh doanh GT Miền", "employees": 1, "controlled": true, "current_hc": 4}, {"id": 1004, "company_id": 6, "dept_id": 722, "name": "Trợ lý Tổng giám đốc", "employees": 1, "controlled": false, "current_hc": 1}, {"id": 1006, "company_id": 6, "dept_id": 465, "name": "Nhân viên Tư vấn Sản phẩm", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 1007, "company_id": 6, "dept_id": 738, "name": "Trưởng phòng Trade Marketing", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 1009, "company_id": 6, "dept_id": 254, "name": "Phó Tổng Giám đốc Đơn vị", "employees": 1, "controlled": false, "current_hc": 1}, {"id": 1030, "company_id": 6, "dept_id": 293, "name": "Đại diện bán hàng", "employees": 8, "controlled": false, "current_hc": 8}, {"id": 1033, "company_id": 6, "dept_id": 294, "name": "Đại diện bán hàng", "employees": 4, "controlled": true, "current_hc": 9}, {"id": 1035, "company_id": 6, "dept_id": 287, "name": "Đại diện Bán hàng", "employees": 9, "controlled": true, "current_hc": 12}, {"id": 1038, "company_id": 6, "dept_id": 290, "name": "Đại diện bán hàng", "employees": 12, "controlled": true, "current_hc": 13}, {"id": 1043, "company_id": 6, "dept_id": 292, "name": "Đại diện bán hàng", "employees": 7, "controlled": true, "current_hc": 10}, {"id": 1047, "company_id": 6, "dept_id": 285, "name": "Đại diện bán hàng", "employees": 7, "controlled": true, "current_hc": 11}, {"id": 1048, "company_id": 6, "dept_id": 282, "name": "Đại diện bán hàng", "employees": 6, "controlled": false, "current_hc": 7}, {"id": 1055, "company_id": 6, "dept_id": 288, "name": "Đại diện Bán hàng", "employees": 2, "controlled": true, "current_hc": 6}, {"id": 1086, "company_id": 6, "dept_id": 1170, "name": "Chuyên viên Media", "employees": 2, "controlled": true, "current_hc": 2}, {"id": 1097, "company_id": 6, "dept_id": 583, "name": "Trưởng phòng Truyền thông", "employees": 0, "controlled": true, "current_hc": 0}, {"id": 1108, "company_id": 6, "dept_id": 2594, "name": "Giám sát Bán hàng", "employees": 1, "controlled": false, "current_hc": 1}, {"id": 1109, "company_id": 6, "dept_id": 1190, "name": "Giám sát Bán hàng", "employees": 1, "controlled": false, "current_hc": 2}, {"id": 1118, "company_id": 6, "dept_id": 466, "name": "Chuyên viên Kế hoạch", "employees": 0, "controlled": true, "current_hc": 1}, {"id": 1120, "company_id": 6, "dept_id": 651, "name": "Trưởng Bộ phận Hành chính Nhân sự", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 1129, "company_id": 6, "dept_id": 313, "name": "Trưởng phòng Digital Marketing", "employees": 1, "controlled": false, "current_hc": 1}, {"id": 1307, "company_id": 6, "dept_id": 703, "name": "Chuyên viên Truyền thông Nội bộ", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 1321, "company_id": 6, "dept_id": 260, "name": "Giám đốc Kinh doanh MT", "employees": 0, "controlled": true, "current_hc": 0}, {"id": 1561, "company_id": 6, "dept_id": 309, "name": "Chuyên viên Đào tạo", "employees": 1, "controlled": false, "current_hc": 1}, {"id": 3448, "company_id": 6, "dept_id": 1195, "name": "Giám sát Bán hàng", "employees": 1, "controlled": false, "current_hc": 1}, {"id": 3453, "company_id": 6, "dept_id": 722, "name": "Thư ký Chủ tịch", "employees": 1, "controlled": false, "current_hc": 1}, {"id": 3454, "company_id": 6, "dept_id": 722, "name": "Trợ lý vận hành Chủ tịch", "employees": 2, "controlled": true, "current_hc": 2}, {"id": 3457, "company_id": 6, "dept_id": 1192, "name": "Trưởng phòng Kinh doanh Lọc tổng", "employees": 0, "controlled": true, "current_hc": 1}, {"id": 3466, "company_id": 6, "dept_id": 1199, "name": "Trưởng phòng Kinh doanh Lọc tổng", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 3470, "company_id": 6, "dept_id": 1171, "name": "Đại diện Bán hàng", "employees": 4, "controlled": false, "current_hc": 4}, {"id": 3543, "company_id": 6, "dept_id": 1171, "name": "Trưởng Kinh doanh Khu vực", "employees": 1, "controlled": false, "current_hc": 1}, {"id": 3545, "company_id": 6, "dept_id": 1190, "name": "Trưởng phòng Kinh doanh Lọc tổng", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 3549, "company_id": 6, "dept_id": 265, "name": "Trưởng nhóm Tư vấn Sản phẩm", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 3550, "company_id": 6, "dept_id": 266, "name": "Trưởng nhóm Tư vấn Sản phẩm", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 3552, "company_id": 6, "dept_id": 282, "name": "Trưởng Kinh doanh Khu vực", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 3553, "company_id": 6, "dept_id": 287, "name": "Trưởng Kinh doanh Khu vực", "employees": 0, "controlled": true, "current_hc": 1}, {"id": 3554, "company_id": 6, "dept_id": 288, "name": "Trưởng Kinh doanh Khu vực", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 3556, "company_id": 6, "dept_id": 292, "name": "Trưởng Kinh doanh Khu vực", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 3557, "company_id": 6, "dept_id": 293, "name": "Trưởng Kinh doanh Khu vực", "employees": 1, "controlled": true, "current_hc": 2}, {"id": 3558, "company_id": 6, "dept_id": 294, "name": "Trưởng Kinh doanh Khu vực", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 3559, "company_id": 6, "dept_id": 296, "name": "Trưởng Kinh doanh Khu vực", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 3561, "company_id": 6, "dept_id": 2877, "name": "Trưởng phòng Kinh doanh Lọc tổng", "employees": 0, "controlled": true, "current_hc": null}, {"id": 3562, "company_id": 6, "dept_id": 313, "name": "Chuyên viên Trade Marketing", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 3563, "company_id": 6, "dept_id": 315, "name": "Chuyên viên Hệ thống", "employees": 0, "controlled": true, "current_hc": null}, {"id": 3565, "company_id": 6, "dept_id": 1163, "name": "Chuyên viên Thiết kế", "employees": 0, "controlled": true, "current_hc": 1}, {"id": 3566, "company_id": 6, "dept_id": 1194, "name": "Trưởng phòng Kinh doanh Lọc tổng", "employees": 1, "controlled": false, "current_hc": 0}, {"id": 3567, "company_id": 6, "dept_id": 2571, "name": "Trưởng phòng Kinh doanh Lọc tổng", "employees": 1, "controlled": false, "current_hc": 0}, {"id": 3568, "company_id": 6, "dept_id": 1162, "name": "Chuyên viên Thiết kế", "employees": 0, "controlled": true, "current_hc": 4}, {"id": 3572, "company_id": 6, "dept_id": 2872, "name": "Chuyên viên Tiếp thị liên kết", "employees": 0, "controlled": true, "current_hc": 1}, {"id": 3575, "company_id": 6, "dept_id": 702, "name": "Nhân viên Đào tạo", "employees": 1, "controlled": false, "current_hc": 1}, {"id": 3579, "company_id": 6, "dept_id": 696, "name": "Giám đốc Nhân sự", "employees": 0, "controlled": true, "current_hc": 0}, {"id": 3600, "company_id": 6, "dept_id": 0, "name": "Chủ tịch Hội đồng Quản trị", "employees": 1, "controlled": true, "current_hc": null}, {"id": 3601, "company_id": 6, "dept_id": 0, "name": "Phó Tổng giám đốc Tập đoàn", "employees": 2, "controlled": true, "current_hc": null}, {"id": 3607, "company_id": 6, "dept_id": 722, "name": "Trợ lý Chủ tịch", "employees": 2, "controlled": false, "current_hc": 2}, {"id": 3608, "company_id": 6, "dept_id": 2549, "name": "Trưởng phòng Kinh doanh Quốc tế", "employees": 1, "controlled": false, "current_hc": 1}, {"id": 3609, "company_id": 6, "dept_id": 1181, "name": "Trưởng Kinh doanh Khu vực", "employees": 3, "controlled": false, "current_hc": 2}, {"id": 3613, "company_id": 6, "dept_id": 0, "name": "Phó Giám đốc Nhân sự", "employees": 1, "controlled": true, "current_hc": null}, {"id": 3614, "company_id": 6, "dept_id": 0, "name": "Trưởng nhóm Xây dựng hệ thống và Kiểm soát rủi ro", "employees": 1, "controlled": true, "current_hc": null}, {"id": 3615, "company_id": 6, "dept_id": 0, "name": "Kế toán trưởng", "employees": 1, "controlled": true, "current_hc": null}, {"id": 3616, "company_id": 6, "dept_id": 0, "name": "Phó Tổng giám đốc Tập đoàn", "employees": 0, "controlled": true, "current_hc": null}, {"id": 3617, "company_id": 6, "dept_id": 301, "name": "Trưởng phòng Marketing", "employees": 1, "controlled": false, "current_hc": 1}, {"id": 3619, "company_id": 6, "dept_id": 0, "name": "Giám đốc Quản lý Chất lượng", "employees": 1, "controlled": true, "current_hc": null}, {"id": 3625, "company_id": 6, "dept_id": 2600, "name": "Quản lý Khách hàng trọng điểm", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 3626, "company_id": 6, "dept_id": 308, "name": "Trưởng nhóm TeleSales", "employees": 1, "controlled": false, "current_hc": 1}, {"id": 3627, "company_id": 6, "dept_id": 2872, "name": "Nhân viên TeleSales", "employees": 0, "controlled": true, "current_hc": 4}, {"id": 3633, "company_id": 6, "dept_id": 462, "name": "Trưởng nhóm Tư vấn Sản phẩm", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 3634, "company_id": 6, "dept_id": 261, "name": "Trưởng nhóm Tư vấn Sản phẩm", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 3955, "company_id": 6, "dept_id": 284, "name": "Trưởng Kinh doanh Khu vực", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 4108, "company_id": 6, "dept_id": 1181, "name": "Chuyên viên Task Force", "employees": 3, "controlled": false, "current_hc": 2}, {"id": 4109, "company_id": 6, "dept_id": 290, "name": "Chuyên viên Task Force", "employees": 0, "controlled": true, "current_hc": 1}, {"id": 4110, "company_id": 6, "dept_id": 2593, "name": "Trưởng phòng Kinh doanh Lọc tổng", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 4111, "company_id": 6, "dept_id": 2594, "name": "Trưởng phòng Kinh doanh Lọc tổng", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 4617, "company_id": 6, "dept_id": 2878, "name": "Trưởng nhóm Tư vấn Sản phẩm", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 4618, "company_id": 6, "dept_id": 2878, "name": "Nhân viên Tư vấn Sản phẩm", "employees": 8, "controlled": true, "current_hc": 9}, {"id": 4619, "company_id": 6, "dept_id": 2879, "name": "Trưởng nhóm Tư vấn Sản phẩm", "employees": 1, "controlled": false, "current_hc": 1}, {"id": 4620, "company_id": 6, "dept_id": 2879, "name": "Nhân viên Tư vấn Sản phẩm", "employees": 11, "controlled": false, "current_hc": 11}, {"id": 4621, "company_id": 6, "dept_id": 2880, "name": "Trưởng nhóm Tư vấn Sản phẩm", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 4622, "company_id": 6, "dept_id": 2880, "name": "Nhân viên Tư vấn Sản phẩm", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 4627, "company_id": 6, "dept_id": 2882, "name": "Trưởng nhóm Tư vấn Sản phẩm", "employees": 1, "controlled": false, "current_hc": 1}, {"id": 4628, "company_id": 6, "dept_id": 2882, "name": "Nhân viên Tư vấn Sản phẩm", "employees": 6, "controlled": false, "current_hc": 6}, {"id": 4629, "company_id": 6, "dept_id": 2881, "name": "Trưởng nhóm Tư vấn Sản phẩm", "employees": 0, "controlled": false, "current_hc": null}, {"id": 4630, "company_id": 6, "dept_id": 2881, "name": "Nhân viên Tư vấn Sản phẩm", "employees": 0, "controlled": false, "current_hc": null}, {"id": 4631, "company_id": 6, "dept_id": 466, "name": "Giám đốc Chi nhánh", "employees": 0, "controlled": true, "current_hc": 1}, {"id": 4632, "company_id": 6, "dept_id": 301, "name": "Quản lý Thương hiệu", "employees": 1, "controlled": false, "current_hc": 0}, {"id": 4644, "company_id": 6, "dept_id": 313, "name": "Nhân viên Brand Marketing", "employees": 1, "controlled": false, "current_hc": 0}, {"id": 4646, "company_id": 6, "dept_id": 726, "name": "Trưởng Phòng Thiết kế", "employees": 0, "controlled": true, "current_hc": 0}, {"id": 4647, "company_id": 6, "dept_id": 303, "name": "Chuyên viên Kiểm soát Nội bộ", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 4648, "company_id": 6, "dept_id": 309, "name": "Trợ lý Kinh doanh", "employees": 0, "controlled": true, "current_hc": 1}, {"id": 4677, "company_id": 6, "dept_id": 306, "name": "Cộng tác viên", "employees": 1, "controlled": true, "current_hc": 1}, {"id": 4679, "company_id": 6, "dept_id": 1199, "name": "Giám sát Bán hàng", "employees": 0, "controlled": true, "current_hc": null}, {"id": 4697, "company_id": 6, "dept_id": 2896, "name": "Nhân viên Lái xe", "employees": 3, "controlled": true, "current_hc": null}, {"id": 4698, "company_id": 6, "dept_id": 2895, "name": "Trưởng Phòng Hành chính", "employees": 1, "controlled": true, "current_hc": null}, {"id": 4699, "company_id": 6, "dept_id": 2896, "name": "Nhân viên Hành chính", "employees": 1, "controlled": true, "current_hc": null}, {"id": 4700, "company_id": 6, "dept_id": 2896, "name": "Nhân viên Hành chính - Lễ tân", "employees": 1, "controlled": true, "current_hc": null}, {"id": 4701, "company_id": 6, "dept_id": 2898, "name": "Chuyên viên IT", "employees": 1, "controlled": true, "current_hc": null}, {"id": 4702, "company_id": 6, "dept_id": 2897, "name": "Trưởng nhóm Pháp chế", "employees": 1, "controlled": true, "current_hc": null}, {"id": 4703, "company_id": 6, "dept_id": 2897, "name": "Chuyên viên Pháp chế", "employees": 1, "controlled": true, "current_hc": null}, {"id": 4704, "company_id": 6, "dept_id": 2898, "name": "Cộng tác viên", "employees": 1, "controlled": true, "current_hc": null}, {"id": 4705, "company_id": 6, "dept_id": 2896, "name": "Trưởng nhóm Hành chính", "employees": 1, "controlled": true, "current_hc": null}, {"id": 4706, "company_id": 6, "dept_id": 2896, "name": "Nhân viên Tạp vụ", "employees": 1, "controlled": true, "current_hc": null}, {"id": 4711, "company_id": 6, "dept_id": 2603, "name": "Chuyên viên Chăm sóc Khách hàng", "employees": 1, "controlled": true, "current_hc": null}, {"id": 4712, "company_id": 6, "dept_id": 725, "name": "Chuyên viên SEO", "employees": 1, "controlled": true, "current_hc": null}], "plans": [], "lines": [], "adjustments": [], "log": [], "seq": {"plan": 1, "line": 1, "adj": 1, "job": 100000}};
+const CURHC={"month": "11/2026", "hc": {"346": 1, "347": 1, "348": 2, "352": 4, "356": 8, "357": 1, "366": 2, "368": 1, "370": 2, "371": 1, "372": 1, "375": 1, "376": 1, "379": 1, "381": 4, "386": 1, "388": 2, "389": 1, "391": 1, "392": 2, "395": 1, "396": 1, "397": 1, "398": 1, "401": 2, "402": 1, "403": 1, "404": 2, "405": 2, "407": 1, "408": 1, "410": 2, "416": 8, "417": 1, "443": 1, "485": 6, "487": 4, "507": 1, "509": 1, "513": 2, "629": 1, "630": 5, "632": 1, "633": 8, "634": 1, "636": 1, "637": 1, "639": 4, "641": 1, "642": 1, "643": 1, "644": 1, "645": 1, "646": 1, "647": 1, "648": 1, "649": 1, "651": 1, "666": 1, "670": 1, "716": 2, "720": 3, "722": 1, "743": 1, "754": 1, "757": 1, "758": 1, "759": 1, "760": 1, "761": 1, "762": 1, "763": 1, "783": 1, "787": 1, "807": 1, "809": 1, "821": 1, "831": 1, "838": 3, "840": 0, "841": 1, "854": 2, "858": 1, "860": 1, "949": 18, "950": 13, "951": 9, "952": 6, "953": 3, "955": 7, "957": 2, "958": 1, "959": 9, "962": 5, "964": 1, "965": 2, "968": 3, "970": 1, "971": 1, "972": 3, "973": 2, "974": 1, "981": 2, "982": 3, "983": 1, "984": 1, "985": 2, "990": 1, "992": 1, "999": 1, "1001": 4, "1004": 1, "1006": 1, "1007": 1, "1009": 1, "1030": 8, "1033": 9, "1035": 12, "1038": 13, "1043": 10, "1047": 11, "1048": 7, "1055": 6, "1086": 2, "1097": 0, "1108": 1, "1109": 2, "1118": 1, "1120": 1, "1129": 1, "1307": 1, "1321": 0, "1561": 1, "3448": 1, "3453": 1, "3454": 2, "3457": 1, "3466": 1, "3470": 4, "3543": 1, "3545": 1, "3549": 1, "3550": 1, "3552": 1, "3553": 1, "3554": 1, "3556": 1, "3557": 2, "3558": 1, "3559": 1, "3562": 1, "3565": 1, "3566": 0, "3567": 0, "3568": 4, "3572": 1, "3575": 1, "3579": 0, "3607": 2, "3608": 1, "3609": 2, "3617": 1, "3625": 1, "3626": 1, "3627": 4, "3633": 1, "3634": 1, "3955": 1, "4108": 2, "4109": 1, "4110": 1, "4111": 1, "4617": 1, "4618": 9, "4619": 1, "4620": 11, "4621": 1, "4622": 1, "4627": 1, "4628": 6, "4631": 1, "4632": 0, "4644": 0, "4646": 0, "4647": 1, "4648": 1, "4677": 1}};
+const KEY='dinh-bien-demo-v1';
+let DB;try{DB=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+if(!DB||!DB.jobs)DB=JSON.parse(JSON.stringify(SEEDDB));
+DB.comments=DB.comments||[];
+function save(){try{localStorage.setItem(KEY,JSON.stringify(DB))}catch(e){}}
+class UserError extends Error{}
+const fail=m=>{throw new UserError(m)};
+const nextId = k => DB.seq[k]++;
+const now = () => { const d = new Date(), z = n => String(n).padStart(2, '0'); return `${d.getFullYear()}-${z(d.getMonth() + 1)}-${z(d.getDate())} ${z(d.getHours())}:${z(d.getMinutes())}`; };
+const USER = 'Người dùng demo';
+
+
+function log(plan, text) { DB.log.push({ plan_code: plan.code, plan_id: plan.id, date: now(), author: USER, body: text }); }
+
+// ---------- Tra cứu ----------
+const dept = id => DB.departments.find(d => d.id === id);
+const job = id => DB.jobs.find(j => j.id === id);
+const plan = id => DB.plans.find(p => p.id === id) || fail('Không tìm thấy kế hoạch');
+function childIds(id) { const out = [id]; for (let i = 0; i < out.length; i++) DB.departments.filter(d => d.parent_id === out[i]).forEach(d => out.push(d.id)); return out; }
+const MONTHS = y => Array.from({ length: 12 }, (_, i) => ({ id: i, name: `Tháng ${String(i + 1).padStart(2, '0')}/${y}` }));
+const seatLines = pid => DB.lines.filter(l => l.plan_id === pid && !l.base_line_id && l.plan_status !== 'removed');
+function currentHc(l) { return l.planned_hc + DB.lines.filter(a => a.base_line_id === l.id && a.plan_status === 'in_plan').reduce((s, a) => s + a.planned_hc, 0); }
+const RANK = { validate: 0, confirm: 1, draft: 2, refuse: 3, cancel: 4 };
+const ST = { draft: 'Nháp', confirm: 'Chờ phê duyệt', validate: 'Đã phê duyệt', refuse: 'Từ chối', cancel: 'Đã huỷ' };
+function vld(j, hc) { if (j.controlled && hc < j.employees) fail(`${j.name}: định biên ${hc} thấp hơn ${j.employees} người đang giữ (VLD-HC-05). Tăng định biên hoặc bỏ "Kiểm soát vị trí".`); }
+
+// ---------- Lưới ----------
+function grid(deptId, scenarioId, year, planId) {
+  const root = dept(deptId) || fail('Không tìm thấy đơn vị');
+  const ids = childIds(deptId);
+  const plans = DB.plans.filter(p => p.scope_id === deptId && p.scenario_id === scenarioId && p.year === year)
+    .sort((a, b) => (RANK[a.status] - RANK[b.status]) || (b.version - a.version));
+  const p = planId ? plans.find(x => x.id === planId) : plans[0];
+  const lines = p ? seatLines(p.id) : [];
+  const jobs = DB.jobs.filter(j => ids.includes(j.dept_id) || lines.some(l => l.job_id === j.id));
+  const cm = new Date().getFullYear() === year ? new Date().getMonth() : null;
+  const ref = refMonth(year);
+  const rows = jobs.map(j => {
+    const cells = Array(12).fill(null);
+    lines.filter(l => l.job_id === j.id).forEach(l => {
+      cells[l.month] = { line_id: l.id, hc: p.status === 'validate' ? currentHc(l) : l.planned_hc, status: l.plan_status,
+        pending: DB.adjustments.some(a => a.line_id === l.id && a.status === 'confirm') };
+    });
+    // Ngoài định biên: có người nhưng không có định biên hiệu lực tháng hiện tại trong kế hoạch đã duyệt
+    const nowLine = cm != null ? DB.lines.find(l => l.job_id === j.id && !l.base_line_id && l.month === cm && l.plan_status === 'in_plan' && DB.plans.some(x => x.id === l.plan_id && x.status === 'validate' && x.year === year)) : null;
+    return { job_id: j.id, name: j.name, dept_id: j.dept_id, controlled: j.controlled, is_new: !!(j.new_plan_id || j.created_local),
+      unplanned: cm != null && j.employees > 0 && !(nowLine && currentHc(nowLine) > 0),
+      employees: Array(j.employees).fill({ name: '' }), employee_count: j.employees, current_hc: j.current_hc ?? null, requests: [], cells };
+  });
+  const adjustments = p ? DB.adjustments.filter(a => a.plan_id === p.id).sort((a, b) => b.id - a.id).map(a => ({
+    ...a, position_id: [a.job_id, (job(a.job_id) || {}).name], period_id: [a.month, `Tháng ${String(a.month + 1).padStart(2, '0')}/${year}`],
+    requester_id: [0, a.requester], create_date: a.create_date })) : [];
+  return {
+    root: { id: deptId, name: root.full, company_id: root.company_id },
+    periods: MONTHS(year), depts: DB.departments.filter(d => ids.includes(d.id)).sort((a, b) => a.full.localeCompare(b.full)),
+    plan: p ? view(p) : null, plans: plans.map(x => ({ id: x.id, code: x.code, version: x.version, status: x.status, name: x.name })),
+    rows, adjustments, current_month: cm, ref_month: ref, current_hc_month: (DB.meta && DB.meta.current_hc_month) || '',
+    notes: p ? (p.notes || {}) : {},
+    comments: p ? DB.comments.filter(c => c.plan_code === p.code).slice().reverse() : [],
+  };
+}
+// Tháng tham chiếu: tháng chứa hôm nay; trước kỳ = tháng đầu; sau kỳ = tháng cuối
+function refMonth(year) { const n = new Date(); return n.getFullYear() === year ? n.getMonth() : (n.getFullYear() < year ? 0 : 11); }
+// Định biên hiệu lực của vị trí trong 1 tháng: dòng in_plan của kế hoạch Đã duyệt năm đó (gồm điều chỉnh)
+function inForce(jobId, year, m) {
+  const l = DB.lines.find(l => l.job_id === jobId && l.month === m && !l.base_line_id && l.plan_status === 'in_plan' && DB.plans.some(p => p.id === l.plan_id && p.status === 'validate' && p.year === year));
+  return l ? currentHc(l) : null;
+}
+function rootOf(id) { let d = dept(id); while (d && d.parent_id && dept(d.parent_id)) d = dept(d.parent_id); return d; }
+
+// ---------- Dashboard hoạch định nhân sự ----------
+function dashboard(companyId, scenarioId, year) {
+  const ref = refMonth(year);
+  const jobs = DB.jobs.filter(j => j.company_id === companyId);
+  const units = {};
+  for (const j of jobs) {
+    const r = rootOf(j.dept_id) || { id: 0, full: '(Chưa gán đơn vị)' };
+    const u = units[r.id] = units[r.id] || { dept_id: r.id, name: r.full, jobs: 0, planned: 0, occupied: 0, vacant: 0, over: 0, months: Array(12).fill(0) };
+    u.jobs++; u.occupied += j.employees;
+    const hc = inForce(j.id, year, ref) || 0;
+    u.planned += hc; u.vacant += Math.max(0, hc - j.employees); u.over += Math.max(0, j.employees - hc);
+    for (let m = 0; m < 12; m++) u.months[m] += inForce(j.id, year, m) || 0;
+  }
+  const out = Object.values(units).map(u => {
+    const ps = DB.plans.filter(p => p.scope_id === u.dept_id && p.year === year && p.scenario_id === scenarioId).sort((a, b) => (RANK[a.status] - RANK[b.status]) || (b.version - a.version));
+    return { ...u, coverage: u.planned ? Math.round(Math.min(u.occupied, u.planned) / u.planned * 100) : 0, plan: ps[0] ? { id: ps[0].id, code: ps[0].code, status: ps[0].status, version: ps[0].version } : null };
+  }).sort((a, b) => a.name.localeCompare(b.name));
+  const unplanned = jobs.filter(j => j.employees > 0 && !(inForce(j.id, year, ref) > 0))
+    .map(j => ({ job_id: j.id, name: j.name, dept: (dept(j.dept_id) || {}).full || '(Chưa gán đơn vị)', employees: j.employees, controlled: j.controlled }));
+  return { ref_month: ref, units: out, unplanned };
+}
+function pending() {
+  const plans = DB.plans.filter(p => p.status === 'confirm').map(p => ({ id: p.id, code: p.code, name: p.name, version: p.version, scope_id: p.scope_id, scenario_id: p.scenario_id, year: p.year, company_id: p.company_id }));
+  const adj = {};
+  DB.adjustments.filter(a => a.status === 'confirm').forEach(a => { const p = plan(a.plan_id); adj[p.id] = adj[p.id] || { plan_id: p.id, code: p.code, scope_id: p.scope_id, scenario_id: p.scenario_id, year: p.year, company_id: p.company_id, count: 0 }; adj[p.id].count++; });
+  return { plans, adjustments: Object.values(adj) };
+}
+function view(p) { return { ...p, scenario_id: [p.scenario_id, (DB.scenarios.find(s => s.id === p.scenario_id) || {}).name], owner_id: [0, p.owner] }; }
+
+// ---------- Kế hoạch ----------
+function createPlan({ dept_id, scenario_id, year }) {
+  const d = dept(dept_id) || fail('Không tìm thấy đơn vị');
+  if (DB.plans.some(p => p.scope_id === dept_id && p.scenario_id === scenario_id && p.year === year && ['draft', 'confirm', 'validate'].includes(p.status)))
+    fail('Đơn vị này đã có kế hoạch cho kịch bản và năm này');
+  const comp = DB.companies.find(c => c.id === d.company_id) || { code: 'C' };
+  let code = `KHDB-${comp.code}-${d.id}-${String(year).slice(2)}01`, n = 2;
+  while (DB.plans.some(p => p.code === code)) code = `KHDB-${comp.code}-${d.id}-${String(year).slice(2)}01-${n++}`;
+  const p = { id: nextId('plan'), code, version: 1, status: 'draft', name: `Định biên - ${d.name} - 01/01/${year} - 31/12/${year}`,
+    company_id: d.company_id, scope_id: dept_id, scenario_id, year, owner: USER, create_date: now(), approval_date: null };
+  DB.plans.push(p); log(p, 'Tạo kế hoạch (Nháp)'); save();
+  return { id: p.id };
+}
+function setCells(p, cells) {
+  let ok = 0; const errors = [];
+  for (const c of cells) {
+    const hc = Math.max(0, Math.round(Number(c.hc) || 0));
+    try {
+      const j = job(c.job_id) || fail('Không tìm thấy vị trí');
+      const l = c.line_id ? DB.lines.find(x => x.id === c.line_id) : DB.lines.find(x => x.plan_id === p.id && x.job_id === j.id && x.month === c.month && !x.base_line_id);
+      if (hc > 0) vld(j, hc);
+      if (l) { l.planned_hc = hc; l.plan_status = hc === 0 ? 'out_of_plan' : 'in_plan'; }
+      else if (hc > 0) DB.lines.push({ id: nextId('line'), plan_id: p.id, job_id: j.id, dept_id: j.dept_id, month: c.month, planned_hc: hc, plan_status: 'in_plan', line_type: 'original', base_line_id: null });
+      ok++;
+    } catch (e) { if (!(e instanceof UserError)) throw e; errors.push({ job_id: c.job_id, month: c.month, error: e.message }); }
+  }
+  return { ok, errors };
+}
+function saveGrid({ plan_id, cells }) {
+  const p = plan(plan_id);
+  if (p.status !== 'draft') fail('Chỉ lưu bảng được khi kế hoạch đang Nháp. Kế hoạch đã duyệt thì dùng "Tạo điều chỉnh".');
+  const r = setCells(p, cells);
+  if (r.ok) log(p, `Lưu bảng: ${r.ok} ô`);
+  save(); return r;
+}
+function transfer({ plan_id, from_job, to_job, months, qty, reason, cells, submit }) {
+  if (!reason) fail('Điều chuyển bắt buộc có lý do');
+  const p = plan(plan_id);
+  if (p.status === 'validate') return transferAdj(p, from_job, to_job, months, qty, reason, submit);
+  if (p.status !== 'draft') fail('Điều chuyển chỉ làm được trên kế hoạch Nháp hoặc Đã phê duyệt');
+  const r = setCells(p, cells);
+  log(p, `Điều chuyển ${qty} định biên tháng ${months.map(m => m + 1).join(', ')} từ "${job(from_job).name}" sang "${job(to_job).name}". Lý do: ${reason}`);
+  save(); return r;
+}
+function conflicts(p) {
+  const mine = seatLines(p.id).filter(l => l.plan_status === 'in_plan' && l.planned_hc > 0);
+  for (const l of mine) {
+    const other = DB.lines.find(o => o.job_id === l.job_id && o.month === l.month && !o.base_line_id && o.plan_status === 'in_plan' && o.plan_id !== p.id &&
+      DB.plans.some(x => x.id === o.plan_id && x.status === 'validate' && x.year === p.year && x.code !== p.code));
+    if (other) { const op = plan(other.plan_id); fail(`${job(l.job_id).name} đã có định biên được duyệt tháng ${l.month + 1}/${p.year} trong kế hoạch ${op.code}`); }
+  }
+}
+function planAction({ plan_id, method, reason }) {
+  const p = plan(plan_id);
+  const need = (...s) => { if (!s.includes(p.status)) fail(`Kế hoạch đang "${ST[p.status]}" – không làm được bước này`); };
+  let newId = null;
+  if (method === 'action_submit') {
+    need('draft');
+    if (!seatLines(p.id).some(l => l.plan_status === 'in_plan')) fail('Kế hoạch chưa có dòng định biên nào');
+    conflicts(p); p.status = 'confirm'; log(p, 'Gửi phê duyệt');
+  } else if (method === 'action_approve') {
+    need('confirm'); conflicts(p);
+    if (DB.plans.some(x => x.code === p.code && x.version > p.version)) fail('Chỉ duyệt được phiên bản mới nhất');
+    p.status = 'validate'; p.approval_date = now();
+    DB.plans.filter(x => x.code === p.code && x.id !== p.id && x.status === 'validate').forEach(x => { x.status = 'cancel'; cancelAdj(x.id); log(x, `Huỷ do phiên bản ${p.version} được duyệt`); });
+    log(p, 'Đã phê duyệt');
+  } else if (method === 'action_reject') {
+    need('confirm'); p.status = 'refuse'; log(p, 'Từ chối' + (reason ? `: ${reason}` : ''));
+  } else if (method === 'action_cancel') {
+    need('draft', 'confirm', 'validate'); p.status = 'cancel'; cancelAdj(p.id); log(p, 'Huỷ kế hoạch');
+  } else if (method === 'action_reset_draft') {
+    need('refuse', 'cancel');
+    if (DB.plans.some(x => x.code === p.code && x.version > p.version)) fail('Chỉ đặt lại được phiên bản mới nhất');
+    p.status = 'draft'; log(p, 'Đặt lại về Nháp');
+  } else if (method === 'action_create_new_version') {
+    need('validate');
+    if (DB.plans.some(x => x.code === p.code && x.version > p.version)) fail('Đã có phiên bản mới hơn');
+    const v = Math.max(...DB.plans.filter(x => x.code === p.code).map(x => x.version)) + 1;
+    const np = { ...p, notes: { ...(p.notes || {}) }, id: nextId('plan'), version: v, status: 'draft', approval_date: null, create_date: now(), owner: USER };
+    DB.plans.push(np);
+    seatLines(p.id).forEach(l => DB.lines.push({ id: nextId('line'), plan_id: np.id, job_id: l.job_id, dept_id: l.dept_id, month: l.month, planned_hc: currentHc(l), plan_status: l.plan_status, line_type: 'original', base_line_id: null }));
+    log(np, `Tạo phiên bản ${v} từ phiên bản ${p.version}`); newId = np.id;
+  } else fail('Thao tác không hợp lệ');
+  save(); return { ok: true, new_plan_id: newId };
+}
+function transferAdj(p, a, b, months, qty, reason, submit) {
+  const ref = `T${Date.now()}`; const made = [];
+  for (const m of months) {
+    const src = DB.lines.find(l => l.plan_id === p.id && l.job_id === a && l.month === m && !l.base_line_id && l.plan_status !== 'removed');
+    if (!src || currentHc(src) < qty) fail(`${job(a).name} tháng ${m + 1} không đủ ${qty} định biên để chuyển`);
+    const dst = DB.lines.find(l => l.plan_id === p.id && l.job_id === b && l.month === m && !l.base_line_id && l.plan_status !== 'removed');
+    const mk = (jid, line, cur, to, act) => { const id = nextId('adj'); const x = { id, code: `ADJ-${p.year}-${String(id).padStart(4, '0')}`, plan_id: p.id, job_id: jid, month: m, line_id: line ? line.id : null, action: act, current_planned_hc: cur, target_planned_hc: to, change_qty: to - cur, reason, requester: USER, status: 'draft', transfer_ref: ref, create_date: now() }; DB.adjustments.push(x); made.push(x); };
+    const sc = currentHc(src); mk(a, src, sc, sc - qty, sc - qty === 0 ? 'remove' : 'resize');
+    const dc = dst ? currentHc(dst) : 0; mk(b, dst, dc, dc + qty, dst ? 'resize' : 'add');
+  }
+  log(p, `Điều chuyển ${qty} định biên tháng ${months.map(m => m + 1).join(', ')} từ "${job(a).name}" sang "${job(b).name}" (cặp phiếu ${ref}). Lý do: ${reason}`);
+  if (submit) made.forEach(x => (x.status = 'confirm'));
+  save(); return { ok: made.length, errors: [], adjustments: made.length };
+}
+function cancelAdj(pid) { DB.adjustments.filter(a => a.plan_id === pid && ['draft', 'confirm'].includes(a.status)).forEach(a => (a.status = 'cancel')); }
+
+// ---------- Điều chỉnh ----------
+function createAdjustments({ plan_id, changes, reason, submit }) {
+  const p = plan(plan_id);
+  if (p.status !== 'validate') fail('Chỉ tạo điều chỉnh trên kế hoạch Đã phê duyệt');
+  const batch = `B${Date.now()}`; const created = []; const errors = [];
+  for (const c of changes) {
+    const to = Math.max(0, Math.round(Number(c.to) || 0));
+    try {
+      const j = job(c.job_id);
+      const l = c.line_id ? DB.lines.find(x => x.id === c.line_id) : null;
+      const cur = l ? currentHc(l) : 0;
+      if (l && to === cur) continue;
+      if (!l && to === 0) continue;
+      const aid = nextId('adj');
+      const a = { id: aid, code: `ADJ-${p.year}-${String(aid).padStart(4, '0')}`, plan_id: p.id, job_id: j.id, month: c.month, line_id: l ? l.id : null,
+        action: l ? (to === 0 ? 'remove' : 'resize') : 'add', current_planned_hc: cur, target_planned_hc: to, change_qty: to - cur,
+        reason: reason || 'Điều chỉnh định biên', requester: USER, status: 'draft', batch_ref: batch, create_date: now() };
+      DB.adjustments.push(a); created.push(a);
+    } catch (e) { errors.push({ job_id: c.job_id, month: c.month, error: e.message }); }
+  }
+  if (created.length) log(p, `Tạo ${created.length} điều chỉnh (Nháp)`);
+  let submitted = 0;
+  if (submit) for (const a of created) { try { adjStep(a, 'action_submit'); submitted++; } catch (e) { errors.push({ job_id: a.job_id, month: a.month, error: e.message }); } }
+  save(); return { created: created.length, submitted, errors };
+}
+function adjStep(a, method) {
+  const j = job(a.job_id); const p = plan(a.plan_id);
+  const need = (...s) => { if (!s.includes(a.status)) fail(`${a.code} đang "${ST[a.status]}"`); };
+  if (method === 'action_submit') { need('draft'); if (a.action !== 'add') vld({ ...j, controlled: true }, a.target_planned_hc); a.status = 'confirm'; }
+  else if (method === 'action_approve') {
+    need('confirm');
+    if (a.action === 'add') {
+      if (DB.lines.some(l => l.plan_id === p.id && l.job_id === a.job_id && l.month === a.month && !l.base_line_id && l.plan_status !== 'removed')) fail(`${j.name} tháng ${a.month + 1} đã có dòng – dùng Tăng/giảm thay vì Thêm`);
+      DB.lines.push({ id: nextId('line'), plan_id: p.id, job_id: a.job_id, dept_id: j.dept_id, month: a.month, planned_hc: a.target_planned_hc, plan_status: 'in_plan', line_type: 'adjustment', base_line_id: null, adjustment_id: a.id });
+    } else {
+      const l = DB.lines.find(x => x.id === a.line_id); const cur = currentHc(l);
+      if (a.target_planned_hc < j.employees) fail(`${j.name}: không thể thấp hơn ${j.employees} người đang giữ`);
+      DB.lines.push({ id: nextId('line'), plan_id: p.id, job_id: a.job_id, dept_id: j.dept_id, month: a.month, planned_hc: a.target_planned_hc - cur, plan_status: 'in_plan', line_type: 'adjustment', base_line_id: l.id, adjustment_id: a.id });
+      a.previous_planned_hc = cur;
+    }
+    a.status = 'validate'; a.decision_date = now(); log(p, `Duyệt ${a.code}: ${j.name} T${a.month + 1} → ${a.target_planned_hc}`);
+  } else if (method === 'action_reject') { need('confirm'); a.status = 'refuse'; }
+  else if (method === 'action_cancel') { need('draft', 'confirm'); a.status = 'cancel'; }
+  else if (method === 'action_reset_draft') { need('refuse', 'cancel'); a.status = 'draft'; }
+  else fail('Thao tác không hợp lệ');
+}
+function adjustmentAction({ method, ids }) {
+  const set = new Set(ids);
+  DB.adjustments.filter(a => set.has(a.id) && a.transfer_ref).forEach(a => DB.adjustments.filter(x => x.transfer_ref === a.transfer_ref).forEach(x => set.add(x.id)));
+  const groups = {};
+  for (const id of set) { const a = DB.adjustments.find(x => x.id === id); const k = a.transfer_ref || `#${a.id}`; (groups[k] = groups[k] || []).push(a); }
+  const errors = [];
+  for (const g of Object.values(groups)) {
+    const snap = JSON.stringify({ l: DB.lines, a: DB.adjustments, s: DB.seq, g: DB.log });
+    try { g.forEach(a => adjStep(a, method)); }
+    catch (e) { const r = JSON.parse(snap); DB.lines = r.l; DB.adjustments = r.a; DB.seq = r.s; DB.log = r.g; errors.push(e.message + (g.length > 1 ? ' (cả cặp điều chuyển không được áp dụng)' : '')); }
+  }
+  save(); if (errors.length) fail(errors.join(' · ')); return { ok: true };
+}
+
+// ---------- Vị trí mới ----------
+function newPosition({ name, dept_id, plan_id, note }) {
+  if (!name) fail('Nhập tên vị trí');
+  const d = dept(dept_id) || fail('Không tìm thấy đơn vị');
+  const j = { id: nextId('job'), company_id: d.company_id, dept_id, name, employees: 0, controlled: true, new_plan_id: plan_id || null, created_local: true };
+  DB.jobs.push(j);
+  if (plan_id) { const p = plan(plan_id); if (note) { p.notes = p.notes || {}; p.notes[j.id] = note; } log(p, `Tạo vị trí mới "${name}" tại ${d.name}${note ? `. Lý do: ${note}` : ''}`); }
+  save(); return { id: j.id };
+}
+
+function movePosition({ job_id, dept_id, plan_id }) {
+  const j = job(job_id) || fail('Không tìm thấy vị trí'); const d = dept(dept_id) || fail('Không tìm thấy đơn vị');
+  if (!j.created_local) fail('Chỉ đổi phòng ban được với vị trí tạo trong app. Vị trí lấy từ KOI phải chuyển bằng phiếu điều chỉnh trên KOI.');
+  if (DB.lines.some(l => l.job_id === j.id && DB.plans.some(p => p.id === l.plan_id && ['confirm', 'validate'].includes(p.status))))
+    fail('Vị trí đã nằm trong kế hoạch Chờ duyệt / Đã duyệt – không đổi phòng ban trực tiếp được');
+  const old = dept(j.dept_id); j.dept_id = d.id; DB.lines.filter(l => l.job_id === j.id).forEach(l => (l.dept_id = d.id));
+  if (plan_id) log(plan(plan_id), `Đổi phòng ban vị trí "${j.name}": ${old ? old.name : '?'} → ${d.name}`);
+  save(); return { ok: true };
+}
+function setNote({ plan_id, job_id, text }) {
+  const p = plan(plan_id); const j = job(job_id) || fail('Không tìm thấy vị trí');
+  if (['confirm'].includes(p.status)) fail('Kế hoạch đang chờ duyệt – không sửa ghi chú được');
+  p.notes = p.notes || {}; const t = (text || '').trim();
+  if (t) p.notes[job_id] = t; else delete p.notes[job_id];
+  log(p, t ? `Ghi chú "${j.name}": ${t}` : `Xoá ghi chú "${j.name}"`); save(); return { ok: true };
+}
+function addComment({ plan_id, body }) {
+  const p = plan(plan_id); const t = (body || '').trim(); if (!t) fail('Nhập nội dung trao đổi');
+  DB.comments.push({ id: Date.now(), plan_code: p.code, plan_id: p.id, version: p.version, date: now(), author: USER, body: t });
+  save(); return { ok: true };
+}
+function history(planId) {
+  const p = plan(planId);
+  const versions = DB.plans.filter(x => x.code === p.code).sort((a, b) => b.version - a.version)
+    .map(x => ({ id: x.id, version: x.version, name: x.name, status: x.status, create_uid: [0, x.owner], create_date: x.create_date, approval_date: x.approval_date }));
+  const messages = DB.log.filter(m => m.plan_code === p.code).slice().reverse().map(m => ({ date: m.date, author: m.author, body: `${m.body}${m.plan_id !== p.id ? ` <span style="color:#888">(v${(DB.plans.find(x => x.id === m.plan_id) || {}).version})</span>` : ''}` }));
+  return { versions, messages };
+}
+
+// ---------- HTTP ----------
+const routes = {
+  'GET /api/version': () => ({ boot: 0, page: 0 }),
+  'GET /api/me': () => ({ name: USER, mode: 'local', snapshot: DB.meta && DB.meta.snapshot, source: DB.meta && DB.meta.source }),
+  'GET /api/companies': () => DB.companies,
+  'GET /api/departments': q => DB.departments.filter(d => d.company_id === Number(q.company_id) && d.id !== 0).sort((a, b) => a.full.localeCompare(b.full)).map(d => ({ id: d.id, complete_name: d.full })),
+  'GET /api/scenarios': () => DB.scenarios,
+  'GET /api/grid': q => grid(Number(q.dept_id), Number(q.scenario_id), Number(q.year), q.plan_id ? Number(q.plan_id) : null),
+  'POST /api/plan/create': (q, b) => createPlan(b),
+  'POST /api/plan/save': (q, b) => saveGrid(b),
+  'POST /api/plan/action': (q, b) => planAction(b),
+  'POST /api/plan/transfer': (q, b) => transfer(b),
+  'POST /api/position': (q, b) => newPosition(b),
+  'POST /api/adjustments': (q, b) => createAdjustments(b),
+  'POST /api/adjustment/action': (q, b) => adjustmentAction(b),
+  'GET /api/history': q => history(Number(q.plan_id)),
+  'POST /api/plan/note': (q, b) => setNote(b),
+  'POST /api/position/move': (q, b) => movePosition(b),
+  'POST /api/plan/comment': (q, b) => addComment(b),
+  'GET /api/dashboard': q => dashboard(Number(q.company_id), Number(q.scenario_id), Number(q.year)),
+  'GET /api/pending': () => pending(),
+  'GET /api/data': () => DB,
+  'POST /api/data': (q, b) => {
+    if (!b || !Array.isArray(b.departments) || !Array.isArray(b.jobs) || !Array.isArray(b.plans)) fail('File không đúng định dạng dữ liệu của app');
+    
+    DB = b; save(); return { ok: true };
+  },
+};
+
+
+const _fetch=window.fetch.bind(window);
+window.fetch=async(u,o={})=>{
+  const url=new URL(u,location.href);
+  if(url.pathname.endsWith('/dinh-bien-hien-tai.json'))return new Response(JSON.stringify(CURHC),{headers:{'Content-Type':'application/json'}});
+  const i=url.pathname.indexOf('/api/');
+  if(i<0)return _fetch(u,o);
+  const key=(o.method||'GET')+' '+url.pathname.slice(i);
+  const r=routes[key];let out,code=200;
+  if(!r){out={error:'Không hỗ trợ: '+key};code=404}
+  else try{out=await r(Object.fromEntries(url.searchParams),o.body?JSON.parse(o.body):{});save()}catch(e){out={error:e.message};code=500}
+  return new Response(JSON.stringify(out===undefined?{ok:true}:out),{status:code,headers:{'Content-Type':'application/json'}});
+};
+window.__resetDemo=()=>{localStorage.removeItem(KEY);location.reload()};
+})();
+</script>
+<script>
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const ST={draft:'Nháp',confirm:'Chờ phê duyệt',validate:'Đã phê duyệt',refuse:'Từ chối',cancel:'Đã huỷ'};
+const ACT={resize:'Tăng/giảm',add:'Thêm',remove:'Xoá',change_period:'Đổi kỳ',transfer:'Điều chuyển đơn vị'};
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const nm=v=>Array.isArray(v)?v[1]:(v||'');
+async function api(p,b){const r=await fetch(p,b?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)}:{});const d=await r.json();if(d&&d.error)throw new Error(d.error);return d;}
+function msg(t,k='err'){$('#msg').innerHTML=t?`<div class="msg ${k}">${t}</div>`:'';if(t)window.scrollTo({top:0,behavior:'smooth'});}
+async function busy(btn,fn){const t=btn.textContent;btn.disabled=true;btn.textContent='Đang xử lý…';try{return await fn();}finally{btn.disabled=false;btn.textContent=t;}}
+function modal(html,onMount){$('#modal').innerHTML=`<div class="modal-bg"><div class="modal">${html}</div></div>`;const bg=$('#modal .modal-bg');bg.onclick=e=>{if(e.target===bg)closeModal();};onMount&&onMount($('#modal .modal'));}
+function closeModal(){$('#modal').innerHTML='';}
+
+// ---------- Trạng thái ----------
+const S={data:null,edit:{},checked:new Set(),proposal:false};
+// edit[job_id][month] = số mới (chưa lưu)
+
+// ---------- Khởi động ----------
+(async function init(){
+  try{
+    const me=await api('/api/me'); $('#me').textContent=`${me.name} · dữ liệu gốc chụp từ KOI ngày ${me.snapshot||'?'}`;
+    $('#app').classList.remove('hidden');
+    const [comps,scs]=await Promise.all([api('/api/companies'),api('/api/scenarios')]);
+    $('#f-company').innerHTML=comps.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');
+    $('#f-scenario').innerHTML=scs.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join('');
+    const y=new Date().getFullYear();
+    $('#f-year').innerHTML=[y-1,y,y+1,y+2].map(v=>`<option ${v===y+1?'selected':''}>${v}</option>`).join('');
+    const last=JSON.parse(localStorage.getItem('db-last')||'{}');
+    if(last.company)$('#f-company').value=last.company;
+    await loadDepts(last.dept);
+    if(last.scenario)$('#f-scenario').value=last.scenario; if(last.year)$('#f-year').value=last.year;
+    loadPending();
+  }catch(e){
+    $('#me').textContent='Lỗi';msg('Không tải được dữ liệu: '+esc(e.message));
+  }
+})();
+$('#f-company').onchange=()=>loadDepts();
+async function loadDepts(sel){
+  const ds=await api('/api/departments?company_id='+$('#f-company').value);
+  $('#f-dept').innerHTML=ds.map(d=>`<option value="${d.id}">${esc(d.complete_name)}</option>`).join('');
+  if(sel&&ds.some(d=>d.id==sel))$('#f-dept').value=sel;
+}
+$('#f-open').onclick=e=>busy(e.target,()=>openPlan());
+$$('#tabs button').forEach(b=>b.onclick=()=>{
+  $$('#tabs button').forEach(x=>x.classList.toggle('on',x===b));
+  $$('[data-p]').forEach(p=>p.classList.toggle('hidden',p.dataset.p!==b.dataset.t));
+  if(b.dataset.t==='hist')loadHistory();
+  if(b.dataset.t==='chk'&&S.data)renderChecks();if(b.dataset.t==='rep'&&S.data)renderReport();
+});
+window.addEventListener('beforeunload',e=>{if(dirtyCount()){e.preventDefault();e.returnValue='';}});
+
+async function openPlan(planId){
+  if(!$('#dash').classList.contains('hidden'))showView('plan');
+  if(dirtyCount()&&!confirm('Có ô đã sửa chưa lưu. Bỏ các thay đổi đó?'))return;
+  msg('');
+  const q={dept_id:$('#f-dept').value,scenario_id:$('#f-scenario').value,year:$('#f-year').value};
+  localStorage.setItem('db-last',JSON.stringify({company:$('#f-company').value,dept:q.dept_id,scenario:q.scenario_id,year:q.year}));
+  if(planId)q.plan_id=planId;
+  try{
+    S.data=fix(await api('/api/grid?'+new URLSearchParams(q))); S.edit={}; S.checked=new Set();
+    S.proposal=!S.data.plan; loadPending();
+    if(S.proposal) S.data.rows.forEach(r=>{S.edit[r.job_id]={};for(let m=0;m<12;m++)S.edit[r.job_id][m]=r.employees.length;});
+    render();
+  }catch(e){msg(esc(e.message));}
+}
+
+let CUR=null;fetch('/dinh-bien-hien-tai.json').then(r=>r.json()).then(j=>{CUR=j;if(S.data){fix(S.data);render();}}).catch(()=>{});
+function fix(d){if(CUR){d.current_hc_month=d.current_hc_month||CUR.month;d.rows.forEach(r=>{if(r.current_hc==null&&CUR.hc[r.job_id]!=null)r.current_hc=CUR.hc[r.job_id];});}d.notes=d.notes||{};d.comments=d.comments||[];d.adjustments=d.adjustments||[];if(d.ref_month==null)d.ref_month=d.current_month??0;return d;}
+// ---------- Quy tắc theo trạng thái ----------
+const status=()=>S.data.plan?S.data.plan.status:null;
+const editable=()=>S.proposal||['draft','validate'].includes(status());
+function val(r,m){const e=S.edit[r.job_id];if(e&&e[m]!=null)return e[m];const c=r.cells[m];return c?c.hc:null;}
+function orig(r,m){const c=r.cells[m];return c?c.hc:null;}
+function dirtyCount(){let n=0;if(!S.data)return 0;for(const r of S.data.rows){const e=S.edit[r.job_id];if(!e)continue;for(const m in e){if((e[m]??0)!==(orig(r,+m)??0))n++;}}return S.proposal?0:n;}
+
+// ---------- Vẽ ----------
+function render(){
+  $('#planbar').classList.remove('hidden');$('#kpis').classList.remove('hidden');$('#work').classList.remove('hidden');
+  renderBar();renderTools();renderGrid();renderKpis();renderAdj();renderChecks();renderReport();renderTalk();
+}
+function renderBar(){
+  const d=S.data,p=d.plan;
+  if(!p){
+    $('#planbar').innerHTML=`<div class="row between"><div><b>${esc(d.root.name)}</b> · ${$('#f-scenario').selectedOptions[0].text} · ${$('#f-year').value}
+      <div class="sub">Chưa có kế hoạch định biên cho đơn vị / kịch bản / năm này. Bên dưới là <b>bản đề xuất</b> = số người đang giữ từng vị trí. Chỉnh rồi bấm “Tạo kế hoạch Nháp”.</div></div>
+      <button class="btn primary" id="b-create">Tạo kế hoạch Nháp</button></div>`;
+    $('#b-create').onclick=e=>busy(e.target,createPlan);return;
+  }
+  const others=d.plans.length>1?`<select id="b-ver">${d.plans.map(x=>`<option value="${x.id}" ${x.id===p.id?'selected':''}>${esc(x.code)} · v${x.version} · ${ST[x.status]}</option>`).join('')}</select>`:'';
+  const btn=[];
+  if(p.status==='draft')btn.push(`<button class="btn ok" data-a="action_submit">Gửi phê duyệt</button>`,`<button class="btn danger" data-a="action_cancel">Huỷ</button>`);
+  if(p.status==='confirm')btn.push(`<button class="btn ok" data-a="action_approve">Duyệt</button>`,`<button class="btn danger" data-a="action_reject">Từ chối</button>`,`<button class="btn" data-a="action_cancel">Huỷ (rút lại)</button>`);
+  if(p.status==='validate')btn.push(`<button class="btn" data-a="action_create_new_version">Tạo phiên bản mới</button>`);
+  if(['refuse','cancel'].includes(p.status))btn.push(`<button class="btn" data-a="action_reset_draft">Đặt lại về Nháp</button>`);
+  $('#planbar').innerHTML=`<div class="row between"><div>
+      <b>${esc(p.name)}</b> <span class="badge s-${p.status}">${ST[p.status]}</span>
+      <div class="sub">${esc(p.code)} · phiên bản ${p.version} · ${esc(nm(p.scenario_id))} · Kỳ 01/${p.year} → 12/${p.year} · người lập: ${esc(nm(p.owner_id))}${p.approval_date?` · duyệt ${p.approval_date.slice(0,10)}`:''}</div>${stepper(p.status)}</div>
+    <div class="bar">${others}${btn.join('')}</div></div>`;
+  if($('#b-ver'))$('#b-ver').onchange=e=>openPlan(+e.target.value);
+  $$('#planbar [data-a]').forEach(b=>b.onclick=()=>planAction(b,b.dataset.a));
+}
+function stepper(st){
+  const order=['draft','confirm','validate'],i=order.indexOf(st);
+  if(i<0)return `<div class="steps"><span class="done">Nháp</span>›<span class="done">Chờ phê duyệt</span>›<span class="bad">${ST[st]}</span></div>`;
+  return `<div class="steps">${order.map((x,k)=>`<span class="${k<i?'done':k===i?'cur':''}">${ST[x]}</span>`).join('›')}</div>`;
+}
+function renderTools(){
+  const st=status(),t=[];
+  if(S.proposal) t.push(`<button class="btn" id="t-newpos">+ Vị trí mới</button>`,btnQF(),`<span class="muted">Bản đề xuất – chưa lưu. Bấm “Tạo kế hoạch Nháp” ở trên để lưu.</span>`);
+  else if(st==='draft') t.push(`<button class="btn primary" id="t-save">Lưu bảng</button>`,btnQF(),`<button class="btn" id="t-newpos">+ Vị trí mới</button>`,`<button class="btn" id="t-transfer">Điều chuyển</button>`,`<button class="btn" id="t-undo">Bỏ thay đổi</button>`);
+  else if(st==='validate') t.push(`<button class="btn primary" id="t-adj">Tạo điều chỉnh</button>`,btnQF(),`<button class="btn" id="t-newpos">+ Vị trí mới</button>`,`<button class="btn" id="t-transfer">Điều chuyển</button>`,`<button class="btn" id="t-undo">Bỏ thay đổi</button>`,`<span class="sub">Kế hoạch đã duyệt: sửa ô rồi bấm “Tạo điều chỉnh” để gửi duyệt.</span>`);
+  else if(st==='confirm') t.push(`<button class="btn" disabled title="Kế hoạch đang chờ duyệt – duyệt hoặc huỷ trước">+ Vị trí mới</button>`,`<span class="muted">Kế hoạch đang Chờ phê duyệt – bị khoá. Duyệt / Từ chối / Huỷ ở thẻ phía trên.</span>`);
+  else t.push(`<button class="btn primary" id="t-reset">Đặt lại về Nháp để sửa</button>`,`<button class="btn" disabled title="Đặt lại về Nháp trước">+ Vị trí mới</button>`,`<span class="muted">Kế hoạch ${ST[st]} – chỉ xem.</span>`);
+  t.push(`<span style="flex:1"></span><button class="btn" id="t-csv">Xuất Excel (CSV)</button><span class="sub" id="dirty"></span>`);
+  $('#tools').innerHTML=t.join('');
+  const on=(id,f)=>{const el=$(id);if(el)el.onclick=f;};
+  on('#t-save',e=>busy(e.target,saveGrid)); on('#t-qf',quickFill); on('#t-newpos',newPosition); on('#t-transfer',transfer);
+  on('#t-reset',e=>planAction(e.target,'action_reset_draft'));
+  on('#t-undo',()=>{S.edit={};renderGrid();renderKpis();}); on('#t-adj',adjustPreview); on('#t-csv',exportCsv);
+  updDirty();
+}
+const btnQF=()=>`<button class="btn" id="t-qf">Điền nhanh</button>`;
+function updDirty(){const n=dirtyCount();const el=$('#dirty');if(el)el.textContent=n?`${n} ô chưa lưu`:'';}
+
+function renderGrid(){
+  const d=S.data,cm=d.current_month,ed=editable();
+  const rm=d.ref_month;
+  const head=`<tr><th class="sticky l" rowspan="2">${ed?'<input type="checkbox" id="chk-all"> ':''}Vị trí</th><th rowspan="2" class="l" style="min-width:200px">Ghi chú / giải trình</th><th rowspan="2" title="Định biên đã duyệt đang hiệu lực trên KOI tháng ${esc(d.current_hc_month)}">ĐB hiện tại<div class="sub">${esc(d.current_hc_month)}</div></th><th rowspan="2" title="Số nhân viên đang giữ vị trí">Hiện có</th>${[1,2,3,4].map(q=>`<th class="q qs" colspan="3">Quý ${q}</th>`).join('')}<th rowspan="2" title="Tháng tham chiếu">ĐB T${rm+1}</th><th rowspan="2">Cần tuyển</th><th rowspan="2">Vượt</th></tr>
+  <tr>${d.periods.map((p,i)=>`<th style="top:27px" class="${i===rm?'cur':''} ${i%3===0?'qs':''}">T${i+1}</th>`).join('')}</tr>`;
+  const byDept={};d.rows.forEach(r=>(byDept[r.dept_id]=byDept[r.dept_id]||[]).push(r));
+  const order=[...d.depts.map(x=>x.id),...Object.keys(byDept).map(Number).filter(id=>!d.depts.some(x=>x.id===id))];
+  let body='';const tot=Array(12).fill(0);let totEmp=0,totReq=0;
+  for(const did of order){
+    const rows=byDept[did];if(!rows)continue;
+    const dep=d.depts.find(x=>x.id===did);const sub=Array(12).fill(0);
+    rows.forEach(r=>{for(let m=0;m<12;m++)sub[m]+=val(r,m)||0;});
+    const gEmp=rows.reduce((s,r)=>s+r.employees.length,0);
+    body+=`<tr class="grp"><td class="sticky l">${esc(dep?dep.full.split(' / ').slice(1).join(' / ')||dep.name:'Khác')}</td><td></td><td>${rows.reduce((s,r)=>s+(r.current_hc||0),0)}</td><td>${gEmp}</td>${sub.map((v,i)=>`<td class="${i===rm?'cur':''} ${i%3===0?'qs':''}">${v}</td>`).join('')}<td>${sub[rm]}</td><td>${rows.reduce((s,r)=>s+Math.max(0,(val(r,rm)||0)-r.employees.length),0)||''}</td><td>${rows.reduce((s,r)=>s+Math.max(0,r.employees.length-(val(r,rm)||0)),0)||''}</td></tr>`;
+    for(const r of rows){
+      totEmp+=r.employees.length;totReq+=r.requests.reduce((s,q)=>s+q.qty,0);
+      const cells=[];for(let m=0;m<12;m++){
+        const v=val(r,m),o=orig(r,m),c=r.cells[m];tot[m]+=v||0;
+        const chg=!S.proposal&&(v??0)!==(o??0);const under=(v??0)<r.employees.length&&(v!=null||c);
+        const dot=c&&c.pending?'<span class="dot" title="Có điều chỉnh chờ duyệt"></span>':'';
+        cells.push(`<td class="${m===rm?'cur':''} ${m%3===0?'qs':''}">${ed?`<input class="c ${chg?'chg':''} ${under&&r.controlled?'under':''}" data-j="${r.job_id}" data-m="${m}" value="${v??''}" inputmode="numeric">`:`<span class="ro ${!v?'zero':''}">${v??'–'}</span>`}${dot}</td>`);
+      }
+      const reqN=r.requests.reduce((s,q)=>s+q.qty,0);
+      body+=`<tr><td class="sticky l" title="${esc(r.name)}">${ed?`<input type="checkbox" class="chk" data-j="${r.job_id}" ${S.checked.has(r.job_id)?'checked':''}> `:''}${esc(r.name)}${r.is_new?`<span class="tag new">Mới</span>${editable()?`<button class="note-btn" data-move="${r.job_id}" title="Đổi phòng ban">⇄ đổi phòng ban</button>`:''}`:''}${r.unplanned?'<span class="tag unp" title="Có người nhưng chưa có định biên hiệu lực">Ngoài ĐB</span>':''}</td>
+        ${noteCell(r.job_id)}<td title="${r.current_hc==null?'Chưa có định biên duyệt trên KOI':''}">${r.current_hc==null?'<span class="sub">–</span>':`<b>${r.current_hc}</b>`}</td><td>${r.employees.length}</td>
+        ${cells.join('')}<td><b>${val(r,rm)??0}</b></td><td>${Math.max(0,(val(r,rm)||0)-r.employees.length)||''}</td><td style="color:var(--bad)">${Math.max(0,r.employees.length-(val(r,rm)||0))||''}</td></tr>`;
+    }
+  }
+  const tv=d.rows.reduce((s,r)=>s+Math.max(0,(val(r,rm)||0)-r.employees.length),0),to=d.rows.reduce((s,r)=>s+Math.max(0,r.employees.length-(val(r,rm)||0)),0);
+  body+=`<tr class="total"><td class="sticky l">Tổng định biên</td><td></td><td>${d.rows.reduce((s,r)=>s+(r.current_hc||0),0)}</td><td>${totEmp}</td>${tot.map((v,i)=>`<td class="${i===rm?'cur':''} ${i%3===0?'qs':''}">${v}</td>`).join('')}<td>${tot[rm]}</td><td>${tv}</td><td>${to}</td></tr>`;
+  $('#grid').innerHTML=`<thead>${head}</thead><tbody>${body}</tbody>`;
+  $$('#grid input.c').forEach(inp=>{
+    inp.onchange=()=>{const j=+inp.dataset.j,m=+inp.dataset.m;const v=inp.value.trim()===''?null:Math.max(0,parseInt(inp.value,10)||0);(S.edit[j]=S.edit[j]||{})[m]=v;renderGrid();renderKpis();updDirty();};
+    inp.onkeydown=e=>{if(['Enter','ArrowDown','ArrowUp','ArrowLeft','ArrowRight'].includes(e.key)){const all=$$('#grid input.c');const i=all.indexOf(inp);const cols=12;let n=i;
+      if(e.key==='ArrowRight')n=i+1;else if(e.key==='ArrowLeft')n=i-1;else if(e.key==='ArrowUp')n=i-cols;else n=i+cols;
+      if(all[n]){e.preventDefault();inp.dispatchEvent(new Event('change'));setTimeout(()=>{const a2=$$('#grid input.c');a2[n]&&a2[n].select();},0);}}};
+    inp.onfocus=()=>inp.select();
+  });
+  $$('#grid [data-move]').forEach(b=>b.onclick=()=>moveModal(+b.dataset.move));
+  $$('#grid [data-note]').forEach(b=>b.onclick=()=>noteModal(+b.dataset.note));
+  $$('#grid .chk').forEach(c=>c.onchange=()=>{c.checked?S.checked.add(+c.dataset.j):S.checked.delete(+c.dataset.j);});
+  if($('#chk-all'))$('#chk-all').onchange=e=>{S.checked=new Set(e.target.checked?S.data.rows.map(r=>r.job_id):[]);renderGrid();};
+  $$('#grid [data-emp]').forEach(x=>x.onclick=()=>{const r=S.data.rows.find(r=>r.job_id==x.dataset.emp);modal(`<h3>${esc(r.name)} – ${r.employees.length} người</h3><div class="list">${r.employees.map(e=>`<div>${esc(e.name)} <span class="sub">${esc(e.code||'')}</span></div>`).join('')}</div><div style="margin-top:12px;text-align:right"><button class="btn" onclick="closeModal()">Đóng</button></div>`);});
+  $$('#grid [data-req]').forEach(x=>x.onclick=()=>{const r=S.data.rows.find(r=>r.job_id==x.dataset.req);modal(`<h3>Yêu cầu tuyển – ${esc(r.name)}</h3><div class="list">${r.requests.map(q=>`<div>${esc(q.name)} · ${q.state==='approved'?'Đã duyệt':'Chờ duyệt'} · còn ${q.qty}</div>`).join('')}</div><div style="margin-top:12px;text-align:right"><button class="btn" onclick="closeModal()">Đóng</button></div>`);});
+}
+function stats(){
+  const d=S.data,rm=d.ref_month,rows=d.rows;
+  const sum=m=>rows.reduce((s,r)=>s+(val(r,m)||0),0);
+  const emp=rows.reduce((s,r)=>s+r.employees.length,0);
+  const vac=rows.reduce((s,r)=>s+Math.max(0,(val(r,rm)||0)-r.employees.length),0);
+  const over=rows.reduce((s,r)=>s+Math.max(0,r.employees.length-(val(r,rm)||0)),0);
+  const held=rows.reduce((s,r)=>s+Math.min(r.employees.length,val(r,rm)||0),0);
+  const months=Array.from({length:12},(_,m)=>sum(m));
+  return {rm,ref:sum(rm),eop:sum(11),avg:months.reduce((a,b)=>a+b,0)/12,emp,vac,over,cov:sum(rm)?held/sum(rm)*100:0,months};
+}
+function renderKpis(){
+  const t=stats();
+  const k=[[`Định biên T${t.rm+1} (tham chiếu)`,t.ref],['Định biên cuối kỳ (T12)',t.eop],['Bình quân tháng',t.avg.toLocaleString('vi-VN',{maximumFractionDigits:1})],['Hiện có',t.emp],['Cần tuyển',t.vac],['Vượt định biên',t.over],['Tỷ lệ bao phủ',t.cov.toFixed(0)+'%']];
+  $('#kpis').innerHTML=k.map(([l,v])=>`<div class="kpi"><div class="l">${l}</div><div class="v">${v}</div></div>`).join('');
+}
+function renderAdj(){
+  const a=S.data.adjustments||[];$('#adj-count').textContent=a.length?`(${a.length})`:'';
+  if(!S.data.plan){$('#adj').innerHTML='<div class="empty">Chưa có kế hoạch.</div>';return;}
+  if(!a.length){$('#adj').innerHTML='<div class="empty">Chưa có điều chỉnh nào. Điều chỉnh chỉ tạo được trên kế hoạch Đã phê duyệt.</div>';return;}
+  const drafts=a.filter(x=>x.status==='draft').map(x=>x.id);
+  const waits=a.filter(x=>x.status==='confirm').map(x=>x.id);
+  $('#adj').innerHTML=`<div class="bar" style="margin-bottom:8px">${drafts.length?`<button class="btn ok" id="adj-send">Gửi duyệt ${drafts.length} điều chỉnh Nháp</button>`:''}${waits.length?`<button class="btn ok" id="adj-appr">Duyệt tất cả ${waits.length} điều chỉnh chờ duyệt</button>`:''}</div>
+  <div class="wrap" style="max-height:60vh"><table class="hist"><thead><tr><th>Mã</th><th>Hành động</th><th>Vị trí</th><th>Tháng</th><th>Hiện hành → Đích</th><th>Thay đổi</th><th>Lý do</th><th>Người yêu cầu</th><th>Trạng thái</th><th></th></tr></thead><tbody>
+  ${a.map(x=>`<tr><td>${esc(x.code)}${x.transfer_ref?'<span class="tag new" title="Một nửa của cặp điều chuyển">cặp ĐC</span>':''}</td><td>${ACT[x.action]||x.action}</td><td>${esc(nm(x.position_id))}</td><td>${esc(nm(x.period_id))}</td><td>${x.current_planned_hc} → ${x.target_planned_hc}</td><td>${x.change_qty>0?'+':''}${x.change_qty}</td><td style="white-space:normal;max-width:260px">${esc(x.reason)}</td><td>${esc(nm(x.requester_id))}</td><td><span class="badge s-${x.status}">${ST[x.status]}</span></td>
+    <td>${x.status==='draft'?`<button class="btn" data-adj="action_submit" data-id="${x.id}">Gửi</button>`:''}${x.status==='confirm'?`<button class="btn ok" data-adj="action_approve" data-id="${x.id}">Duyệt</button><button class="btn danger" data-adj="action_reject" data-id="${x.id}">Từ chối</button>`:''}${['draft','confirm'].includes(x.status)?`<button class="btn" data-adj="action_cancel" data-id="${x.id}">Huỷ</button>`:''}${['refuse','cancel'].includes(x.status)?`<button class="btn" data-adj="action_reset_draft" data-id="${x.id}">Về Nháp</button>`:''}</td></tr>`).join('')}
+  </tbody></table></div>`;
+  if($('#adj-send'))$('#adj-send').onclick=e=>busy(e.target,()=>adjAction('action_submit',drafts));
+  if($('#adj-appr'))$('#adj-appr').onclick=e=>{if(confirm('Duyệt tất cả điều chỉnh đang chờ?'))busy(e.target,()=>adjAction('action_approve',waits));};
+  $$('#adj [data-adj]').forEach(b=>b.onclick=()=>busy(b,()=>adjAction(b.dataset.adj,[+b.dataset.id])));
+}
+async function adjAction(method,ids){try{await api('/api/adjustment/action',{method,ids});await openPlan(S.data.plan.id);switchTab('adj');msg('Đã cập nhật điều chỉnh.','ok');}catch(e){await openPlan(S.data.plan.id);switchTab('adj');msg(esc(e.message));}}
+function switchTab(t){$(`#tabs [data-t="${t}"]`).click();}
+
+async function loadHistory(){
+  if(!S.data||!S.data.plan){$('#hist').innerHTML='<div class="empty">Chưa có kế hoạch.</div>';return;}
+  $('#hist').innerHTML='<div class="muted">Đang tải…</div>';
+  try{const h=await api('/api/history?plan_id='+S.data.plan.id);
+    $('#hist').innerHTML=`<h3 style="margin:0 0 8px;font-size:14px">Các phiên bản</h3>
+    <table class="hist"><thead><tr><th>Phiên bản</th><th>Tên</th><th>Trạng thái</th><th>Người tạo</th><th>Ngày tạo</th><th>Ngày duyệt</th><th></th></tr></thead><tbody>
+    ${h.versions.map(v=>`<tr><td>v${v.version}</td><td>${esc(v.name)}</td><td><span class="badge s-${v.status}">${ST[v.status]}</span></td><td>${esc(nm(v.create_uid))}</td><td>${(v.create_date||'').slice(0,10)}</td><td>${(v.approval_date||'').slice(0,10)}</td><td>${v.id!==S.data.plan.id?`<button class="btn" data-open="${v.id}">Mở</button>`:'<span class="sub">đang xem</span>'}</td></tr>`).join('')}</tbody></table>
+    <h3 style="margin:16px 0 8px;font-size:14px">Nhật ký</h3>
+    <div>${h.messages.map(m=>`<div style="padding:6px 0;border-bottom:1px solid var(--line)"><span class="sub">${(m.date||'').slice(0,16)} · ${esc(m.author||'')}</span><div>${m.body||''}</div></div>`).join('')||'<div class="muted">Chưa có ghi chép.</div>'}</div>`;
+    $$('#hist [data-open]').forEach(b=>b.onclick=()=>openPlan(+b.dataset.open).then(()=>switchTab('matrix')));
+  }catch(e){$('#hist').innerHTML=`<div class="msg err">${esc(e.message)}</div>`;}
+}
+
+// ---------- Ghi chú & trao đổi ----------
+function noteCell(jid){
+  const n=S.data.notes[jid]||'',can=S.data.plan&&S.data.plan.status!=='confirm';
+  if(!S.data.plan&&!S.pendingNotes?.[jid])return `<td class="l sub" title="Tạo kế hoạch Nháp để ghi chú">–</td>`;
+  const t=n||S.pendingNotes?.[jid]||'';
+  return `<td class="l note-cell ${can?'link-cell':''}" ${can?`data-note="${jid}"`:''} title="${can?'Bấm để sửa ghi chú':''}" style="white-space:normal;max-width:280px;cursor:${can?'pointer':'default'}">${t?`<span class="note-txt" style="font-style:normal">${esc(t)}</span>`:(can?'<span class="sub">✎ Thêm ghi chú</span>':'')}</td>`;
+}
+function noteModal(jid){
+  const r=S.data.rows.find(x=>x.job_id===jid),cur=S.data.notes[jid]||'';
+  modal(`<h3>Ghi chú / giải trình – ${esc(r.name)}</h3><p class="sub" style="margin-top:0">Ví dụ: lý do tăng/giảm, thời điểm tuyển, dự án liên quan. Để trống rồi Lưu để xoá ghi chú.</p>
+  <textarea id="nt" style="width:100%;min-height:110px">${esc(cur)}</textarea>
+  <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="btn" onclick="closeModal()">Huỷ</button><button class="btn primary" id="nt-ok">Lưu ghi chú</button></div>`,()=>{
+    $('#nt').focus();
+    $('#nt-ok').onclick=e=>busy(e.target,async()=>{try{await api('/api/plan/note',{plan_id:S.data.plan.id,job_id:jid,text:$('#nt').value});const keep=S.edit;closeModal();await reload(keep);}catch(err){alert(err.message);}});
+  });
+}
+async function reload(keep){const id=S.data.plan.id;const q={dept_id:$('#f-dept').value,scenario_id:$('#f-scenario').value,year:$('#f-year').value,plan_id:id};S.data=fix(await api('/api/grid?'+new URLSearchParams(q)));S.edit=keep||{};render();}
+function renderTalk(){
+  const d=S.data,c=d.comments||[];$('#talk-count').textContent=c.length?`(${c.length})`:'';
+  if(!d.plan){$('#talk').innerHTML='<div class="empty">Chưa có kế hoạch.</div>';return;}
+  $('#talk').innerHTML=`<div style="display:flex;gap:8px;align-items:flex-start"><textarea id="tk" placeholder="Viết trao đổi về kế hoạch này…" style="flex:1"></textarea><button class="btn primary" id="tk-ok">Gửi</button></div>
+  <div style="margin-top:10px">${c.map(x=>`<div class="cmt"><div class="h"><b>${esc(x.author)}</b> · ${esc(x.date)} · v${x.version}</div><div style="white-space:pre-wrap">${esc(x.body)}</div></div>`).join('')||'<div class="muted" style="padding:8px 0">Chưa có trao đổi.</div>'}</div>`;
+  $('#tk-ok').onclick=e=>busy(e.target,async()=>{try{await api('/api/plan/comment',{plan_id:d.plan.id,body:$('#tk').value});await reload(S.edit);switchTab('talk');}catch(err){alert(err.message);}});
+}
+
+// ---------- Chờ bạn duyệt ----------
+async function loadPending(){
+  try{const p=await api('/api/pending');const n=p.plans.length+p.adjustments.length;
+    if(!n){$('#pending').innerHTML='';return;}
+    $('#pending').innerHTML=`<div class="pend"><b>Chờ bạn duyệt:</b>${p.plans.map(x=>`<button class="btn" data-pp="${x.id}" data-s="${x.scope_id}" data-sc="${x.scenario_id}" data-y="${x.year}" data-c="${x.company_id}">Kế hoạch ${esc(x.code)} v${x.version}</button>`).join('')}${p.adjustments.map(x=>`<button class="btn" data-pp="${x.plan_id}" data-adj="1" data-s="${x.scope_id}" data-sc="${x.scenario_id}" data-y="${x.year}" data-c="${x.company_id}">${x.count} điều chỉnh · ${esc(x.code)}</button>`).join('')}</div>`;
+    $$('#pending [data-pp]').forEach(b=>b.onclick=async()=>{showView('plan');$('#f-company').value=b.dataset.c;await loadDepts(b.dataset.s);$('#f-scenario').value=b.dataset.sc;$('#f-year').value=b.dataset.y;await openPlan(+b.dataset.pp);if(b.dataset.adj)switchTab('adj');});
+  }catch(e){}
+}
+// ---------- Biểu đồ & kiểm tra ----------
+function chartSvg(series,labels){
+  const W=900,H=240,P=34,max=Math.max(1,...series.flatMap(s=>s.v))*1.15;
+  const x=i=>P+i*(W-2*P)/(labels.length-1),y=v=>H-P-v/max*(H-2*P);
+  let g='';for(let k=0;k<=4;k++){const v=max/4*k;g+=`<line x1="${P}" x2="${W-P}" y1="${y(v)}" y2="${y(v)}" stroke="#eef0f3"/><text x="${P-6}" y="${y(v)+4}" font-size="11" text-anchor="end" fill="#98a2b3">${Math.round(v)}</text>`;}
+  labels.forEach((l,i)=>g+=`<text x="${x(i)}" y="${H-12}" font-size="11" text-anchor="middle" fill="#667085">${l}</text>`);
+  series.forEach(s=>{g+=`<polyline fill="none" stroke="${s.c}" stroke-width="2.5" ${s.dash?'stroke-dasharray="5 4"':''} points="${s.v.map((v,i)=>x(i)+','+y(v)).join(' ')}"/>`;s.v.forEach((v,i)=>g+=`<circle cx="${x(i)}" cy="${y(v)}" r="3" fill="${s.c}"><title>${s.n} ${labels[i]}: ${v}</title></circle>`);});
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${g}</svg>`;
+}
+function renderChecks(){
+  const d=S.data,t=stats(),rm=d.ref_month,rows=d.rows,items=[];
+  const under=rows.filter(r=>r.controlled&&r.employees.length>0&&(val(r,rm)??0)<r.employees.length&&(val(r,rm)??0)>0);
+  const noHc=rows.filter(r=>r.employees.length>0&&!(val(r,rm)>0));
+  const empty=rows.filter(r=>r.employees.length===0&&!(val(r,rm)>0));
+  const vac=rows.filter(r=>(val(r,rm)||0)>r.employees.length);
+  const dirty=dirtyCount();
+  items.push(d.plan?['ok',`Kế hoạch ${d.plan.code} v${d.plan.version} – ${ST[d.plan.status]}`]:['warn','Chưa có kế hoạch cho đơn vị / kịch bản / năm này']);
+  items.push(under.length?['bad',`${under.length} vị trí có Kiểm soát vị trí đang có định biên thấp hơn số người (VLD-HC-05): ${under.map(r=>esc(r.name)).join(', ')}`]:['ok','Không có vị trí nào vi phạm VLD-HC-05']);
+  items.push(noHc.length?['warn',`${noHc.length} vị trí có người nhưng định biên T${rm+1} = 0 (ngoài định biên): ${noHc.map(r=>esc(r.name)).join(', ')}`]:['ok','Mọi vị trí có người đều có định biên']);
+  items.push(vac.length?['warn',`${vac.length} vị trí còn chỗ trống, cần tuyển ${t.vac}: ${vac.map(r=>esc(r.name)+' (+'+((val(r,rm)||0)-r.employees.length)+')').join(', ')}`]:['ok','Không có chỗ trống cần tuyển']);
+  if(empty.length)items.push(['warn',`${empty.length} vị trí không người, không định biên – cân nhắc gỡ khỏi cơ cấu: ${empty.map(r=>esc(r.name)).join(', ')}`]);
+  if(dirty)items.push(['warn',`${dirty} ô đã sửa nhưng chưa lưu`]);
+  const pend=(d.adjustments||[]).filter(a=>a.status==='confirm').length; if(pend)items.push(['warn',`${pend} phiếu điều chỉnh đang chờ duyệt`]);
+  $('#chk').innerHTML=`<div class="row between"><h3 style="margin:0;font-size:14px">Xu hướng định biên theo tháng</h3><div class="legend"><span><i style="background:#0a6bc4"></i>Định biên</span><span><i style="background:#12805c"></i>Hiện có</span></div></div>
+    ${chartSvg([{n:'Định biên',c:'#0a6bc4',v:t.months},{n:'Hiện có',c:'#12805c',dash:1,v:Array(12).fill(t.emp)}],d.periods.map((_,i)=>'T'+(i+1)))}
+    <h3 style="margin:14px 0 6px;font-size:14px">Kiểm tra tự động</h3><ul class="checks">${items.map(([k,tx])=>`<li class="${k}">${k==='ok'?'✓':k==='bad'?'✕':'!'} ${tx}</li>`).join('')}</ul>`;
+}
+// ---------- Báo cáo Quý / Năm ----------
+let REP_MODE='eop';
+function renderReport(){
+  const d=S.data,rows=d.rows;
+  const agg=(arr)=>REP_MODE==='eop'?arr[arr.length-1]:REP_MODE==='avg'?arr.reduce((a,b)=>a+b,0)/arr.length:arr.reduce((a,b)=>a+b,0);
+  const f=v=>REP_MODE==='avg'?v.toLocaleString('vi-VN',{maximumFractionDigits:1}):v;
+  const line=r=>{const m=Array.from({length:12},(_,i)=>val(r,i)||0);return [0,1,2,3].map(q=>agg(m.slice(q*3,q*3+3))).concat([agg(m)]);};
+  const tot=[0,0,0,0,0];
+  const body=rows.map(r=>{const v=line(r);v.forEach((x,i)=>tot[i]+=x);return `<tr><td class="l">${esc(r.name)}<div class="sub">${esc((d.depts.find(x=>x.id===r.dept_id)||{}).name||'')}</div></td>${v.map(x=>`<td>${f(x)}</td>`).join('')}</tr>`;}).join('');
+  $('#rep').innerHTML=`<div class="row between" style="margin-bottom:8px"><div class="seg-tabs bar">${[['eop','Cuối kỳ (mặc định)'],['avg','Bình quân'],['sum','Tổng các tháng']].map(([k,l])=>`<button class="btn ${REP_MODE===k?'primary':''}" data-rm="${k}">${l}</button>`).join('')}</div>
+    <span class="sub">Cuối kỳ = tháng 3/6/9/12 (Quý) hoặc tháng 12 (Năm) · Tổng = nhu cầu cộng dồn, không phải số người</span></div>
+    <div class="wrap" style="max-height:60vh"><table><thead><tr><th class="l">Vị trí</th><th>Quý 1</th><th>Quý 2</th><th>Quý 3</th><th>Quý 4</th><th>Năm</th></tr></thead><tbody>${body}
+    <tr class="total"><td class="l">Tổng</td>${tot.map(x=>`<td>${f(x)}</td>`).join('')}</tr></tbody></table></div>`;
+  $$('#rep [data-rm]').forEach(b=>b.onclick=()=>{REP_MODE=b.dataset.rm;renderReport();});
+}
+// ---------- Dashboard ----------
+function showView(v){
+  msg('');
+  $$('#topnav button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
+  $('#dash').classList.toggle('hidden',v!=='dash');
+  ['#planbar','#kpis','#work'].forEach(x=>$(x).classList.toggle('hidden',v==='dash'||!S.data));
+  if(v==='dash')loadDash();
+}
+$$('#topnav button').forEach(b=>b.onclick=()=>showView(b.dataset.v));
+async function loadDash(){
+  $('#dash').innerHTML='<div class="card muted">Đang tải…</div>';
+  try{const y=+$('#f-year').value,d=await api(`/api/dashboard?company_id=${$('#f-company').value}&scenario_id=${$('#f-scenario').value}&year=${y}`);
+    const T=d.units.reduce((a,u)=>({p:a.p+u.planned,o:a.o+u.occupied,v:a.v+u.vacant,x:a.x+u.over,m:a.m.map((v,i)=>v+u.months[i])}),{p:0,o:0,v:0,x:0,m:Array(12).fill(0)});
+    const noPlan=d.units.filter(u=>!u.plan||u.plan.status!=='validate').length;
+    $('#dash').innerHTML=`<div class="kpis" style="margin-bottom:12px">${[[`Định biên được duyệt T${d.ref_month+1}/${y}`,T.p],['Hiện có',T.o],['Cần tuyển',T.v],['Vượt định biên',T.x],['Tỷ lệ bao phủ',(T.p?Math.round((T.o-T.x)/T.p*100):0)+'%'],['Đơn vị chưa có KH duyệt',noPlan],['Vị trí ngoài định biên',d.unplanned.length]].map(([l,v])=>`<div class="kpi"><div class="l">${l}</div><div class="v">${v}</div></div>`).join('')}</div>
+    <div class="card"><h3 style="margin:0 0 6px;font-size:14px">Định biên được duyệt theo tháng – toàn công ty</h3>${chartSvg([{n:'Định biên',c:'#0a6bc4',v:T.m},{n:'Hiện có',c:'#12805c',dash:1,v:Array(12).fill(T.o)}],Array.from({length:12},(_,i)=>'T'+(i+1)))}</div>
+    <div class="card"><h3 style="margin:0 0 8px;font-size:14px">Theo đơn vị cấp cao nhất · tháng tham chiếu T${d.ref_month+1}</h3><div class="wrap" style="max-height:55vh"><table><thead><tr><th class="l">Đơn vị</th><th>Số vị trí</th><th>Định biên</th><th>Hiện có</th><th>Cần tuyển</th><th>Vượt</th><th>Bao phủ</th><th class="l">Kế hoạch ${y}</th><th></th></tr></thead><tbody>
+    ${d.units.map(u=>`<tr><td class="l">${esc(u.name)}</td><td>${u.jobs}</td><td>${u.planned}</td><td>${u.occupied}</td><td>${u.vacant||''}</td><td style="color:var(--bad)">${u.over||''}</td><td>${u.planned?u.coverage+'%':'–'}</td><td class="l">${u.plan?`<span class="badge s-${u.plan.status}">${ST[u.plan.status]}</span> <span class="sub">${esc(u.plan.code)} v${u.plan.version}</span>`:'<span class="sub">Chưa có</span>'}</td><td>${u.dept_id?`<button class="btn" data-go="${u.dept_id}">Mở</button>`:''}</td></tr>`).join('')}</tbody></table></div></div>
+    <div class="card"><h3 style="margin:0 0 8px;font-size:14px">Các vị trí ngoài định biên (${d.unplanned.length}) <span class="sub">– có người nhưng chưa có định biên được duyệt T${d.ref_month+1}/${y}</span></h3><div class="wrap" style="max-height:45vh"><table><thead><tr><th class="l">Vị trí</th><th class="l">Đơn vị</th><th>Hiện có</th><th>Kiểm soát vị trí</th></tr></thead><tbody>
+    ${d.unplanned.map(j=>`<tr><td class="l">${esc(j.name)}</td><td class="l">${esc(j.dept)}</td><td>${j.employees}</td><td>${j.controlled?'Có':'Không'}</td></tr>`).join('')||'<tr><td colspan="4" class="muted">Không có</td></tr>'}</tbody></table></div></div>`;
+    $$('#dash [data-go]').forEach(b=>b.onclick=async()=>{$('#f-dept').value=b.dataset.go;showView('plan');await openPlan();});
+  }catch(e){$('#dash').innerHTML=`<div class="msg err">${esc(e.message)}</div>`;}
+}
+
+// ---------- Hành động ----------
+function changedCells(){const out=[];for(const r of S.data.rows){const e=S.edit[r.job_id];if(!e)continue;for(const m in e){const v=e[m]??0,o=orig(r,+m)??0;if(v!==o)out.push({job_id:r.job_id,dept_id:r.dept_id,month:+m,from:o,to:v,hc:v,line_id:r.cells[m]?r.cells[m].line_id:null,name:r.name});}}return out;}
+
+async function createPlan(){
+  try{
+    const r=await api('/api/plan/create',{dept_id:+$('#f-dept').value,scenario_id:+$('#f-scenario').value,year:+$('#f-year').value});
+    const cells=[];for(const row of S.data.rows){for(let m=0;m<12;m++){const v=S.edit[row.job_id]?.[m];if(v)cells.push({job_id:row.job_id,month:m,hc:v});}}
+    const s=await api('/api/plan/save',{plan_id:r.id,year:+$('#f-year').value,cells});
+    for(const [jid,text] of Object.entries(S.pendingNotes||{}))await api('/api/plan/note',{plan_id:r.id,job_id:+jid,text});S.pendingNotes={};
+    S.edit={};await openPlan(r.id);
+    msg(`Đã tạo kế hoạch Nháp và lưu ${s.ok} ô.${s.errors.length?` <b>${s.errors.length} ô bị KOI từ chối:</b><br>`+errList(s.errors):''}`,s.errors.length?'err':'ok');
+  }catch(e){msg(esc(e.message));}
+}
+function errList(errs){return errs.slice(0,15).map(x=>{const r=S.data&&S.data.rows.find(r=>r.job_id===x.job_id);return `• ${esc(r?r.name:'')}${x.month!=null?' T'+(x.month+1):''}: ${esc(x.error)}`;}).join('<br>');}
+
+async function saveGrid(){
+  const cells=changedCells();if(!cells.length)return msg('Không có ô nào thay đổi.','info');
+  try{const r=await api('/api/plan/save',{plan_id:S.data.plan.id,year:+$('#f-year').value,cells});
+    S.edit={};await openPlan(S.data.plan.id);
+    msg(`Đã lưu ${r.ok} ô.${r.errors.length?` <b>${r.errors.length} ô bị KOI từ chối:</b><br>`+errList(r.errors):''}`,r.errors.length?'err':'ok');
+  }catch(e){msg(esc(e.message));}
+}
+
+async function planAction(btn,method){
+  const p=S.data.plan;
+  const ask={action_submit:'Gửi kế hoạch này đi phê duyệt? Sau khi gửi sẽ không sửa được nữa.',action_cancel:'Huỷ kế hoạch này? (các điều chỉnh Nháp/Chờ duyệt cũng bị huỷ)',action_reset_draft:'Đặt kế hoạch về Nháp?',action_create_new_version:'Tạo phiên bản mới (bản Nháp với định biên hiện hành)? Bản cũ vẫn hiệu lực đến khi bản mới được duyệt.',action_approve:'Duyệt kế hoạch này?',action_reject:'Từ chối kế hoạch này?'}[method];
+  if(method==='action_submit'&&dirtyCount()&&!confirm('Có ô chưa lưu – các ô đó sẽ KHÔNG được gửi. Tiếp tục?'))return;
+  if(!confirm(ask))return;
+  const label=btn.textContent;await busy(btn,async()=>{try{const r=await api('/api/plan/action',{plan_id:p.id,method});await openPlan(r.new_plan_id||p.id);msg('Đã thực hiện: '+label,'ok');}catch(e){msg(esc(e.message));}});
+}
+
+function monthOpts(sel){return Array.from({length:12},(_,i)=>`<option value="${i}" ${i===sel?'selected':''}>T${i+1}</option>`).join('');}
+function quickFill(){
+  const rows=S.data.rows;
+  modal(`<h3>Điền nhanh</h3><p class="sub" style="margin-top:0">Đặt một số định biên cho nhiều vị trí và nhiều tháng.</p>
+  <div class="list" id="qf-list">${rows.map(r=>`<label><input type="checkbox" value="${r.job_id}" ${S.checked.has(r.job_id)?'checked':''}>${esc(r.name)} <span class="sub">(${r.employees.length} người)</span></label>`).join('')}</div>
+  <div class="row" style="margin-top:10px"><label>Từ tháng<select id="qf-from">${monthOpts(0)}</select></label><label>Đến tháng<select id="qf-to">${monthOpts(11)}</select></label>
+  <label>Số định biên<input id="qf-v" type="number" min="0" style="width:90px" placeholder="vd 2"></label><label class="sub" style="flex-direction:row;align-items:center;gap:6px"><input type="checkbox" id="qf-emp">Bằng số người đang giữ</label></div>
+  <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn" onclick="closeModal()">Huỷ</button><button class="btn primary" id="qf-ok">Áp dụng</button></div>`,()=>{
+    $('#qf-ok').onclick=()=>{const ids=$$('#qf-list input:checked').map(x=>+x.value);const f=+$('#qf-from').value,t=+$('#qf-to').value;const useEmp=$('#qf-emp').checked;const v=parseInt($('#qf-v').value,10);
+      if(!ids.length||(!useEmp&&isNaN(v)))return alert('Chọn vị trí và nhập số');
+      for(const id of ids){const r=rows.find(r=>r.job_id===id);for(let m=Math.min(f,t);m<=Math.max(f,t);m++)(S.edit[id]=S.edit[id]||{})[m]=useEmp?r.employees.length:Math.max(0,v);}
+      closeModal();renderGrid();renderKpis();updDirty();};
+  });
+}
+function deptOptions(sel){
+  const d=S.data,depth=x=>{let n=0,c=x;while(c&&c.parent_id&&d.depts.some(y=>y.id===c.parent_id)){n++;c=d.depts.find(y=>y.id===c.parent_id);}return n;};
+  const kids=pid=>d.depts.filter(x=>pid==null?!d.depts.some(y=>y.id===x.parent_id):x.parent_id===pid).sort((a,b)=>a.name.localeCompare(b.name));
+  const out=[];const walk=pid=>kids(pid).forEach(x=>{out.push(x);walk(x.id);});walk(null);
+  return `<option value="">— Chọn phòng ban / bộ phận —</option>`+out.map(x=>`<option value="${x.id}" ${x.id===sel?'selected':''}>${'\u00a0\u00a0\u00a0\u00a0'.repeat(depth(x))}${depth(x)?'└ ':''}${esc(x.name)}</option>`).join('');
+}
+function moveModal(jid){
+  const r=S.data.rows.find(x=>x.job_id===jid);
+  modal(`<h3>Đổi phòng ban – ${esc(r.name)}</h3><label>Chuyển sang<select id="mv-d">${deptOptions(r.dept_id)}</select></label>
+  <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="btn" onclick="closeModal()">Huỷ</button><button class="btn primary" id="mv-ok">Đổi phòng ban</button></div>`,()=>{
+    $('#mv-ok').onclick=e=>busy(e.target,async()=>{if(!$('#mv-d').value)return alert('Chọn phòng ban');try{await api('/api/position/move',{job_id:jid,dept_id:+$('#mv-d').value,plan_id:S.data.plan?S.data.plan.id:null});closeModal();const keep=S.edit;const q={dept_id:$('#f-dept').value,scenario_id:$('#f-scenario').value,year:$('#f-year').value};if(S.data.plan)q.plan_id=S.data.plan.id;S.data=fix(await api('/api/grid?'+new URLSearchParams(q)));S.edit=keep;render();msg('Đã đổi phòng ban.','ok');}catch(err){alert(err.message);}});
+  });
+}
+function newPosition(){
+  const d=S.data;
+  modal(`<h3>Vị trí mới</h3><p class="sub" style="margin-top:0">Tạo vị trí công việc mới (trong app) trong đơn vị đã chọn, kèm định biên các tháng.${status()==='validate'?' Kế hoạch đã duyệt: định biên sẽ thành điều chỉnh “Thêm” cần duyệt.':''}</p>
+  <div style="display:grid;gap:10px"><label><span>Phòng ban / bộ phận <b style="color:var(--bad)">*</b></span><select id="np-dept">${deptOptions(null)}</select></label>
+  <label><span>Tên vị trí <b style="color:var(--bad)">*</b></span><input id="np-name" placeholder="vd Chuyên viên C&B"></label>
+  <label>Lý do mở vị trí / ghi chú<textarea id="np-note" placeholder="vd Mở mới để phụ trách mảng C&B từ Q2"></textarea></label>
+  <div class="row"><label>Từ tháng<select id="np-from">${monthOpts(0)}</select></label><label>Đến tháng<select id="np-to">${monthOpts(11)}</select></label><label>Định biên<input id="np-v" type="number" min="1" value="1" style="width:80px"></label></div></div>
+  <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn" onclick="closeModal()">Huỷ</button><button class="btn primary" id="np-ok">Tạo vị trí</button></div>`,()=>{
+    $('#np-ok').onclick=e=>busy(e.target,async()=>{const name=$('#np-name').value.trim();if(!$('#np-dept').value)return alert('Chọn phòng ban / bộ phận');if(!name)return alert('Nhập tên vị trí');
+      if(!confirm(`Tạo vị trí "${name}"?`))return;
+      try{const note=$('#np-note').value.trim(),pid=S.data.plan?S.data.plan.id:null;
+        const r=await api('/api/position',{name,dept_id:+$('#np-dept').value,plan_id:pid,note});
+        if(!pid&&note)(S.pendingNotes=S.pendingNotes||{})[r.id]=note;
+        const f=+$('#np-from').value,t=+$('#np-to').value,v=+$('#np-v').value||1;const keep=S.edit;
+        const q={dept_id:$('#f-dept').value,scenario_id:$('#f-scenario').value,year:$('#f-year').value};if(pid)q.plan_id=pid;
+        S.data=fix(await api('/api/grid?'+new URLSearchParams(q)));S.edit=keep;S.edit[r.id]={};for(let m=0;m<12;m++)S.edit[r.id][m]=(m>=f&&m<=t)?v:(pid?null:0);if(pid)for(let m=0;m<12;m++)if(S.edit[r.id][m]==null)delete S.edit[r.id][m];
+        if(!pid)Object.assign(S.data.notes,S.pendingNotes||{});
+        if(pid&&S.data.plan.status==='draft'){const cells=[];for(let m=f;m<=t;m++)cells.push({job_id:r.id,month:m,hc:v});await api('/api/plan/save',{plan_id:pid,year:+$('#f-year').value,cells});delete keep[r.id];S.data=fix(await api('/api/grid?'+new URLSearchParams(q)));S.edit=keep;render();closeModal();return msg(`Đã thêm vị trí "${esc(name)}" vào kế hoạch.`,'ok');}
+        render();
+        closeModal();msg(`Đã tạo vị trí "${esc(name)}". Định biên đã điền vào bảng – bấm ${!S.data.plan?'“Tạo kế hoạch Nháp”':status()==='validate'?'“Tạo điều chỉnh”':'“Lưu bảng”'} để lưu.`,'info');
+      }catch(err){alert(err.message);}});
+  });
+}
+function transfer(){
+  const rows=S.data.rows,opt=rows.map(r=>`<option value="${r.job_id}">${esc(r.name)}</option>`).join('');
+  modal(`<h3>Điều chuyển định biên</h3><p class="sub" style="margin-top:0">Chuyển số định biên từ vị trí này sang vị trí khác trong các tháng chọn. Bắt buộc có lý do.${status()==='validate'?' <b>Kế hoạch đã duyệt:</b> tạo cặp phiếu điều chỉnh (giảm nguồn, tăng đích) – cả cặp được duyệt hoặc không.':''}</p>
+  <div style="display:grid;gap:10px"><label>Từ vị trí<select id="tr-from">${opt}</select></label><label>Sang vị trí<select id="tr-to">${opt}</select></label>
+  <div class="row"><label>Từ tháng<select id="tr-m1">${monthOpts(0)}</select></label><label>Đến tháng<select id="tr-m2">${monthOpts(11)}</select></label><label>Số lượng<input id="tr-q" type="number" min="1" value="1" style="width:80px"></label></div>
+  <label>Lý do<textarea id="tr-r"></textarea></label></div>
+  <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn" onclick="closeModal()">Huỷ</button><button class="btn primary" id="tr-ok">Điều chuyển & lưu</button></div>`,()=>{
+    $('#tr-ok').onclick=e=>busy(e.target,async()=>{const a=+$('#tr-from').value,b=+$('#tr-to').value,q=+$('#tr-q').value,reason=$('#tr-r').value.trim();
+      const m1=+$('#tr-m1').value,m2=+$('#tr-m2').value;if(a===b)return alert('Chọn hai vị trí khác nhau');if(!reason)return alert('Nhập lý do');
+      const ra=rows.find(r=>r.job_id===a),rb=rows.find(r=>r.job_id===b);const months=[];
+      for(let m=m1;m<=m2;m++){const va=val(ra,m)||0;if(va<q)return alert(`${ra.name} tháng ${m+1} chỉ có ${va} định biên`);months.push(m);}
+      if(status()!=='validate')months.forEach(m=>{(S.edit[a]=S.edit[a]||{})[m]=(val(ra,m)||0)-q;(S.edit[b]=S.edit[b]||{})[m]=(val(rb,m)||0)+q;});
+      const appr=status()==='validate';
+      try{const r=await api('/api/plan/transfer',{plan_id:S.data.plan.id,year:+$('#f-year').value,from_job:a,to_job:b,months,qty:q,reason,cells:appr?[]:changedCells(),submit:appr});
+        closeModal();S.edit={};await openPlan(S.data.plan.id);
+        if(appr){switchTab('adj');msg(`Đã tạo ${r.adjustments} phiếu điều chuyển (theo cặp) và gửi duyệt. Hai nửa của mỗi cặp được duyệt / từ chối cùng nhau.`,'ok');}
+        else msg(`Đã điều chuyển và lưu ${r.ok} ô.${r.errors.length?'<br>'+errList(r.errors):''}`,r.errors.length?'err':'ok');}
+      catch(err){alert(err.message);}});
+  });
+}
+function adjustPreview(){
+  const ch=changedCells();if(!ch.length)return msg('Chưa sửa ô nào. Sửa định biên trong bảng rồi bấm “Tạo điều chỉnh”.','info');
+  const act=c=>c.line_id?(c.to===0?'Xoá':'Tăng/giảm'):'Thêm';
+  modal(`<h3>Tạo ${ch.length} điều chỉnh định biên</h3>
+  <div class="wrap" style="max-height:300px"><table class="hist"><thead><tr><th>Vị trí</th><th>Tháng</th><th>Hành động</th><th>Hiện hành → Đích</th></tr></thead><tbody>
+  ${ch.map(c=>`<tr><td>${esc(c.name)}</td><td>T${c.month+1}</td><td>${act(c)}</td><td>${c.from} → <b>${c.to}</b></td></tr>`).join('')}</tbody></table></div>
+  <label style="margin-top:10px">Lý do (áp dụng cho tất cả)<textarea id="ad-r" placeholder="Để trống sẽ ghi 'Điều chỉnh định biên'"></textarea></label>
+  <label class="sub" style="flex-direction:row;align-items:center;gap:6px;margin-top:8px"><input type="checkbox" id="ad-send" checked> Gửi phê duyệt luôn</label>
+  <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn" onclick="closeModal()">Huỷ</button><button class="btn primary" id="ad-ok">Tạo điều chỉnh</button></div>`,()=>{
+    $('#ad-ok').onclick=e=>busy(e.target,async()=>{
+      try{const r=await api('/api/adjustments',{plan_id:S.data.plan.id,year:+$('#f-year').value,changes:ch,reason:$('#ad-r').value.trim(),submit:$('#ad-send').checked});
+        closeModal();S.edit={};await openPlan(S.data.plan.id);switchTab('adj');
+        msg(`Đã tạo ${r.created} điều chỉnh${r.submitted?`, đã gửi duyệt ${r.submitted}`:''}.${r.errors.length?` <b>${r.errors.length} lỗi:</b><br>`+errList(r.errors):''}`,r.errors.length?'err':'ok');}
+      catch(err){alert(err.message);}});
+  });
+}
+function exportCsv(){
+  const d=S.data,rows=[['Đơn vị','Vị trí','ĐB hiện tại '+d.current_hc_month,'Hiện có',...d.periods.map((_,i)=>'T'+(i+1)),'Ghi chú']];
+  for(const r of d.rows){const dep=d.depts.find(x=>x.id===r.dept_id);rows.push([dep?dep.full:'',r.name,r.current_hc??'',r.employees.length,...Array.from({length:12},(_,m)=>val(r,m)??''),d.notes[r.job_id]||'']);}
+  const csv='﻿'+rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\r\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download=`dinh-bien_${(d.plan&&d.plan.code)||'de-xuat'}_${$('#f-year').value}.csv`;a.click();
+}
+// Tự tải lại trang khi app được cập nhật (không mất ô chưa lưu)
+let VER=null;setInterval(async()=>{try{const v=await fetch('/api/version').then(r=>r.json());const k=v.boot+'|'+v.page;
+  if(VER&&VER!==k){if(!dirtyCount()&&!$('#modal').innerHTML)location.reload();else if(!$('#upd'))document.body.insertAdjacentHTML('afterbegin','<div id="upd" class="msg info" style="position:fixed;bottom:12px;right:12px;z-index:60;cursor:pointer" onclick="location.reload()">Đã có bản cập nhật – lưu xong rồi bấm vào đây để tải lại</div>');}
+  VER=k;}catch(e){}},4000);
+$('#d-backup').onclick=async()=>{const d=await api('/api/data');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(d)],{type:'application/json'}));a.download=`dinh-bien-sao-luu-${new Date().toISOString().slice(0,10)}.json`;a.click();};
+$('#d-restore').onchange=async e=>{const f=e.target.files[0];if(!f)return;if(!confirm('Thay toàn bộ dữ liệu hiện tại bằng file "'+f.name+'"? (dữ liệu hiện tại được tự sao lưu trước)'))return;
+  try{await api('/api/data',JSON.parse(await f.text()));msg('Đã khôi phục dữ liệu.','ok');S.data&&openPlan();}catch(err){msg('Không khôi phục được: '+esc(err.message));}e.target.value='';};
+</script>
+<script>if(location.hash==='#dash')setTimeout(()=>document.querySelector('#topnav [data-v="dash"]')?.click(),600);</script>
+</body>
+</html>
