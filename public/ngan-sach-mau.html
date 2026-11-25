@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ngân sách nhân sự – bản mẫu</title>
+<style>
+:root{--bg:#f5f6f8;--card:#fff;--line:#e3e6eb;--text:#1c2430;--muted:#687385;--brand:#0a6bc4;--brand-2:#e7f0fb;--ok:#12805c;--ok-2:#e6f5ee;--warn:#b54708;--warn-2:#fff3e2;--bad:#b42318;--bad-2:#fdeceb;--chg:#fff6d6}
+*{box-sizing:border-box}
+body{margin:0;font:13.5px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text)}
+header{display:flex;align-items:center;gap:14px;padding:10px 18px;background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20}
+header h1{font-size:15px;margin:0}
+nav.top{display:flex;gap:4px;margin-left:12px}
+nav.top a{padding:6px 12px;border-radius:7px;color:var(--muted);text-decoration:none}
+nav.top a.on{background:var(--brand-2);color:var(--brand);font-weight:600}
+main{padding:14px 18px;max-width:1700px;margin:0 auto}
+.mock{background:var(--warn-2);border:1px solid #f3d19c;color:var(--warn);border-radius:9px;padding:8px 12px;margin-bottom:12px}
+.card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:12px}
+.card h3{margin:0 0 4px;font-size:14px}.card .hint{color:var(--muted);font-size:12px;margin:0 0 10px}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.tabs button{border:0;background:none;padding:8px 14px;cursor:pointer;font:inherit;color:var(--muted);border-bottom:2px solid transparent}
+.tabs button.on{color:var(--brand);border-bottom-color:var(--brand);font-weight:600}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.between{justify-content:space-between}
+.grid2{display:grid;grid-template-columns:1.1fr 1fr;gap:12px}
+@media(max-width:1100px){.grid2{grid-template-columns:1fr}}
+input,select{font:inherit;padding:5px 8px;border:1px solid var(--line);border-radius:7px;background:#fff}
+input.num{width:80px;text-align:right}input.money{width:130px;text-align:right}
+input.edited{background:var(--chg);border-color:#e8c650}
+.btn{font:inherit;padding:6px 12px;border-radius:7px;border:1px solid var(--line);background:#fff;cursor:pointer}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff;font-weight:600}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:#fff;padding:6px 11px;cursor:pointer;font:inherit;border-right:1px solid var(--line)}
+.seg button:last-child{border-right:0}.seg button.on{background:var(--brand);color:#fff}
+table{border-collapse:separate;border-spacing:0;width:100%;font-variant-numeric:tabular-nums}
+th,td{padding:6px 8px;border-bottom:1px solid var(--line);white-space:nowrap;text-align:right}
+th{background:#f8f9fb;font-size:11.5px;color:var(--muted);font-weight:600;position:sticky;top:0;z-index:2}
+td.l,th.l{text-align:left}
+.wrap{overflow:auto;max-height:62vh;border:1px solid var(--line);border-radius:9px;background:#fff}
+.sticky{position:sticky;left:0;background:#fff;z-index:1;min-width:280px}
+th.sticky{z-index:3;background:#f8f9fb}
+tr.grp td{background:#f3f5f8;font-weight:600}tr.grp td.sticky{background:#f3f5f8}
+tr.tot td{background:#eef3fa;font-weight:700;position:sticky;bottom:0}tr.tot td.sticky{background:#eef3fa}
+tr.pos{cursor:pointer}tr.pos:hover td{background:#f7faff}
+tr.det td{background:#fbfcfe;font-size:12px;color:#475467}tr.det td.sticky{background:#fbfcfe;padding-left:28px}
+tr.vac td{color:#6b3fc7}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;margin-bottom:12px}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:9px;padding:9px 12px}
+.kpi .l{font-size:11.5px;color:var(--muted)}.kpi .v{font-size:19px;font-weight:700;font-variant-numeric:tabular-nums}
+.kpi .d{font-size:11.5px}.up{color:var(--bad)}.down{color:var(--ok)}
+.tag{display:inline-block;font-size:10.5px;padding:1px 7px;border-radius:999px;margin-left:5px}
+.t-pos{background:var(--ok-2);color:var(--ok)}.t-tit{background:var(--warn-2);color:var(--warn)}.t-man{background:var(--chg);color:#8a6a00}.t-none{background:var(--bad-2);color:var(--bad)}
+.sub{font-size:11.5px;color:var(--muted)}
+.bar{height:16px;border-radius:4px;display:inline-block;vertical-align:middle}
+.legend span{display:inline-flex;align-items:center;gap:5px;margin-right:12px;font-size:12px;color:var(--muted)}
+.legend i{width:11px;height:11px;border-radius:3px;display:inline-block}
+.hidden{display:none!important}
+.flow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12.5px}
+.flow b{background:var(--brand-2);color:var(--brand);padding:4px 10px;border-radius:7px}
+.incon label{display:inline-flex;align-items:center;gap:4px;margin-right:10px;font-size:12.5px;cursor:pointer;white-space:nowrap}
+.chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:4px 12px;cursor:pointer;font:inherit;display:inline-flex;align-items:center;gap:6px}
+.chip i{width:9px;height:9px;border-radius:50%;display:inline-block}
+.chip.on{border-color:var(--brand);background:var(--brand-2);color:var(--brand);font-weight:600}
+.hcin{width:38px;text-align:center;padding:2px;border:1px solid var(--line);border-radius:5px}
+.hcin.chg{background:var(--chg);border-color:#e8c650}
+.q2base label{display:inline-flex;align-items:center;gap:4px;margin-right:10px;font-size:12.5px;cursor:pointer;white-space:nowrap}
+.mchips{display:inline-flex;gap:2px;flex-wrap:nowrap}.mchips button{border:1px solid var(--line);background:#fff;border-radius:5px;font:inherit;font-size:11px;padding:2px 5px;cursor:pointer;color:var(--muted)}
+.mchips button.on{background:var(--brand);border-color:var(--brand);color:#fff}
+#ben input.money{width:110px}.pjt{width:100%}.pjt th,.pjt td{padding:4px 8px;font-size:12.5px}#pay-mode button{flex:1;white-space:nowrap;padding:5px 6px;font-size:12px}table.form td:nth-child(4){width:310px;white-space:nowrap}table.form tr.hd th,table.form tr.hd td{padding:4px 8px;border-bottom:0}#ben input.num{width:60px}
+.msel{position:relative;display:inline-block;vertical-align:middle}
+.msel>.mbtn{min-width:260px;max-width:420px;text-align:left;border:1px solid var(--line);background:#fff;border-radius:6px;padding:4px 26px 4px 8px;font:inherit;font-size:12.5px;cursor:pointer;position:relative;white-space:normal}
+.msel>.mbtn:after{content:'▾';position:absolute;right:8px;top:4px;color:var(--muted)}
+.msel .tag{display:inline-block;background:#eef2ff;color:#3538cd;border-radius:4px;padding:0 5px;margin:1px 2px;font-size:11.5px}
+.msel .mpanel{display:none;position:absolute;z-index:30;top:100%;left:0;margin-top:3px;background:#fff;border:1px solid var(--line);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.12);padding:6px 8px;width:330px;max-height:360px;overflow:auto}
+.msel.open .mpanel{display:block}
+.msel .mg{font-weight:600;font-size:11.5px;color:var(--muted);margin:6px 0 2px;display:flex;align-items:center;gap:5px;cursor:pointer}
+.msel .mpanel label{display:flex;align-items:center;gap:6px;padding:2px 0 2px 16px;font-size:12.5px;cursor:pointer}
+.msel .mpanel label .z{margin-left:auto;font-size:11px;color:var(--muted)}
+.cfgwrap{display:grid;grid-template-columns:200px 1fr;gap:14px;align-items:start}
+.cfgnav{position:sticky;top:10px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:6px;display:flex;flex-direction:column;gap:2px}
+.cfgnav button{border:0;background:none;text-align:left;padding:8px 10px;border-radius:7px;font:inherit;font-size:13px;cursor:pointer;color:inherit}
+.cfgnav button b{display:inline-block;width:18px;height:18px;line-height:18px;text-align:center;border-radius:50%;background:#eef1f5;font-size:11px;margin-right:6px}
+.cfgnav button.on{background:#eef5ff;color:var(--brand);font-weight:600}.cfgnav button.on b{background:var(--brand);color:#fff}
+table.form th{text-align:left;width:130px;font-weight:600;color:inherit;background:none;padding:10px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+table.form td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line)}
+table.form td:nth-child(2){width:190px;white-space:nowrap}
+.i{cursor:help;color:var(--muted);font-weight:400;font-size:13px}
+#ins-rows input{width:64px}.demo{display:grid;grid-template-columns:repeat(6,auto);gap:4px 18px;max-width:900px;background:#f7f9fc;border-radius:8px;padding:10px 12px;font-size:12.5px}.demo b{font-variant-numeric:tabular-nums}.demo .k{color:var(--muted)}
+.cfgnav .ng{font-size:12px;font-weight:700;padding:8px 8px 4px;color:#344054}.cfgnav .ng .sub{font-weight:400;font-size:11px;margin-left:14px}
+.cfgnav .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}
+.scope{font-size:11px;font-weight:500;border-radius:10px;padding:1px 8px;margin-left:6px;vertical-align:middle}.scope.g{background:#f2f4f7;color:#475467}.scope.s{color:#fff}
+.of{border:1px solid #cfe0f7;background:#f5f9ff;border-radius:10px;padding:12px 14px;margin-top:10px;display:grid;grid-template-columns:150px 1fr;gap:10px 12px;align-items:start}
+.of>label{font-weight:600;font-size:12.5px;padding-top:6px}.of .units{display:flex;flex-wrap:wrap;gap:4px 14px;max-height:170px;overflow:auto;background:#fff;border:1px solid var(--line);border-radius:7px;padding:8px 10px}
+.of .units label{font-size:12.5px;display:flex;gap:5px;align-items:center;white-space:nowrap}
+tr.grp td{background:#f7f8fa;font-weight:600;font-size:12px}
+body.mgr [data-admin]{display:none!important}body.mgr [data-mgr]{display:block!important}body.mgr #price .mgr-hide{display:none}
+</style>
+</head>
+<body>
+<header>
+  <h1>Định biên & Ngân sách</h1>
+  <nav class="top"><a href="/">Tạo và xem Kế hoạch định biên</a><a href="/">Dashboard hoạch định nhân sự</a><a class="on" href="#">Ngân sách</a></nav>
+</header>
+<main>
+  <div class="mock"><b>BẢN MẪU để hình dung giao diện.</b> Cấu hình áp cho toàn T02 (vị trí, đơn vị, địa điểm, phụ cấp lấy từ KOI). Riêng bảng số ngân sách đang tính mẫu bằng lương giả lập từng người của Ban Hoạch định & PTNNL – chưa nạp toàn công ty.</div>
+
+  <div class="card row between">
+    <div class="row"><b>Năm 2027 · Kịch bản:</b> <span id="scn-chips" class="row" style="gap:6px"></span>
+      <button class="btn" data-admin id="scn-add" title="Nhân bản kịch bản đang chọn">+ Thêm kịch bản</button>
+      <button class="btn" data-admin id="scn-ren">✎ Đổi tên</button><button class="btn" data-admin id="scn-del">✕ Xoá</button></div>
+    <div class="row"><button class="btn primary" id="save-btn" title="Lưu toàn bộ cấu hình (Ctrl+S)">💾 Lưu cấu hình</button><span class="sub" id="save-st" style="min-width:150px"></span><button class="btn" data-admin id="exp-btn" title="Tải file cấu hình để gửi / sao lưu">⤓ Xuất file</button><label class="btn" data-admin style="cursor:pointer" title="Nạp lại từ file đã xuất">⤒ Nạp file<input type="file" accept=".json" id="imp-file" style="display:none"></label><span class="sub">Xem với vai trò:</span><div class="seg" id="role"><button data-r="hr" class="on">Admin HR</button><button data-r="mgr">Quản lý đơn vị</button></div><span class="sub">Đơn vị:</span> <select id="unit-sel" autocomplete="off"></select></div>
+  </div>
+
+  <div class="tabs" id="tabs"><button data-t="cfg" class="on">① Cấu hình biến số</button><button data-t="bud">② Ngân sách theo kế hoạch</button><button data-t="sum">③ Tổng hợp</button><button data-t="cmp">④ So sánh kịch bản</button></div>
+
+  <!-- ① CẤU HÌNH -->
+  <section data-p="cfg">
+    <div class="cfgwrap">
+      <nav class="cfgnav" id="cfgnav">
+        <div class="ng" data-mgr style="display:none"><span class="dot" style="background:#0a6bc4"></span>Việc của quản lý<div class="sub">đơn vị đang chọn</div></div>
+        <button data-mgr data-c="c10" style="display:none"><b>1</b> Chính sách đang áp dụng</button>
+        <div class="ng" data-admin><span class="dot" style="background:#475467"></span>Chính sách chung<div class="sub">toàn công ty · mọi kịch bản</div></div>
+        <button data-admin data-c="c7" class="on"><b>1</b> Bảo hiểm &amp; thuế</button>
+        <button data-admin data-c="c3"><b>2</b> Phúc lợi</button>
+        <button data-admin data-c="c9"><b>3</b> Phụ cấp</button>
+        <button data-admin data-c="c8"><b>4</b> Tháng chi thưởng</button>
+        <button data-c="c6"><b data-n="5">5</b> Đơn giá vị trí mới</button>
+        <div class="ng" data-admin style="margin-top:8px"><span class="dot" id="ng-dot"></span>Biến số kịch bản<div class="sub" id="ng-scn"></div></div>
+        <button data-admin data-c="c1"><b>6</b> Lương &amp; KPI</button>
+        <button data-admin data-c="c2"><b>7</b> Quỹ Q3</button>
+        <div class="ng" data-admin style="margin-top:8px"><span class="dot" style="background:#b54708"></span>Tuỳ chỉnh riêng<div class="sub">theo phòng / vị trí / ngạch</div></div>
+        <button data-admin data-c="c5"><b>8</b> Tuỳ chỉnh riêng</button>
+      </nav>
+      <div class="cfgbody">
+        <div class="card cp hidden" id="c1"><h3>Lương &amp; KPI <span class="scope s"></span></h3>
+          <table class="form"><tbody>
+                        <tr><th>Tăng lương</th><td><input class="num" id="v-inc" value="8"> % từ <select id="v-incm"></select></td><td><span class="sub">áp lên</span> <div class="msel incon" data-ex="q2y,q3,q3_quarterly_bonus,q3_emulation_program_bonus,ben"></div></td></tr>
+            <tr><th>Điều kiện tăng</th><td colspan="2">Thâm niên ≥ <input class="num" id="v-incmin" value="6" style="width:56px"> tháng, tính từ <select id="v-incbasis"><option value="fe">ngày vào Tập đoàn lần đầu</option><option value="oc">ngày ký HĐ chính thức</option></select> đến tháng xét tăng · chưa đủ thì <select id="v-incrule"><option value="reach">tăng từ tháng đủ thâm niên</option><option value="skip">không tăng năm nay</option></select>
+              <div class="sub" id="inc-elig" style="margin-top:4px"></div></td></tr>
+            <tr><th>KPI tháng</th><td><input class="num" id="v-kpi" value="90"> %</td><td class="sub">→ Thưởng Q2 tháng</td></tr>
+            <tr><th>KPI quý</th><td><input class="num" id="v-kpiq" value="90"> %</td><td class="sub">→ Thưởng Q2 quý</td></tr>
+            <tr><th>Q2 cơ bản năm</th><td><input class="num" id="v-q2n" value="1" step="0.1"> tháng</td><td><span class="sub">×</span> <div class="msel q2base" data-ex="q2y,q3,q3_quarterly_bonus,q3_emulation_program_bonus,recognition_bonus,special_annual_planning_bonus,other_special_bonus,sti_phase_planning_bonus,lti_core_annual_bonus,lti_tb_bonus,ben"></div> <span class="sub">×</span> <select id="v-q2kpi" style="width:105px"><option value="m">KPI tháng</option><option value="q">KPI quý</option><option value="none">không nhân KPI</option></select> <span class="i" title="Mặc định theo KOI: LCB + thưởng đánh giá + PC trách nhiệm + Q2 tháng + Q2 quý/3, hệ số 1 tháng. Ngạch không hưởng: ghi đè hệ số = 0 ở mục 8.">ⓘ</span></td></tr>
+          </tbody></table>
+        </div>
+        <div class="card cp hidden" id="c2"><h3>Quỹ thưởng Q3 (thi đua) <span class="scope s"></span> <span class="i" title="Q3 lập theo quỹ chung, không theo từng người.">ⓘ</span></h3>
+          <table class="form"><tbody>
+            <tr><th>Cách lập quỹ</th><td colspan="2"><select id="v-q3mode"><option value="pct">% trên quỹ lương</option><option value="fixed">Số tiền cố định / năm</option></select></td></tr>
+            <tr id="q3-pct"><th>Mức quỹ</th><td><input class="num" id="v-q3pct" value="5"> %</td><td><span class="sub">×</span> <div class="msel q3base" data-ex="q3,q3_quarterly_bonus,q3_emulation_program_bonus,ben"></div></td></tr>
+            <tr id="q3-fixed" style="display:none"><th>Mức quỹ</th><td colspan="2"><input class="money" id="v-q3fund" style="width:140px"> đ / năm <span class="sub">chia theo đầu định biên</span></td></tr>
+            <tr><th>Tỷ lệ giải ngân</th><td><input class="num" id="v-q3" value="80"> %</td><td class="sub">tháng chi: mục 4</td></tr>
+          </tbody></table><div class="sub" id="q3-est"></div>
+        </div>
+        <div class="card cp hidden" id="c3"><div class="row between"><h3 style="margin:0">Phúc lợi <span class="scope g">Chung toàn công ty</span> <span class="i" title="Trên KOI các khoản Cưới / Sinh con / Nghỉ việc / BHSK mới là cờ Có–Không, chưa có mức tiền → khai mức, đối tượng, tháng chi ở đây.">ⓘ</span></h3><button class="btn" id="ben-add">+ Thêm</button></div>
+          <div class="wrap" style="max-height:none;margin-top:8px"><table><thead><tr><th></th><th class="l">Phúc lợi</th><th class="l">Loại</th><th>Mức / người / lần</th><th class="l">Đối tượng</th><th>Phát sinh</th><th class="l">Tháng chi</th><th>Ước tính năm</th><th></th></tr></thead><tbody id="ben"></tbody></table></div></div>
+        <div class="card cp" id="c7"><h3>Bảo hiểm &amp; thuế TNCN <span class="scope g">Chung toàn công ty</span></h3>
+          <table class="form"><tbody>
+            <tr><th>Lương đóng BH</th><td colspan="2"><div class="msel insbase" data-ex="q2m,q2q,q2y,q3,q3_quarterly_bonus,q3_emulation_program_bonus,recognition_bonus,special_annual_planning_bonus,other_special_bonus,sti_phase_planning_bonus,lti_core_annual_bonus,lti_tb_bonus,ben"></div></td></tr>
+            <tr><th>Mức trần</th><td colspan="2">BHXH, BHYT: 20 × <input class="money" id="i-ref" style="width:110px"> <span class="sub">mức tham chiếu</span> &nbsp; · &nbsp; BHTN: 20 × <input class="money" id="i-minw" style="width:110px"> <span class="sub">lương tối thiểu vùng</span></td></tr>
+          </tbody></table>
+          <table style="margin-top:10px;max-width:560px"><thead><tr><th class="l">Khoản</th><th>DN đóng</th><th>NLĐ đóng</th></tr></thead><tbody id="ins-rows"></tbody></table>
+          <h3 style="margin-top:16px">Thuế TNCN (tính thực nhận cho NLĐ) <label class="sub" style="font-weight:400"><input type="checkbox" id="pit-on"> tính</label></h3>
+          <table class="form"><tbody>
+            <tr><th>Giảm trừ bản thân</th><td colspan="2"><input class="money" id="pit-self" style="width:120px"> đ / tháng</td></tr>
+            <tr><th>Người phụ thuộc</th><td colspan="2"><input class="money" id="pit-dep" style="width:120px"> đ / người × <input class="num" id="pit-ndep" step="0.1"> <span class="sub">người bình quân / NLĐ</span></td></tr>
+            <tr><th>Biểu thuế</th><td colspan="2" class="sub">5 bậc: ≤10tr 5% · 10–30tr 15% · 30–60tr 25% · 60–100tr 30% · &gt;100tr 35% <span class="i" title="Ước tính theo tháng trên thu nhập dồn tích, chưa trừ các khoản miễn thuế (ăn trưa, phúc lợi…).">ⓘ</span></td></tr>
+          </tbody></table>
+          <div style="margin-top:12px"><span class="sub">Xem thử:</span> <select id="ins-who"></select> <span class="sub">tháng</span> <select id="ins-m"></select><div id="ins-demo" style="margin-top:8px"></div></div>
+        </div>
+        <div class="card cp hidden" id="c9"><h3>Phụ cấp cho định biên mới <span class="scope g">Chung toàn công ty</span> <span class="i" title="Người đang giữ vị trí: phụ cấp lấy đúng Comp của từng người trên KOI. Bảng này chỉ dùng cho định biên phát sinh mới.">ⓘ</span></h3>
+          <p class="hint" style="margin-top:4px"><b>Theo vị trí</b>: nhập mức riêng từng vị trí (vd. chuyên cần công nhân), để trống thì lấy TB người cùng vị trí → cùng ngạch → mức mặc định. <b>Định mức bữa × ngày công</b>: theo khối (văn phòng / nhà máy…), khối lấy theo địa điểm làm việc. <b>Theo bậc tay nghề</b>: bảng mức theo bậc. <b>Mức cố định</b>: theo đối tượng. <b>Không hoạch định sẵn</b>: các phụ cấp gắn với người / quyết định riêng – nếu cần thì nhập ở cột "PC đặc thù" của mục 5.</p>
+          <table><thead><tr><th class="l">Loại phụ cấp</th><th class="l">Cách hoạch định cho người mới</th><th>Mức mặc định</th><th class="l">Đối tượng</th><th>Đang hưởng trên KOI</th></tr></thead><tbody id="alw"></tbody></table></div>
+        <div class="card cp hidden" id="c10"><h3>Chính sách đang áp dụng <span class="scope g">HR cấu hình – chỉ xem</span></h3><div id="mgr-sum"></div></div>
+        <div class="card cp hidden" id="c8"><h3>Tháng chi thưởng <span class="scope g">Chung toàn công ty</span></h3>
+          <table class="form"><tbody>
+            <tr><th>Đưa vào ngân sách</th><td colspan="2"><div class="seg" id="pay-mode"><button data-v="accrual" title="Mọi khoản chia đều 12 tháng (giống Comp)">Chia đều 12 tháng</button><button data-v="cash" title="Khoản thưởng / phúc lợi rơi vào đúng tháng chi">Theo tháng chi thực tế</button></div></td></tr>
+            <tr><th>Lương, PC, Q2 tháng</th><td colspan="2" class="sub">hằng tháng</td></tr>
+            <tr><th>Thưởng Q2 quý</th><td colspan="2" id="pm-q2q"></td></tr>
+            <tr><th>Q2 cơ bản năm</th><td colspan="2" id="pm-q2y"></td></tr>
+            <tr><th>Quỹ Q3</th><td colspan="2" id="pm-q3q"></td></tr>
+            <tr><th>Phúc lợi</th><td colspan="2" class="sub">theo từng khoản ở mục 2</td></tr>
+          </tbody></table></div>
+        <div class="card cp hidden" id="c5"><div class="row between"><h3 style="margin:0">Tuỳ chỉnh theo phòng / vị trí / ngạch <span class="i" title="Khi một nơi khác mức chung. Phúc lợi, bảo hiểm và Q1 luôn theo mức chung. Ưu tiên: Vị trí › Bộ phận › Phòng › Ngạch › Chung.">ⓘ</span></h3>
+            <div class="row"><span class="sub">Xem theo</span><div class="seg" id="ovr-view"><button data-v="item" class="on">Mục tuỳ chỉnh</button><button data-v="unit">Đơn vị</button></div><button class="btn primary" id="ovr-add">+ Thêm tuỳ chỉnh</button></div></div>
+          <div id="ovr-form"></div>
+          <table style="margin-top:8px"><thead id="ovr-head"></thead><tbody id="ovr"></tbody></table></div>
+        <div class="card cp hidden" id="c6"><h3>Đơn giá cho định biên phát sinh mới <span class="scope g">Chung toàn công ty</span></h3>
+          <p class="hint">Chỉ cho phần <b>định biên vượt số người đang giữ</b> (người đang giữ tính theo lương thật). Quản lý chỉ điền <b>Q1, Q2</b> (và PC đặc thù nếu có); phụ cấp theo mục 3, Q2 năm, Q3, phúc lợi, bảo hiểm và tăng lương tự ăn theo cấu hình chung. Ô trống được gợi ý: TB cùng vị trí → TB chức danh → TB ngạch.</p>
+
+          <div class="wrap" style="max-height:none"><table><thead id="price-head"></thead><tbody id="price"></tbody></table></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ② NGÂN SÁCH -->
+  <section data-p="bud" class="hidden">
+    <div class="card row between">
+      <div class="row"><div class="seg" id="s-view"><button data-v="plan">Hoạch định</button><button data-v="exp" class="on">Dự kiến thực tế</button><button data-v="diff">Chênh lệch</button></div>
+        <div class="seg" id="s-cost"><button data-v="inc" class="on">Thu nhập NLĐ</button><button data-v="cost">Chi phí DN (+BH)</button></div>
+        <div class="seg" id="s-unit"><button data-v="1" class="on">đồng</button><button data-v="1e6">triệu</button></div></div>
+      <span class="sub">Bấm vào một vị trí để xem chi tiết từng người và phần định biên mới.</span>
+    </div>
+    <div class="kpis" id="kpis"></div>
+    <div class="wrap"><table id="grid"></table></div>
+  </section>
+
+  <!-- ③ TỔNG HỢP -->
+  <section data-p="sum" class="hidden">
+    <div class="kpis" id="kpis2"></div>
+    <div class="card"><div class="row between" style="margin-bottom:8px"><h3 style="margin:0">Ngân sách theo tháng × khoản <span class="sub" id="bk-sc"></span></h3>
+      <div class="row"><select id="bk-dept"><option value="">Tất cả bộ phận</option></select>
+        <div class="seg" id="bk-mode"><button data-v="plan">Hoạch định</button><button data-v="exp" class="on">Dự kiến</button><button data-v="diff">Chênh lệch</button></div>
+        <div class="seg" id="bk-cost"><button data-v="inc" class="on">Thu nhập NLĐ</button><button data-v="cost">Chi phí DN</button></div>
+        <div class="seg" id="bk-per"><button data-v="m" class="on">Tháng</button><button data-v="q">Quý</button></div>
+        <button class="btn" id="bk-csv">Xuất Excel (CSV)</button></div></div>
+      <div class="wrap" style="max-height:none"><table id="bk"></table></div>
+      <div class="sub" style="margin-top:6px">Người đang giữ vị trí: tách đúng từng khoản theo Quá trình lương KOI. Định biên mới: tính theo đơn giá vị trí (trọn gói) ở dòng riêng.</div></div>
+    <div class="grid2">
+      <div class="card"><h3>Theo bộ phận × quý (dự kiến, thu nhập)</h3><div class="wrap" style="max-height:none"><table id="byq"></table></div></div>
+      <div class="card"><h3>Cơ cấu ngân sách năm theo cấu phần</h3><div class="legend" id="lg"></div><div id="bycomp" style="margin-top:10px"></div></div>
+    </div>
+    <div class="card"><h3>Hoạch định so với dự kiến theo tháng</h3><div id="bym"></div></div>
+  </section>
+
+  <!-- ④ SO SÁNH -->
+  <section data-p="cmp" class="hidden">
+    <div class="card row between"><div class="row"><div class="seg" id="c-cost"><button data-v="inc" class="on">Thu nhập NLĐ</button><button data-v="cost">Chi phí DN (+BH)</button></div></div><span class="sub">Mốc so sánh: kịch bản đầu tiên. Đổi biến số / định biên của từng kịch bản ở tab ① và bảng định biên bên dưới.</span></div>
+    <div class="card"><h3>Tóm tắt các kịch bản</h3><div class="wrap" style="max-height:none"><table id="cmp-t"></table></div></div>
+    <div class="card"><h3>Ngân sách dự kiến theo tháng</h3><div class="legend" id="cmp-lg"></div><div id="cmp-ch"></div></div>
+    <div class="card"><h3>Định biên theo kịch bản <span class="sub">– sửa trực tiếp ô để thử (định biên mỗi kịch bản sẽ lấy từ kế hoạch định biên cùng kịch bản trên app)</span></h3><div class="wrap"><table id="cmp-hc"></table></div></div>
+  </section>
+</main>
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const fmt=n=>Math.round(n).toLocaleString('vi-VN');
+const M=Array.from({length:12},(_,i)=>'T'+(i+1));
+// ---- Dữ liệu thật từ KOI (Quá trình lương đang hiệu lực) ----
+// lcb: lương cơ bản · tdg: thưởng đánh giá tháng · pc: phụ cấp · q2m: Q2 tháng · q2y: Q2 cơ bản năm · q3: Q3 tháng
+const P=(name,lcb,tdg,pc,q2m,q2y,q3=0,q2q=0)=>({name,lcb,tdg,pc,q2m,q2y,q3,q2q});
+const DEPTS=[
+ {id:'ban',name:'Cấp Ban'},
+ {id:'cs',name:'Phòng ĐH&ĐTNS / Bộ phận Chính sách'},
+ {id:'hrbp',name:'Phòng ĐH&ĐTNS / Bộ phận HRBP'},
+ {id:'ptc',name:'Phòng PT Tổ chức Hạnh phúc'},
+ {id:'hh',name:'Phòng PTTCHP / Bộ phận Học hỏi Phát triển'},
+ {id:'vh',name:'Phòng PTTCHP / Bộ phận Phát triển Văn hóa'},
+];
+const JOBS=[
+ {id:3579,d:'ban',name:'Giám đốc Nhân sự',ng:'QL4',people:[],hc:[0,0,0,1,1,1,1,1,1,1,1,1]},
+ {id:716,d:'cs',name:'Chuyên viên Chính sách & Phúc lợi',ng:'CV1',people:[P('Nhân viên C',5354000,10531000,763000,1658000,20287000),P('Nhân viên B',5451000,10076000,722000,1630000,19469000)],hc:Array(12).fill(2)},
+ {id:758,d:'cs',name:'Trưởng nhóm Chính sách & Phúc lợi',ng:'QL1',people:[P('Nhân viên F',9029000,13679000,698000,3425000,25733000)],hc:Array(12).fill(1)},
+ {id:759,d:'cs',name:'Nhân viên Chính sách & Phúc lợi',ng:'NV3',people:[P('Nhân viên H',4879000,4639000,849000,1134000,10545000)],hc:Array(12).fill(1)},
+ {id:754,d:'hrbp',name:'Trưởng Bộ phận Đồng hành và Đối tác Nhân sự',ng:'QL2',people:[P('Nhân viên I',19286000,19893000,823000,4121000,38597000)],hc:Array(12).fill(1)},
+ {id:757,d:'hrbp',name:'Trưởng nhóm HRBP',ng:'QL1',people:[P('Nhân viên E',10674000,17452000,811000,3053000,36142000)],hc:Array(12).fill(1)},
+ {id:807,d:'hrbp',name:'Chuyên viên HRBP',ng:'CV1',people:[P('Nhân viên L',6080000,10505000,734000,1815000,15678000)],hc:[1,1,1,1,1,2,2,2,2,2,2,2]},
+ {id:743,d:'ptc',name:'Trưởng phòng Phát triển Tổ chức Hạnh phúc',ng:'QL3',people:[],hc:Array(12).fill(0)},
+ {id:763,d:'hh',name:'Trưởng nhóm Học hỏi Phát triển',ng:'QL1',people:[P('Nhân viên G',8008000,14594000,699000,2400000,26145000)],hc:Array(12).fill(1)},
+ {id:3575,d:'hh',name:'Nhân viên Đào tạo',ng:'NV3',people:[P('Nhân viên K',5383000,5003000,805000,1542000,11088000)],hc:Array(12).fill(1)},
+ {id:747,d:'hh',name:'Chuyên viên Đào tạo',ng:'CV1',people:[],hc:[0,0,0,0,0,0,1,1,1,1,1,1]},
+ {id:821,d:'hh',name:'Thực tập sinh',ng:'TTS',people:[P('Nhân viên D',0,3089000,0,0,3030000)],hc:Array(12).fill(1)},
+ {id:760,d:'vh',name:'Trưởng bộ phận Phát triển văn hóa',ng:'QL2',people:[P('Nhân viên N',14961000,21305000,659000,4308000,30616000)],hc:Array(12).fill(1)},
+ {id:1307,d:'vh',name:'Chuyên viên Truyền thông Nội bộ',ng:'CV1',people:[P('Nhân viên A',5571000,8536000,620000,1493000,12235000)],hc:Array(12).fill(1)},
+ {id:761,d:'vh',name:'Nhân viên Truyền thông Nội bộ',ng:'NV3',people:[P('Nhân viên M',5855000,1895000,741000,920000,7404000)],hc:Array(12).fill(1)},
+ {id:787,d:'vh',name:'Thực tập sinh',ng:'TTS',people:[P('Nhân viên J',0,3593000,0,0,3459000)],hc:Array(12).fill(1)},
+];
+// Đơn giá định biên mới: tự tính TB vị trí → TB chức danh (KOI: 1 Chuyên viên Đào tạo ở Phòng KD Lọc tổng) → chưa có
+// Ngày vào Tập đoàn lần đầu / ngày ký HĐ chính thức – lấy từ KOI (Quá trình lương)
+const DATES={'Nhân viên A':['2023-11-20','2026-02-01'],'Nhân viên B':['2025-10-02','2026-02-01'],'Nhân viên M':['2025-08-22','2026-03-01'],'Nhân viên N':['2017-04-10','2026-02-01'],'Nhân viên C':['2026-04-10','2026-06-09'],'Nhân viên D':['2026-07-07','2026-09-04'],'Nhân viên E':['2026-05-11','2026-07-09'],'Nhân viên I':['2026-01-05','2026-03-06'],'Nhân viên F':['2018-07-18','2026-02-01'],'Nhân viên G':['2026-04-01','2026-05-31'],'Nhân viên H':['2025-12-22','2026-05-09'],'Nhân viên K':['2026-10-12','2026-12-11'],'Nhân viên J':['2026-04-06','2026-06-04'],'Nhân viên L':['2026-10-26','2026-12-25']};
+// Toàn bộ vị trí & đơn vị T02 (snapshot KOI) – dùng cho các danh sách chọn toàn công ty
+const CO_DEPTS=[[254,"BAN GIÁM ĐỐC",0],[255,"BỘ PHẬN HÀNH CHÍNH MIỀN BẮC",0],[260,"BỘ PHẬN VẬN HÀNH SELL OUT MT",310],[261,"Cao Phong",260],[262,"CHĂM SÓC KHÁCH HÀNG",732],[263,"CÔNG NGHỆ THÔNG TIN",0],[265,"Điện máy xanh Miền Đông",260],[266,"ĐIỆN MÁY XANH MIỀN TRUNG",260],[267,"Giám sát dịch vụ",262],[273,"KIỂM SOÁT DỊCH VỤ",303],[280,"KV1",1181],[282,"KV10A",2870],[284,"KV11",2870],[285,"KV2",2515],[287,"KV3A",2515],[288,"KV3B",2515],[289,"KV4",2515],[290,"KV5",2515],[292,"KV6",2515],[293,"KV8A",2870],[294,"KV8B",2870],[296,"KV9A",2870],[297,"Kỹ Thuật Dịch vụ Bảo hành",732],[301,"Nhóm Thiết kế Sáng tạo",0],[302,"PHÒNG BÁN LẺ",0],[303,"PHÒNG CÔNG NGHỆ THÔNG TIN",0],[306,"PHÒNG KẾ TOÁN",652],[308,"PHÒNG KINH DOANH GT",0],[309,"PHÒNG KINH DOANH LỌC TỔNG",0],[310,"PHÒNG KINH DOANH MT",0],[313,"PHÒNG MARKETING QUỐC TẾ",0],[315,"PHÒNG VẬN HÀNH KINH DOANH",0],[453,"Phòng Quản lý chất lượng",0],[460,"Điện máy xanh Miền Nam",260],[461,"Nguyễn Kim Miền Nam",260],[462,"ĐIỆN MÁY XANH MIỀN BẮC",260],[463,"CPN",260],[464,"HC",260],[465,"PICO",260],[466,"PHÒNG KINH DOANH QUỐC TẾ",0],[583,"PHÒNG TRUYỀN THÔNG MARKETING",0],[648,"BỘ PHẬN QUẢN LÝ KHÁCH HÀNG TRỌNG ĐIỂM MT",2601],[651,"KHỐI NHÂN SỰ",0],[652,"KHỐI TÀI CHÍNH - KẾ TOÁN",0],[696,"BAN HOẠCH ĐỊNH VÀ PHÁT TRIỂN NGUỒN NHÂN LỰC",0],[697,"Phòng Đồng hành và Đối tác nhân sự",696],[698,"PHÒNG PHÁT TRIỂN TỔ CHỨC HẠNH PHÚC",696],[700,"BỘ PHẬN CHÍNH SÁCH",697],[701,"BỘ PHẬN HRBP",697],[702,"BỘ PHẬN HỌC HỎI PHÁT TRIỂN",698],[703,"BỘ PHẬN PHÁT TRIỂN VĂN HÓA",698],[709,"PHÒNG PHÁP CHẾ",0],[710,"PHÒNG TÀI CHÍNH",652],[711,"NHÓM ĐẦU TƯ",652],[722,"Bộ phận Thư ký - trợ lý",0],[724,"Phòng Retail Marketing",583],[725,"Phòng Retail Marketing",583],[726,"Phòng Retail Marketing",583],[728,"Phòng Retail Marketing",583],[729,"Kho vận",0],[730,"Bộ phận Kho Vận Miền Nam",729],[731,"Bộ phận Kho Vận Miền Bắc",729],[732,"Trung tâm dịch vụ khách hàng",0],[738,"Bộ phận Trade Marketing",583],[1162,"2D",2885],[1163,"3D",2885],[1164,"Video",2885],[1168,"2D",726],[1169,"3D",726],[1170,"Video",726],[1171,"KV9B",2870],[1181,"KV1_LVT",2515],[1190,"KV6",309],[1193,"KV2",309],[1194,"KV3",309],[1195,"KV4",309],[1199,"KV1A",309],[2515,"Bộ phận kinh doanh ngành 1",308],[2516,"Livotec",1181],[2548,"Phil",466],[2549,"Indo",466],[2571,"KV8B",309],[2575,"Phòng Kinh doanh Online",0],[2591,"Bộ phận Bán lẻ Miền Bắc",302],[2592,"Bộ phận Bán lẻ Miền Nam",302],[2593,"KV7",309],[2594,"KV8A",309],[2598,"Bộ phận Vận hành thương hiệu quốc tế & OEM",315],[2599,"Bộ phận Vận hành thương hiệu nội địa",315],[2600,"Bộ Phận Quản Lý Khách Hàng Trọng Điểm MT Miền Bắc",2601],[2601,"Bộ phận Quản lý Khách hàng trọng điểm",310],[2603,"Bộ phận Chăm sóc hàng",262],[2604,"Bộ phận Giải quyết khiếu nại",262],[2608,"Bộ phận Telesales",308],[2870,"Bộ phận GT - Lọc nước Miền Nam",308],[2871,"Nhóm Kinh doanh Nội sàn",2575],[2872,"Nhóm Kinh doanh Ngoại sàn",2575],[2877,"KV5",309],[2878,"Điện Máy Xanh Miền Bắc 2",260],[2879,"Cao Phong 2",260],[2880,"Cao Phong 3",260],[2881,"Nguyễn Kim 1",260],[2882,"Điện Máy Xanh Miền Nam 2",260],[2885,"Bộ phận Thiết kế sáng tạo",313],[2895,"Phòng Dịch vụ",0],[2896,"Bộ phận Hành chính",2895],[2897,"Bộ phận Pháp chế",2895],[2898,"Bộ phận Công nghệ thông tin",2895],[1192,"KV1",309],[0,"(Chưa gán đơn vị)",0]];
+const CO_JOBS=[[346,"Nhân viên Admin Kho",729,731,2],[347,"Nhân viên Lái xe nâng",729,731,1],[348,"Thủ kho",729,731,2],[350,"Chuyên viên Hỗ trợ",315,315,1],[351,"Chuyên viên Technical Sales",315,315,1],[352,"Chuyên viên Thiết kế",583,1168,4],[356,"Nhân viên Kỹ thuật",302,302,2],[357,"Trưởng nhóm Thương mại Điện tử",2575,2871,1],[366,"Trưởng Kinh doanh Khu vực",308,289,1],[368,"Giám sát Khách hàng trọng điểm",310,648,1],[370,"Quản lý Khách hàng trọng điểm",310,648,2],[371,"Trợ lý Kinh doanh",308,308,1],[372,"Chuyên viên Kinh doanh",309,2594,1],[375,"Trưởng phòng Kinh doanh Lọc tổng",309,1193,1],[376,"Trưởng nhóm Tư vấn Sản phẩm",310,461,1],[378,"Chuyên viên Data",315,315,1],[379,"Chuyên viên Hệ thống",466,466,3],[380,"Nhân viên Sales Admin",315,315,4],[381,"Nhân viên TeleSales",2575,2871,4],[382,"Phó phòng Vận hành Kinh doanh",315,315,1],[383,"Trưởng nhóm Data",315,315,1],[384,"Trưởng nhóm Sales Admin",315,315,1],[385,"Trưởng phòng Vận hành Kinh doanh",315,315,1],[386,"Giám đốc Marketing",301,301,0],[388,"Chuyên viên Digital Marketing",2575,2872,3],[389,"Chuyên viên Digital Marketing",583,725,0],[391,"Trưởng nhóm Digital Marketing",313,313,1],[392,"Chuyên viên Content",583,724,2],[395,"Giám đốc Marketing",313,313,0],[396,"Chuyên viên Marketing Điểm bán",583,738,1],[397,"Chuyên viên Hình ảnh",583,738,1],[398,"Chuyên viên Hành chính",651,651,1],[401,"Chuyên viên Kế toán Thanh toán",652,306,0],[402,"Chuyên viên Kế toán Tổng hợp",652,306,1],[403,"Kế toán trưởng",652,306,1],[404,"Nhân viên Kế toán Bán hàng phải thu",652,306,2],[405,"Nhân viên Kế toán Kho",652,306,2],[406,"Nhân viên Kế toán Thanh toán",652,306,1],[407,"Thủ quỹ",652,306,1],[408,"Trưởng nhóm Kế toán Bán hàng phải thu",652,306,1],[409,"Chuyên viên Kiểm soát Chất lượng dịch vụ",732,267,1],[410,"Nhân viên Kiểm soát Chất lượng dịch vụ",303,273,1],[416,"Nhân viên Quản lý Chất lượng",453,453,5],[417,"Trưởng nhóm Quản lý Chất lượng",453,453,1],[420,"Chuyên viên Giải quyết Khiếu nại",732,262,1],[421,"Nhân viên Chăm sóc Khách hàng",732,262,32],[422,"Trưởng nhóm Chăm sóc Khách hàng",732,262,1],[423,"Trưởng Phòng Chăm sóc Khách hàng",732,262,1],[424,"Nhân viên Kỹ thuật Dịch vụ Bảo hành",732,297,3],[425,"Trưởng nhóm Kỹ thuật Dịch vụ bảo hành",732,297,1],[443,"Nhân viên Thương mại Điện tử",2575,2871,1],[485,"Giám sát Bán lẻ",302,302,1],[487,"Nhân viên Sales Online",309,309,1],[507,"Nhân viên Hình Ảnh",583,738,1],[509,"Chuyên viên Brand Marketing",583,728,2],[513,"Nhân viên Content",583,724,2],[629,"Nhân viên Tạp vụ",651,651,1],[630,"Công nhân",729,731,3],[632,"Chuyên viên Task Force",308,284,1],[633,"Nhân viên Tư vấn Sản phẩm",310,261,7],[634,"Nhân viên Kinh doanh",309,1199,1],[636,"Trưởng nhóm Retail Marketing",583,738,1],[637,"Trưởng nhóm Hình ảnh",583,738,1],[639,"Chuyên viên Thương mại Điện tử",2575,2871,4],[641,"Nhân viên Livestream",2575,2871,1],[642,"Chuyên viên Media",313,1164,1],[643,"Thực tập sinh",583,1168,1],[644,"Trưởng nhóm Thiết kế",583,726,1],[645,"Nhân viên Digital Marketing",583,725,1],[646,"Giám đốc Phát triển Kinh doanh Nội địa",308,308,1],[647,"Giám đốc Kinh doanh MT",310,310,1],[648,"Chuyên viên Phân tích Dữ liệu",466,466,1],[649,"Giám đốc Phát triển Kinh doanh Quốc tế",466,466,1],[651,"Giám đốc Kinh doanh Lọc tổng",309,309,1],[654,"Trưởng phòng Kỹ thuật Dịch vụ Bảo hành",732,297,1],[666,"Trưởng nhóm Đào tạo Kinh doanh",308,308,1],[670,"Trưởng phòng Trade Marketing",313,313,1],[716,"Chuyên viên Chính sách & Phúc lợi",696,700,2],[720,"Chuyên viên Kế toán Bán hàng phải thu",652,306,3],[722,"Trợ lý Kinh doanh",310,310,1],[743,"Trưởng phòng Phát triển Tổ chức Hạnh phúc",696,698,0],[747,"Chuyên viên Đào tạo",696,702,0],[754,"Trưởng Bộ phận Đồng hành và Đối tác Nhân sự",696,701,1],[757,"Trưởng nhóm HRBP",696,701,1],[758,"Trưởng nhóm Chính sách & Phúc lợi",696,700,1],[759,"Nhân viên Chính sách & Phúc lợi",696,700,1],[760,"Trưởng bộ phận Phát triển văn hóa",696,703,1],[761,"Nhân viên Truyền thông Nội bộ",696,703,1],[762,"Chuyên viên Đầu tư",652,711,1],[763,"Trưởng nhóm Học hỏi Phát triển",696,702,1],[782,"Trưởng nhóm Hỗ trợ Kỹ thuật",732,262,1],[783,"Trưởng phòng Marketing",313,313,1],[787,"Thực tập sinh",696,703,1],[807,"Chuyên viên HRBP",696,701,1],[809,"Trợ lý Phó Tổng Giám đốc",722,722,1],[821,"Thực tập sinh",696,702,1],[831,"Tổng Giám đốc Đơn vị",254,254,1],[838,"Chuyên viên tài chính",652,710,0],[840,"Trưởng nhóm Thiết kế",313,313,0],[841,"Trưởng phòng Kinh doanh Quốc tế",466,2548,1],[854,"Giám sát Bán hàng",309,2571,1],[858,"Giám đốc Phát triển Kinh doanh online",2575,2575,1],[860,"Chuyên viên Marketing",301,301,1],[949,"Đại diện Bán hàng",308,1181,12],[950,"Nhân viên Tư vấn Sản phẩm",310,462,13],[951,"Đại diện Bán hàng",308,289,8],[952,"Đại diện Bán hàng",308,296,6],[953,"Nhân viên Tư vấn Sản phẩm",310,460,3],[955,"Đại diện Bán hàng",308,284,5],[957,"Nhân viên Tư vấn Sản phẩm",310,464,2],[958,"Nhân viên Tư vấn Sản phẩm",310,463,1],[959,"Nhân viên Tư vấn Sản phẩm",310,266,9],[962,"Giám sát Bán lẻ",466,466,2],[964,"Chuyên viên Thiết kế",583,1169,4],[965,"Trưởng nhóm Tư vấn Sản phẩm",308,308,1],[968,"Nhân viên Tư vấn Sản phẩm",310,461,4],[970,"Chuyên viên Digital Marketing",313,313,2],[971,"Trưởng Kinh doanh Khu vực",308,290,1],[972,"Cộng tác viên",313,313,3],[973,"Nhân viên Kỹ thuật",309,309,2],[974,"Trưởng Kinh doanh Khu vực",308,285,1],[981,"Nhân viên Lái xe",651,651,2],[982,"Nhân viên TeleSales",308,308,3],[983,"Trưởng nhóm Digital Marketing",583,725,1],[984,"Trưởng nhóm Digital Marketing",2575,2872,1],[985,"Nhân viên Tư vấn Sản phẩm",310,265,2],[990,"Trưởng nhóm Tư vấn Sản phẩm",310,460,1],[992,"Nhân viên Content",313,313,1],[999,"Trưởng Bộ phận Kho vận",729,731,1],[1001,"Giám đốc Kinh doanh GT Miền",308,308,1],[1004,"Trợ lý Tổng giám đốc",722,722,1],[1006,"Nhân viên Tư vấn Sản phẩm",310,465,1],[1007,"Trưởng phòng Trade Marketing",583,738,1],[1009,"Phó Tổng Giám đốc Đơn vị",254,254,1],[1030,"Đại diện bán hàng",308,293,8],[1033,"Đại diện bán hàng",308,294,4],[1035,"Đại diện Bán hàng",308,287,9],[1038,"Đại diện bán hàng",308,290,12],[1043,"Đại diện bán hàng",308,292,7],[1047,"Đại diện bán hàng",308,285,7],[1048,"Đại diện bán hàng",308,282,6],[1055,"Đại diện Bán hàng",308,288,2],[1086,"Chuyên viên Media",583,1170,2],[1097,"Trưởng phòng Truyền thông",583,583,0],[1108,"Giám sát Bán hàng",309,2594,1],[1109,"Giám sát Bán hàng",309,1190,1],[1118,"Chuyên viên Kế hoạch",466,466,0],[1120,"Trưởng Bộ phận Hành chính Nhân sự",651,651,1],[1129,"Trưởng phòng Digital Marketing",313,313,1],[1307,"Chuyên viên Truyền thông Nội bộ",696,703,1],[1321,"Giám đốc Kinh doanh MT",310,260,0],[1561,"Chuyên viên Đào tạo",309,309,1],[3448,"Giám sát Bán hàng",309,1195,1],[3453,"Thư ký Chủ tịch",722,722,1],[3454,"Trợ lý vận hành Chủ tịch",722,722,2],[3457,"Trưởng phòng Kinh doanh Lọc tổng",309,1192,0],[3466,"Trưởng phòng Kinh doanh Lọc tổng",309,1199,1],[3470,"Đại diện Bán hàng",308,1171,4],[3543,"Trưởng Kinh doanh Khu vực",308,1171,1],[3545,"Trưởng phòng Kinh doanh Lọc tổng",309,1190,1],[3549,"Trưởng nhóm Tư vấn Sản phẩm",310,265,1],[3550,"Trưởng nhóm Tư vấn Sản phẩm",310,266,1],[3552,"Trưởng Kinh doanh Khu vực",308,282,1],[3553,"Trưởng Kinh doanh Khu vực",308,287,0],[3554,"Trưởng Kinh doanh Khu vực",308,288,1],[3556,"Trưởng Kinh doanh Khu vực",308,292,1],[3557,"Trưởng Kinh doanh Khu vực",308,293,1],[3558,"Trưởng Kinh doanh Khu vực",308,294,1],[3559,"Trưởng Kinh doanh Khu vực",308,296,1],[3561,"Trưởng phòng Kinh doanh Lọc tổng",309,2877,0],[3562,"Chuyên viên Trade Marketing",313,313,1],[3563,"Chuyên viên Hệ thống",315,315,0],[3565,"Chuyên viên Thiết kế",313,1163,0],[3566,"Trưởng phòng Kinh doanh Lọc tổng",309,1194,1],[3567,"Trưởng phòng Kinh doanh Lọc tổng",309,2571,1],[3568,"Chuyên viên Thiết kế",313,1162,0],[3572,"Chuyên viên Tiếp thị liên kết",2575,2872,0],[3575,"Nhân viên Đào tạo",696,702,1],[3579,"Giám đốc Nhân sự",696,696,0],[3600,"Chủ tịch Hội đồng Quản trị",0,0,1],[3601,"Phó Tổng giám đốc Tập đoàn",0,0,2],[3607,"Trợ lý Chủ tịch",722,722,2],[3608,"Trưởng phòng Kinh doanh Quốc tế",466,2549,1],[3609,"Trưởng Kinh doanh Khu vực",308,1181,3],[3613,"Phó Giám đốc Nhân sự",0,0,1],[3614,"Trưởng nhóm Xây dựng hệ thống và Kiểm soát rủi ro",0,0,1],[3615,"Kế toán trưởng",0,0,1],[3616,"Phó Tổng giám đốc Tập đoàn",0,0,0],[3617,"Trưởng phòng Marketing",301,301,1],[3619,"Giám đốc Quản lý Chất lượng",0,0,1],[3625,"Quản lý Khách hàng trọng điểm",310,2600,1],[3626,"Trưởng nhóm TeleSales",308,308,1],[3627,"Nhân viên TeleSales",2575,2872,0],[3633,"Trưởng nhóm Tư vấn Sản phẩm",310,462,1],[3634,"Trưởng nhóm Tư vấn Sản phẩm",310,261,1],[3955,"Trưởng Kinh doanh Khu vực",308,284,1],[4108,"Chuyên viên Task Force",308,1181,3],[4109,"Chuyên viên Task Force",308,290,0],[4110,"Trưởng phòng Kinh doanh Lọc tổng",309,2593,1],[4111,"Trưởng phòng Kinh doanh Lọc tổng",309,2594,1],[4617,"Trưởng nhóm Tư vấn Sản phẩm",310,2878,1],[4618,"Nhân viên Tư vấn Sản phẩm",310,2878,8],[4619,"Trưởng nhóm Tư vấn Sản phẩm",310,2879,1],[4620,"Nhân viên Tư vấn Sản phẩm",310,2879,11],[4621,"Trưởng nhóm Tư vấn Sản phẩm",310,2880,1],[4622,"Nhân viên Tư vấn Sản phẩm",310,2880,1],[4627,"Trưởng nhóm Tư vấn Sản phẩm",310,2882,1],[4628,"Nhân viên Tư vấn Sản phẩm",310,2882,6],[4629,"Trưởng nhóm Tư vấn Sản phẩm",310,2881,0],[4630,"Nhân viên Tư vấn Sản phẩm",310,2881,0],[4631,"Giám đốc Chi nhánh",466,466,0],[4632,"Quản lý Thương hiệu",301,301,1],[4644,"Nhân viên Brand Marketing",313,313,1],[4646,"Trưởng Phòng Thiết kế",583,726,0],[4647,"Chuyên viên Kiểm soát Nội bộ",303,303,1],[4648,"Trợ lý Kinh doanh",309,309,0],[4677,"Cộng tác viên",652,306,1],[4679,"Giám sát Bán hàng",309,1199,0],[4697,"Nhân viên Lái xe",2895,2896,3],[4698,"Trưởng Phòng Hành chính",2895,2895,1],[4699,"Nhân viên Hành chính",2895,2896,1],[4700,"Nhân viên Hành chính - Lễ tân",2895,2896,1],[4701,"Chuyên viên IT",2895,2898,1],[4702,"Trưởng nhóm Pháp chế",2895,2897,1],[4703,"Chuyên viên Pháp chế",2895,2897,1],[4704,"Cộng tác viên",2895,2898,1],[4705,"Trưởng nhóm Hành chính",2895,2896,1],[4706,"Nhân viên Tạp vụ",2895,2896,1],[4711,"Chuyên viên Chăm sóc Khách hàng",732,2603,1],[4712,"Chuyên viên SEO",583,725,1]];
+const CO_D=Object.fromEntries(CO_DEPTS.map(x=>[x[0],{id:x[0],name:x[1],parent:x[2]}]));
+const CO_ROOTS=CO_DEPTS.filter(x=>!x[2]).map(x=>[x[0],x[1]]);
+JOBS.forEach(j=>{const c=CO_JOBS.find(x=>x[0]===j.id);if(c){j.kr=c[2];j.kd=c[3];}});
+// Địa điểm làm việc T02 (KOI hr.work.location, số NV) – phân loại theo tên
+const CO_LOCS=[["[T02-C023] Cao Phong Buôn Hồ",1],["[T02-S002] Cao Phong Cần Thơ",1],["[T02-S011] Cao Phong Đồng Tháp",1],["[T02-S014] Cao phong Kiên Giang",1],["[T02-S028] Cao Phong Long Bình",1],["[KRF-CPMN] Cao Phong-Miền Nam",1],["[C017] Cao Phong Ninh Hòa",1],["[T02-C001] Cao Phong Phan Thiết",1],["[T02-H007] Cao Phong Quận 3",2],["[T02-H001] Cao Phong Quận 5",2],["[T02-C010] Cao Phong Quy Nhơn",2],["[T02-S022] Cao Phong Sa Đéc",1],["[T02-S026] Cao Phong Trảng Bom",1],["[T02-S036] Cao Phong Vĩnh Long 2",1],["[T02-LHP] CPN Lê Hồng Phong",1],["[KRF-DMXNB] Điện máy xanh Miền Bắc",2],["[KRF-DMXMN] Điện máy xanh Miền Nam",2],["[T02-5342] ĐML_BDI_QNH - 320 Phan Bội Châu",1],["[T02-3937] ĐML_BNI_BNI - 33 Lý Thái Tổ",1],["[T02-1778] ĐML_BPH_PLO - Phước Long",1],["[T02-915] ĐML_BRV_VTA - 155 Nguyễn Thái Học",1],["[T02-884] ĐML_CMA_CMA - 18 Ngô Quyền",1],["[T02-496] ĐML_DNA_TKH - 222 Nguyễn Văn Linh",1],["[T02-312] ĐML_DTH_SDE - 90 Hùng Vương",1],["[T02-4712] ĐML_HNO_HBT - 349 Minh Khai",1],["[T02-1479] ĐML_HNO_QOA - Quốc Oai",1],["[T02-635] ĐML_HPH_KAN - 220 Trần Thành Ngọ",1],["[14475] ĐML_HPH_LCH - 268 Trần Nguyên Hãn",1],["[T02-661] ĐML_HPH_NQU - 282 Đà Nẵng",2],["[T02-1115] ĐML_KGI_PQU - Dương Đông",1],["[T02-2098] ĐML_LAN_DHO - 372 Hậu Nghĩa",1],["[T02-2766] ĐML_LAN_TTH - 81 Phan Văn Tình",1],["[T02-1203] ĐML_NAN_VIN - 7C Nguyễn Trãi",1],["[T02-1709] ĐML_NBI_KSO - Phát Diệm",1],["[516] ĐML_NTH_PRA - 279 Ngô Gia Tự",1],["[T02-957] ĐML_PYE_THO - 222 Hùng Vương",1],["[T02-1192] ĐML_QTR_DHA - 11 Trần Hưng Đạo",1],["[T02-1784] ĐML_TGI_CBE - Cái Bè",1],["[T02-1960] ĐMM_BDI_ANH - 151 Trần Phú",1],["[T02-1896] ĐMM_DNA_NHS - 7 Lê Văn Hiến",1],["[T02-1273] ĐMM_DTH_TBI - Thanh Bình",1],["[T02-1894] ĐMM_GLA_AKH - 359 Quang Trung",1],["[T02-129] ĐMM_HTI_HKH - 396 Trần Phú",1],["[T02-327] ĐMM_HTI_KAN - Quang Trung (Châu Phố)",1],["[T02-2357] ĐMM_QBI_BTR - 55 Hùng Vương (Hoàn Lão)",1],["[T02-2745] ĐMM_QBI_QNI - Gia Ninh",1],["[T02-1684] ĐMM_QNA_DLO - Ái Nghĩa",1],["[T02-1442] ĐMM_QNA_NTH - 260 Phạm Văn Đồng",1],["[T02-2754] ĐMM_QTR_GLI - Lê Duẩn (Gio Linh)",1],["[T02-2279] ĐMM_QTR_HLA - 75 Hùng Vương",1],["[T02-2410] ĐMM_TGI_CLA - Mỹ Phước Tây",1],["[KRF-KBD] Kho Bình Dương",1],["[KRF-KV10A] Kinh doanh GT KV10A",7],["[KRF-KV10B] Kinh doanh GT KV10B",3],["[KRF-KV11] Kinh doanh GT KV11",4],["[KRF-KV2] Kinh doanh GT KV2",8],["[KRF-KV3A] Kinh doanh GT KV3A",9],["[KRF-KV3B] Kinh doanh GT KV3B",3],["[KRF-KV4] Kinh doanh GT KV4",10],["[KRF-KV5] Kinh doanh GT KV5",13],["[KRF-KV6] Kinh doanh GT KV6",8],["[KRF-KV8A] Kinh doanh GT KV8A",6],["[KRF-KV8B] Kinh doanh GT KV8B",5],["[KRF-KV9] Kinh doanh GT KV9",9],["[DL01] Nguyễn Kim Đắk Lắk",1],["[T02-SG09] Nguyễn Kim Gò Vấp",1],["[T02-KH02] Nguyễn Kim Nha Trang",1],["[T02-SG10] Nguyễn Kim Phú Nhuận",1],["[KRF-NM] Nhà máy",20],["[T02-XT] Pico 173 Xuân Thủy",1],["[T02-01] Thành phố Hà Nội",16],["[T02-TTMB] Thị trường Miền Bắc",6],["[KRF-TTMB] Thị trường-Miền Bắc",5],["[T02-TTMN] Thị trường Miền Nam",1],["[KRF-TTMN] Thị trường-Miền Nam",6],["[T02-75] Tỉnh Đồng Nai",1],["[T02-68] Tỉnh Lâm Đồng",1],["[T02-38] Tỉnh Thanh Hóa",1],["[T02-VPHN] Văn phòng Hà Nội",10],["[KRF-VPHCM] Văn phòng HCM",43],["[KRF-VPHN] Văn phòng HN",148],["[T02-VPHCM] Văn phòng Hồ Chí Minh",3],["[T02-VHC07] VHC Thanh Hóa",1],["[T02-VHC08] VHC Vĩnh Phúc",1]];
+const LTYPES=[['vp','Văn phòng'],['nm','Nhà máy'],['kho','Kho'],['tt','Thị trường / khu vực KD'],['db','Điểm bán (siêu thị, cửa hàng)']];
+const locType=n=>/Văn phòng/.test(n)?'vp':/Nhà máy/.test(n)?'nm':/Kho /.test(n)?'kho':/Kinh doanh GT|Thị trường|Tỉnh |Thành phố/.test(n)?'tt':'db';
+// Phụ cấp đang có trên KOI theo vị trí (TB người đang hưởng, bản lương hiệu lực 23/11/2026) – dùng để gợi ý
+const KOI_AL={"409":{"transport":1000000},"372":{"transport":1300000},"632":{"transport":1300000},"630":{"attendance":150000,"skill":733333},"405":{"transport":3000000},"356":{"phone":100000},"973":{"transport":1000000},"628":{"transport":1000000},"416":{"transport":3000000},"963":{"transport":3000000},"646":{"transport":12500000},"854":{"transport":3000000},"368":{"transport":500000},"370":{"transport":500000},"407":{"transport":3000000},"1398":{"transport":3000000},"376":{"transport":500000},"965":{"transport":500000},"990":{"transport":500000},"375":{"transport":3000000},"1030":{"transport":1300000},"1033":{"transport":1300000},"1037":{"transport":1300000},"1038":{"transport":1300000},"1043":{"transport":1300000},"1047":{"transport":1300000},"1050":{"transport":1300000},"1424":{"transport":1300000},"804":{"transport":1300000},"948":{"transport":1300000},"949":{"transport":1300000},"951":{"transport":1300000},"952":{"transport":1300000},"954":{"transport":1300000},"955":{"transport":1300000},"956":{"transport":1300000},"960":{"transport":1300000},"961":{"transport":1300000},"966":{"transport":1300000},"1000":{"transport":1300000},"1032":{"transport":1300000},"1036":{"transport":1300000},"1040":{"transport":1300000},"1044":{"transport":1300000},"1056":{"transport":1300000},"1100":{"transport":1300000},"1102":{"transport":1300000},"1115":{"transport":1300000},"1123":{"transport":1300000},"1130":{"transport":1300000},"1548":{"transport":1300000},"1556":{"transport":1300000},"1569":{"transport":1300000},"2385":{"transport":1300000},"3436":{"transport":1300000},"3447":{"transport":1300000},"3449":{"transport":1300000},"3470":{"transport":1300000},"362":{"transport":1300000},"633":{"phone":100000},"950":{"phone":100000},"953":{"phone":100000},"957":{"phone":100000},"958":{"phone":100000},"959":{"phone":100000},"968":{"phone":100000},"985":{"phone":100000},"1006":{"phone":100000}};
+const YEAR=2027;
+// tháng (0-11) bắt đầu được tăng lương; Infinity = không tăng trong năm
+function incFrom(p,v){const d=DATES[p.name];if(!d)return Infinity;const [y,mo,da]=d[v.incbasis==='oc'?1:0].split('-').map(Number);
+  const reach=(y-YEAR)*12+(mo-1)+(+v.incmin||0)+(da>1?1:0); // tháng (theo năm kế hoạch) đủ thâm niên, tính tròn tháng
+  if(reach<=v.incm)return v.incm;return v.incrule==='reach'&&reach<12?reach:Infinity;}
+const TITLE_AVG={747:{p:P('(TB chức danh)',7843000,11200000,818000,5889000,23751000),src:'tit',label:'TB chức danh (1)'}};
+const comp=p=>p.lcb+p.tdg+p.pc+p.q2m+(p.q2q||0)/3+p.q2y/12+p.q3;
+const ST={manual:{}};
+// ---- Kịch bản: mỗi kịch bản = định biên riêng + bộ biến số riêng ----
+const COLORS=['#0a6bc4','#12805c','#b42318','#6b3fc7','#b54708','#0e7490','#9d174d'];
+const SCN={
+ A:{name:'A – Thuận lợi',color:COLORS[0],vars:{q3mode:'pct',q3pct:5,q3base:['lcb','tdg'],q3fund:0,incmin:6,incbasis:'fe',incrule:'reach',inc:8,incm:3,incon:['lcb','tdg'],q2base:['lcb','tdg','responsibility_allowance','q2m','q2q'],q2kpi:'m',q2n:1,kpi:100,kpiq:100,q3:90,ins:23.5},pay:{mode:'accrual',q2y:[11],q2q:[2,5,8,11],q3q:[2,5,8,11]},ben:[{id:'tet',name:'Quà Tết',type:'person',amount:1000000,who:'all',rate:100,months:[0],on:true,src:'KOI T01: 1.000.000'},{id:'n2010',name:'Quà 20/10',type:'person',amount:200000,who:'all',rate:100,months:[9],on:true,src:'KOI T01: 200.000'},{id:'trip',name:'Du lịch',type:'person',amount:7000000,who:'all',rate:100,months:[5],on:true,src:'KOI T01: 7.000.000'},{id:'tbql',name:'Teambuilding quản lý',type:'person',amount:2200000,who:'ql',rate:100,months:[7],on:true,src:'KOI T01: 2.200.000'},{id:'bhsk',name:'Bảo hiểm sức khoẻ',type:'person',amount:3000000,who:'all',rate:100,months:[0],on:true,src:'minh hoạ'},{id:'wed',name:'Quà cưới',type:'event',amount:2000000,who:'all',rate:5,months:[],on:true,src:'minh hoạ'},{id:'baby',name:'Quà sinh con',type:'event',amount:2000000,who:'all',rate:5,months:[],on:true,src:'minh hoạ'},{id:'quit',name:'Quà nghỉ việc',type:'event',amount:1000000,who:'all',rate:15,months:[],on:true,src:'minh hoạ'}],ovr:[{scope:'d:vh',v:'kpi',val:105},{scope:'j:807',v:'inc',val:12}],hc:{}},
+ B:{name:'B – Cơ sở',color:COLORS[1],vars:{q3mode:'pct',q3pct:5,q3base:['lcb','tdg'],q3fund:0,incmin:6,incbasis:'fe',incrule:'reach',inc:5,incm:3,incon:['lcb','tdg'],q2base:['lcb','tdg','responsibility_allowance','q2m','q2q'],q2kpi:'m',q2n:1,kpi:90,kpiq:85,q3:80,ins:23.5},pay:{mode:'accrual',q2y:[11],q2q:[2,5,8,11],q3q:[2,5,8,11]},ben:[{id:'tet',name:'Quà Tết',type:'person',amount:1000000,who:'all',rate:100,months:[0],on:true,src:'KOI T01: 1.000.000'},{id:'n2010',name:'Quà 20/10',type:'person',amount:200000,who:'all',rate:100,months:[9],on:true,src:'KOI T01: 200.000'},{id:'trip',name:'Du lịch',type:'person',amount:7000000,who:'all',rate:100,months:[5],on:true,src:'KOI T01: 7.000.000'},{id:'tbql',name:'Teambuilding quản lý',type:'person',amount:2200000,who:'ql',rate:100,months:[7],on:true,src:'KOI T01: 2.200.000'},{id:'bhsk',name:'Bảo hiểm sức khoẻ',type:'person',amount:3000000,who:'all',rate:100,months:[0],on:true,src:'minh hoạ'},{id:'wed',name:'Quà cưới',type:'event',amount:2000000,who:'all',rate:5,months:[],on:true,src:'minh hoạ'},{id:'baby',name:'Quà sinh con',type:'event',amount:2000000,who:'all',rate:5,months:[],on:true,src:'minh hoạ'},{id:'quit',name:'Quà nghỉ việc',type:'event',amount:1000000,who:'all',rate:15,months:[],on:true,src:'minh hoạ'}],ovr:[],hc:{747:Array(12).fill(0)}},
+ C:{name:'C – Bất lợi',color:COLORS[2],vars:{q3mode:'pct',q3pct:5,q3base:['lcb','tdg'],q3fund:0,incmin:6,incbasis:'fe',incrule:'reach',inc:3,incm:6,incon:['lcb'],q2base:['lcb','tdg','responsibility_allowance','q2m','q2q'],q2kpi:'m',q2n:1,kpi:75,kpiq:70,q3:60,ins:23.5},pay:{mode:'accrual',q2y:[11],q2q:[2,5,8,11],q3q:[2,5,8,11]},ben:[{id:'tet',name:'Quà Tết',type:'person',amount:1000000,who:'all',rate:100,months:[0],on:true,src:'KOI T01: 1.000.000'},{id:'n2010',name:'Quà 20/10',type:'person',amount:200000,who:'all',rate:100,months:[9],on:true,src:'KOI T01: 200.000'},{id:'trip',name:'Du lịch',type:'person',amount:7000000,who:'all',rate:100,months:[5],on:true,src:'KOI T01: 7.000.000'},{id:'tbql',name:'Teambuilding quản lý',type:'person',amount:2200000,who:'ql',rate:100,months:[7],on:true,src:'KOI T01: 2.200.000'},{id:'bhsk',name:'Bảo hiểm sức khoẻ',type:'person',amount:3000000,who:'all',rate:100,months:[0],on:true,src:'minh hoạ'},{id:'wed',name:'Quà cưới',type:'event',amount:2000000,who:'all',rate:5,months:[],on:true,src:'minh hoạ'},{id:'baby',name:'Quà sinh con',type:'event',amount:2000000,who:'all',rate:5,months:[],on:true,src:'minh hoạ'},{id:'quit',name:'Quà nghỉ việc',type:'event',amount:1000000,who:'all',rate:15,months:[],on:true,src:'minh hoạ'}],ovr:[{scope:'d:hrbp',v:'kpi',val:70}],hc:{3579:Array(12).fill(0),807:Array(12).fill(1),747:Array(12).fill(0),821:[1,1,1,1,1,1,0,0,0,0,0,0]}},
+};
+let CUR='A';const CFG=()=>SCN[CUR];
+const hcOf=(job,cfg=CFG())=>cfg.hc[job.id]||job.hc;
+
+// ---- Biến số ----
+function vars(job,cfg=CFG()){
+  const g={...cfg.vars};
+  for(const pri of ['n:','p:','d:','j:'])[...COMMON.ovr,...cfg.ovr].filter(o=>o.scope.startsWith(pri)).forEach(o=>{
+    const k=o.scope.slice(2);if((pri==='j:'&&+k===job.id)||(pri==='d:'&&(k===job.d||k===String(job.kd)))||(pri==='p:'&&(PHONG.find(x=>x.id===k)?.d.includes(job.d)||k===String(job.kr)))||(pri==='n:'&&k===job.ng)){const d=OV[o.v]||{t:'num'};g[o.v]=o.v==='incon'?[...cfg.vars.incon.filter(k=>Q1K.includes(k)),...o.val.filter(k=>!Q1K.includes(k))]:d.t==='num'||d.t==='month'?+o.val:o.val;}});
+  return g;
+}
+// thu nhập 1 người tháng m: plan (hoạch định) / exp (dự kiến)
+function personMonth(p,m,job,mode,cfg=CFG()){
+  if(mode==='plan'){const t={q1:p.lcb+p.tdg,pc:p.pc,q2:p.q2m,q2q:(p.q2q||0)/3,q2y:p.q2y/12,q3:p.q3,lcb:p.lcb,tdg:p.tdg};return t;}
+  const v=vars(job,cfg),on=new Set(v.incon),f=m>=incFrom(p,v)?1+v.inc/100:1;
+  const up=k=>on.has(k)?f:1;
+  const lcb=p.lcb*up('lcb'),tdg=p.tdg*up('tdg'),pc=p.pc*up('pc'),q2m=p.q2m*up('q2m'),q2q=(p.q2q||0)*up('q2q'),k=v.kpi/100,kq=(v.kpiq??v.kpi)/100;
+  const B=new Set(v.q2base||[]);
+  const q2yBase=(B.has('lcb')?lcb:0)+(B.has('tdg')?tdg:0)+(B.has('pc')?pc:0)+(B.has('q2m')?q2m:0)+(B.has('q2q')?q2q/3:0); // mặc định = KOI: Q1 + PC trách nhiệm + Q2 tháng + Q2 quý/3
+  const kk=v.q2kpi==='none'||v.q2kpi===false?1:v.q2kpi==='q'?kq:k;
+  return {q1:lcb+tdg,pc,q2:q2m*k,q2q:q2q*kq/3,q2y:q2yBase*v.q2n*kk/12,q3:q3Person(lcb,tdg,pc,q2m,m,v,cfg),lcb,tdg};
+}
+// Quỹ Q3: % trên các cấu phần chọn, hoặc số tiền cố định chia theo đầu định biên
+function headsAt(m,cfg){return JOBS.reduce((s,j)=>s+hcOf(j,cfg)[m],0);}
+function q3Person(lcb,tdg,pc,q2m,m,v,cfg){
+  if(v.q3mode==='fixed'){const h=headsAt(m,cfg);return h?(+v.q3fund||0)/12/h*v.q3/100:0;}
+  const B=new Set(v.q3base||[]),base=(B.has('lcb')?lcb:0)+(B.has('tdg')?tdg:0)+(B.has('pc')?pc:0)+(B.has('q2m')?q2m:0);
+  return base*(+v.q3pct||0)/100*v.q3/100;}
+// ---- Bảo hiểm & thuế ----
+const INS0=()=>({base:['lcb'],ref:2530000,minw:5310000,rows:[{k:'bhxh',n:'BHXH',dn:17.5,nld:8,cap:'ref'},{k:'bhyt',n:'BHYT',dn:3,nld:1.5,cap:'ref'},{k:'bhtn',n:'BHTN',dn:1,nld:1,cap:'minw'},{k:'kpcd',n:'Kinh phí công đoàn',dn:2,nld:0,cap:'none'}],pit:{on:true,self:15500000,dep:6200000,ndep:0.5}});
+function insBase(t,I){const B=new Set(I.base);return (B.has('lcb')?t.lcb:0)+(B.has('tdg')?t.tdg:0)+(B.has('pc')?t.pc:0);}
+function insAmt(t,cfg,side){const I=cfg.ins,b=insBase(t,I);return I.rows.reduce((s,r)=>{const cap=r.cap==='ref'?20*I.ref:r.cap==='minw'?20*I.minw:Infinity;return s+Math.min(b,cap)*(+r[side]||0)/100;},0);}
+const dnRate=cfg=>cfg.ins.rows.reduce((s,r)=>s+(+r.dn||0),0);
+function pitTax(gross,nldIns,cfg){const P=cfg.ins.pit;if(!P.on)return 0;let x=gross-nldIns-P.self-P.dep*P.ndep;if(x<=0)return 0;const B=[[10e6,.05],[30e6,.15],[60e6,.25],[100e6,.30],[Infinity,.35]];let tax=0,lo=0;for(const [hi,r] of B){if(x>lo)tax+=(Math.min(x,hi)-lo)*r;lo=hi;}return tax;}
+function netOf(t,cfg){const g=sumT(t),bh=insAmt(t,cfg,'nld'),tx=pitTax(g,bh,cfg);return {g,bh,tx,net:g-bh-tx,dn:insAmt(t,cfg,'dn')};}
+// Lịch chi trả: dồn tích = chia đều; dòng tiền = dồn vào tháng chi
+function share(months,m,cfg){return cfg.pay.mode==='cash'&&months.length?(months.includes(m)?12/months.length:0):1;}
+function eligible(b,job,p){return b.who==='all'||(b.who==='ql'&&/^QL/.test(job.ng))||(b.who==='cv'&&/^(CV|QL)/.test(job.ng))||(b.who==='flag'&&p&&p.flags&&p.flags[b.id]);}
+function benMonth(b,job,p,m,cfg){if(!b.on||!eligible(b,job,p))return 0;const ov=vars(job,cfg)['ben:'+b.id],amt=ov!=null?ov:b.amount;const annual=b.type==='event'?amt*b.rate/100:amt;return annual/12*share(b.months,m,cfg);}
+function alloc(t,m,cfg=CFG(),job,p){const v=job?vars(job,cfg):{},pm=k=>v['pay:'+k]||cfg.pay[k];t.q2y=t.q2y*share(pm('q2y'),m,cfg);t.q3=t.q3*share(pm('q3q'),m,cfg);t.q2q=(t.q2q||0)*share(pm('q2q'),m,cfg);t.ben={};if(job)cfg.ben.forEach(b=>t.ben[b.id]=benMonth(b,job,p,m,cfg));return t;}
+function sumT(t){return t.q1+t.pc+t.q2+(t.q2q||0)+t.q2y+t.q3+Object.values(t.ben||{}).reduce((a,b)=>a+b,0);}
+const PK=[['lcb','Lương cơ bản'],['tdg','Thưởng đánh giá'],['q2m','Q2 tháng'],['q2q','Q2 quý']];
+// Danh mục phụ cấp – theo trường lương KOI. Người hiện có: chỉ có PC ăn trưa (đã đối chiếu KOI) nên al={lunch:pc}
+const ALW=[{k:'lunch',n:'Ăn trưa / ăn ca',mode:'meal',amount:720000,who:'all',grp:[{n:'Văn phòng & nơi khác',rate:30000,days:24},{n:'Tại nhà máy (tự nấu)',rate:25000,days:26}],lt:{nm:1},lo:{}},{k:'transport',n:'Đi lại',mode:'pos',amount:0,who:'all'},{k:'phone',n:'Điện thoại',mode:'pos',amount:0,who:'all'},{k:'skill',n:'Kỹ năng / tay nghề',mode:'level',amount:0,who:'all',lv:[500000,800000,1100000,1500000,2000000]},{k:'laptop',n:'Laptop',mode:'pos',amount:0,who:'all'},{k:'attendance',n:'Chuyên cần',mode:'pos',amount:0,who:'all',byJob:{}},
+ {k:'responsibility',n:'Trách nhiệm',mode:'none',amount:0,who:'ql'},{k:'concurrent',n:'Kiêm nhiệm',mode:'none',amount:0,who:'all'},{k:'seniority',n:'Thâm niên',mode:'none',amount:0,who:'all'},{k:'working_condition',n:'Điều kiện làm việc / tay nghề',mode:'none',amount:0,who:'all'},{k:'accompaniment',n:'Hỗ trợ đi kèm (đào tạo / nhà ở)',mode:'none',amount:0,who:'all'},{k:'overseas',n:'Công tác nước ngoài',mode:'none',amount:0,who:'all'},{k:'attract',n:'Thu hút / phụ cấp khác (11–15)',mode:'none',amount:0,who:'all'}];
+const alOf=p=>p.al||{lunch:p.pc||0};
+const koiAl=(id,k)=>{const j=JOBS.find(x=>x.id==id);if(j&&j.people.length)return j.people.reduce((s,p)=>s+(alOf(p)[k]||0),0)/j.people.length;const v=(KOI_AL[id]||{})[k];if(v!=null)return v;const c=CO_JOBS.find(x=>x[0]==id);return c&&c[4]>0?0:null;};
+const jobLoc=job=>(ST.manual[job.id]||{}).loc||job.loc||'[KRF-VPHN] Văn phòng HN';
+const okWho=(w,job)=>w==='all'||(w==='ql'&&/^QL/.test(job.ng))||(w==='cv'&&/^(CV|QL)/.test(job.ng));
+function newPC(job){const det={};ALW.forEach(a=>{let v=0,src='';
+  if(a.mode==='meal'){const loc=jobLoc(job),gi=(a.lo||{})[loc]??(a.lt||{})[locType(loc)]??0,g=a.grp[gi];if(g&&!(a.off&&a.off[job.id])){v=g.rate*g.days;src=loc.replace(/^\[[^\]]+\] /,'')+' → '+g.n+' '+fmt(g.rate)+'đ × '+g.days+' ngày';}}
+  else if(a.mode==='pos'&&a.off&&a.off[job.id]){}
+  else if(a.mode==='pos'&&a.byJob&&a.byJob[job.id]!=null){v=a.byJob[job.id];src='mức vị trí';}
+  else if(a.mode==='pos'&&(KOI_AL[job.id]||{})[a.k]){v=KOI_AL[job.id][a.k];src='KOI vị trí';}
+  else if(a.mode==='pos'){let ps=job.people,lab='TB vị trí';if(!ps.length){ps=JOBS.filter(j=>j.ng===job.ng).flatMap(j=>j.people);lab='TB ngạch';}
+    if(ps.length){v=ps.reduce((s,p)=>s+(alOf(p)[a.k]||0),0)/ps.length;src=lab;}else if(okWho(a.who,job)){v=a.amount;src='mặc định';}}
+  else if(a.mode==='fixed'&&okWho(a.who,job)){v=a.amount;src='cố định';}
+  else if(a.mode==='level'){const L=(ST.manual[job.id]||{}).lvl;if(L){v=a.lv[L-1]||0;src='bậc '+L;}}
+  if(v)det[a.k]={v,src,n:a.n};});
+  const x=(ST.manual[job.id]||{}).pcx||0;if(x)det.pcx={v:x,src:'nhập tay',n:'PC đặc thù'};
+  return {v:Object.values(det).reduce((s,d)=>s+d.v,0),det};}
+const avgP=(ps,name)=>{const o={name};PK.forEach(([k])=>o[k]=ps.reduce((s,p)=>s+(p[k]||0),0)/ps.length);return o;};
+function priceOf(job){
+  let r;
+  if(job.people.length)r={src:'pos',label:`TB vị trí (${job.people.length})`,p:avgP(job.people,'(TB vị trí)')};
+  else if(TITLE_AVG[job.id])r={src:'tit',label:TITLE_AVG[job.id].label,p:TITLE_AVG[job.id].p};
+  else{const ps=JOBS.filter(j=>j.ng===job.ng).flatMap(j=>j.people);r=ps.length?{src:'ng',label:`TB ngạch (${ps.length})`,p:avgP(ps,'(TB ngạch)')}:{src:'none',label:'Cần nhập',p:avgP([{}],'(trống)')};}
+  const mm={...(ST.manual[job.id]||{})};delete mm.pcx;delete mm.lvl;delete mm.loc;if(Object.keys(mm).length){r={...r,src:'man',label:'Nhập tay',auto:r.p,p:{...r.p,...mm}};}
+  const q=r.p,B=new Set(CFG().vars.q2base||[]);
+  const npc=newPC(job);r.pc=npc;
+  r.p={...q,pc:npc.v,q3:0,q2y:((B.has('lcb')?q.lcb:0)+(B.has('tdg')?q.tdg:0)+(B.has('pc')?npc.v:0)+(B.has('q2m')?q.q2m:0)+(B.has('q2q')?(q.q2q||0)/3:0))*(CFG().vars.q2n||0)};
+  r.val=comp(r.p);return r;
+}
+
+// ngân sách vị trí theo tháng. Định biên < số người đang giữ ⇒ chỉ tính đủ số định biên (phần dôi ra coi là cắt giảm)
+function jobBudget(job,mode,cost,cfg=CFG()){
+  const pr=priceOf(job),months=[],hc=hcOf(job,cfg),detail=job.people.map(p=>({name:p.name,v:Array(12).fill(0),cut:Array(12).fill(false)}));const vac={name:'Định biên phát sinh mới',v:Array(12).fill(0),n:Array(12).fill(0)};
+  const v=vars(job,cfg);
+  for(let m=0;m<12;m++){
+    let tot=0;
+    job.people.forEach((p,i)=>{if(i>=hc[m]){detail[i].cut[m]=true;return;}let t=alloc(personMonth(p,m,job,mode,cfg),m,cfg,job,p);let x=sumT(t);if(cost)x+=insAmt(t,cfg,'dn');detail[i].v[m]=x;tot+=x;});
+    const extra=Math.max(0,hc[m]-job.people.length);
+    if(extra){const t=alloc(personMonth(pr.p,m,job,mode,cfg),m,cfg,job,null);let unit=sumT(t);if(cost)unit+=insAmt(t,cfg,'dn');vac.v[m]=extra*unit;vac.n[m]=extra;tot+=vac.v[m];}
+    months.push(tot);
+  }
+  return {months,detail,vac,price:pr};
+}
+// ---- Khung cấu hình ----
+$('#v-incm').innerHTML=M.map((t,i)=>`<option value="${i}" ${i===3?'selected':''}>${t}</option>`).join('');
+const PHONG=[{id:'ban',name:'Cấp Ban',d:['ban']},{id:'dh',name:'Phòng ĐH&ĐTNS',d:['cs','hrbp']},{id:'pt',name:'Phòng PT Tổ chức Hạnh phúc',d:['ptc','hh','vh']}];
+const rootName=id=>(CO_D[id]||{}).name||'';
+function droot(id){let d=CO_D[id];while(d&&d.parent&&CO_D[d.parent])d=CO_D[d.parent];return d;}
+const UTYPES=[['p','Phòng ban',()=>CO_ROOTS.map(([id,n])=>[String(id),n])],['d','Bộ phận',()=>CO_DEPTS.filter(x=>x[2]).map(x=>[String(x[0]),x[1]+' · '+(droot(x[0])||{}).name])],['j','Vị trí',()=>CO_JOBS.map(x=>[String(x[0]),x[1]+' · '+rootName(x[2])])],['n','Ngạch',()=>[...new Set(JOBS.map(j=>j.ng))].sort().map(n=>[n,n])]];
+function scopeName(s){const k=s.slice(2);if(s[0]==='p')return 'Phòng: '+((PHONG.find(x=>x.id===k)||{}).name||rootName(+k));if(s[0]==='d')return 'Bộ phận: '+((DEPTS.find(d=>d.id===k)||{}).name||(CO_D[+k]||{}).name);if(s[0]==='j')return 'Vị trí: '+((JOBS.find(j=>j.id==k)||{}).name||(CO_JOBS.find(x=>x[0]==k)||[])[1]);return 'Ngạch: '+k;}
+const Q1K=['lcb','tdg'];
+const exOf=sel=>($(sel).dataset.ex||'').split(',');
+const keysEx=ex=>STRUCT.flatMap(g=>g[1]).filter(([k])=>!ex.includes(k));
+const OV={
+ inc:{l:'Tăng lương – tỷ lệ',t:'num',u:'%'},
+ incm:{l:'Tăng lương – từ tháng',t:'month'},
+ incmin:{l:'Tăng lương – thâm niên tối thiểu',t:'num',u:'tháng'},
+ incon:{l:'Tăng lương – áp thêm lên khoản',t:'multi',opts:()=>keysEx([...exOf('.incon'),...Q1K]),hint:'Q1 theo mức chung'},
+ kpi:{l:'% hoàn thành KPI tháng',t:'num',u:'%'},
+ kpiq:{l:'% hoàn thành KPI quý',t:'num',u:'%'},
+ q2n:{l:'Q2 cơ bản năm – hệ số',t:'num',u:'tháng'},
+ q2base:{l:'Q2 cơ bản năm – cơ sở tính',t:'multi',opts:()=>keysEx(exOf('.q2base'))},
+ q2kpi:{l:'Q2 cơ bản năm – nhân KPI',t:'sel',opts:()=>[['m','KPI tháng'],['q','KPI quý'],['none','Không nhân']]},
+ q3pct:{l:'Quỹ Q3 – mức %',t:'num',u:'%'},
+ q3base:{l:'Quỹ Q3 – cơ sở tính',t:'multi',opts:()=>keysEx(exOf('.q3base'))},
+ q3:{l:'Quỹ Q3 – % giải ngân',t:'num',u:'%'},
+ 'pay:q2q':{l:'Tháng chi Q2 quý',t:'months'},
+ 'pay:q2y':{l:'Tháng chi Q2 cơ bản năm',t:'months'},
+ 'pay:q3q':{l:'Tháng chi quỹ Q3',t:'months'}};
+const vnOf=()=>Object.fromEntries(Object.entries(OV).map(([k,d])=>[k,d.l]));
+const tags=a=>'<span class="msel" style="display:inline">'+a.map(x=>`<span class="tag">${x}</span>`).join('')+'</span>';
+function valTxt(o){const d=OV[o.v]||{t:'num',u:''};
+  if(d.t==='month')return 'từ '+M[o.val];if(d.t==='multi')return tags((o.val||[]).map(k=>STRUCT_LBL[k]));
+  if(d.t==='months')return tags((o.val||[]).map(m=>M[m]));if(d.t==='sel')return (d.opts().find(x=>x[0]===o.val)||[,o.val])[1];return o.val+' '+(d.u||'');}
+function defVal(v){const c=CFG();if(v.startsWith('pay:'))return COMMON.pay[v.slice(4)];return c.vars[v]??0;}
+function valInput(v,val){const d=OV[v];
+  if(d.t==='month')return `<select id="e-val">${M.map((t,i)=>`<option value="${i}" ${+val===i?'selected':''}>từ ${t}</option>`).join('')}</select>`;
+  if(d.t==='sel')return `<select id="e-val">${d.opts().map(([k,l])=>`<option value="${k}" ${val===k?'selected':''}>${l}</option>`).join('')}</select>`;
+  if(d.t==='multi'||d.t==='months'){const on=Array.isArray(val)?val:[],opts=d.t==='months'?M.map((t,i)=>[i,t]):d.opts();
+    return `<select id="e-val" multiple size="${d.t==='months'?6:5}" style="min-width:${d.t==='months'?90:220}px">${opts.map(([k,l])=>`<option value="${k}" ${on.includes(k)?'selected':''}>${l}</option>`).join('')}</select><div class="sub">${d.hint?d.hint+' · ':''}Ctrl + bấm để chọn nhiều</div>`;}
+  return `<input class="num" id="e-val" style="width:100px" value="${val}"> <span>${d.u||''}</span>`;}
+function readVal(v){const d=OV[v],el=$('#e-val');if(d.t==='multi')return [...el.selectedOptions].map(x=>x.value);if(d.t==='months')return [...el.selectedOptions].map(x=>+x.value);if(d.t==='sel')return el.value;return +el.value||0;}
+function ovrList(){const raw=[...COMMON.ovr.map(o=>({o,k:'*',arr:COMMON.ovr})),...Object.entries(SCN).flatMap(([k,c])=>c.ovr.map(o=>({o,k,arr:c.ovr})))];
+  const M2=new Map();raw.forEach(r=>{const key=r.o.scope+'|'+r.o.v+'|'+JSON.stringify(r.o.val)+'|'+(r.k==='*'?'*':'s');if(!M2.has(key))M2.set(key,{o:r.o,all:r.k==='*',ks:[],items:[]});const g=M2.get(key);g.ks.push(r.k);g.items.push(r);});
+  return [...M2.values()];}
+function scopeOpts(sel){return [...DEPTS.map(d=>`<option value="d:${d.id}">Bộ phận: ${d.name}</option>`),...JOBS.map(j=>`<option value="j:${j.id}">Vị trí: ${j.name}</option>`),...[...new Set(JOBS.map(j=>j.ng))].map(n=>`<option value="n:${n}">Ngạch: ${n}</option>`)].map(o=>o.replace(`value="${sel}"`,`value="${sel}" selected`)).join('');}
+function varOpts(sel){return Object.entries(vnOf()).map(([k,l])=>`<option value="${k}" ${k===sel?'selected':''}>${l}</option>`).join('');}
+let OVV='item',FORM=null; // FORM: {v,type,units:Set,val,all,edit:[{arr,i}]}
+function renderForm(){
+  if(!FORM){$('#ovr-form').innerHTML='';return;}
+  const F=FORM,ut=UTYPES.find(u=>u[0]===F.type);
+  $('#ovr-form').innerHTML=`<div class="of">
+    <label>1 · Mục tuỳ chỉnh</label><div><select id="f-v">${varOpts(F.v)}</select></div>
+    <label>2 · Áp cho</label><div><div class="seg" id="f-type">${UTYPES.map(u=>`<button data-t="${u[0]}" class="${u[0]===F.type?'on':''}">${u[1]}</button>`).join('')}</div>
+      <input id="f-q" placeholder="Tìm…" value="${F.q||''}" style="margin-top:6px;width:260px"> <a href="#" class="sub" id="f-all-f">chọn tất cả đang lọc</a>
+      <div class="units" id="f-units" style="margin-top:6px">${ut[2]().filter(([k,l])=>F.units.has(k)||!F.q||l.toLowerCase().includes(F.q.toLowerCase())).slice(0,300).map(([k,l])=>`<label><input type="checkbox" value="${k}" ${F.units.has(k)?'checked':''}> ${l}</label>`).join('')}</div><div class="sub">${F.units.size} đã chọn · chọn được nhiều</div></div>
+    <label>3 · Giá trị</label><div id="e-valc">${valInput(F.v,F.val)}</div>
+    <label>4 · Kịch bản</label><div class="units" id="f-scn"><label><input type="checkbox" value="*" ${F.all?'checked':''}> <b>Mọi kịch bản</b></label>${Object.entries(SCN).map(([k,c])=>`<label style="${F.all?'opacity:.45':''}"><input type="checkbox" value="${k}" ${F.all?'disabled':''} ${!F.all&&F.scn.has(k)?'checked':''}> <i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${c.color}"></i> ${c.name}</label>`).join('')}</div>
+    <div></div><div><button class="btn primary" id="f-ok">Lưu</button> <button class="btn" id="f-no">Huỷ</button></div></div>`;
+  const keep=()=>{try{F.val=readVal(F.v);}catch(e){}};
+  $$('#f-scn input').forEach(x=>x.onchange=()=>{keep();if(x.value==='*')F.all=x.checked;else x.checked?F.scn.add(x.value):F.scn.delete(x.value);renderForm();});
+  $('#f-v').onchange=()=>{keep();F.v=$('#f-v').value;F.val=F.v==='incon'?[]:defVal(F.v);renderForm();};
+  $$('#f-type button').forEach(b=>b.onclick=()=>{keep();F.type=b.dataset.t;F.units=new Set();renderForm();});
+  $('#f-q').oninput=e=>{F.q=e.target.value;keep();renderForm();const q=$('#f-q');q.focus();q.setSelectionRange(q.value.length,q.value.length);};
+  $('#f-all-f').onclick=e=>{e.preventDefault();keep();$$('#f-units input').forEach(x=>F.units.add(x.value));renderForm();};
+  $$('#f-units input').forEach(x=>x.onchange=()=>{keep();x.checked?F.units.add(x.value):F.units.delete(x.value);renderForm();});
+  $('#f-no').onclick=()=>{FORM=null;renderOvr();};
+  $('#f-ok').onclick=()=>{keep();if(!F.units.size)return alert('Chọn ít nhất 1 đơn vị ở bước 2.');if(!F.all&&!F.scn.size)return alert('Chọn ít nhất 1 kịch bản ở bước 4.');
+    (F.edit||[]).forEach(e=>{const i=e.arr.indexOf(e.o);if(i>=0)e.arr.splice(i,1);});
+    const targets=F.all?[COMMON.ovr]:[...F.scn].map(k=>SCN[k].ovr);
+    targets.forEach(target=>F.units.forEach(u=>{const scope=F.type+':'+u,ix=target.findIndex(x=>x.scope===scope&&x.v===F.v),o={scope,v:F.v,val:F.val};if(ix>=0)target[ix]=o;else target.push(o);}));
+    FORM=null;renderOvr();renderAll();};
+}
+function renderOvr(){
+  const L=ovrList(),VN=vnOf(),order=Object.keys(OV);
+  const kb=r=>r.all?'<span class="scope g" style="margin:0">Mọi kịch bản</span>':r.ks.map(k=>`<span class="scope s" style="margin:0 3px 0 0;background:${SCN[k].color}">${SCN[k].name}</span>`).join('');
+  const act=i=>`<td class="l" style="white-space:nowrap"><button class="btn" data-ed="${i}">✎ Sửa</button> <button class="btn" data-del="${i}">✕</button></td>`;
+  const idx=L.map((r,i)=>({r,i}));let html='';
+  if(OVV==='item'){$('#ovr-head').innerHTML='<tr><th class="l">Áp cho</th><th>Giá trị</th><th class="l">Kịch bản</th><th></th></tr>';
+    order.forEach(v=>{const g=idx.filter(x=>x.r.o.v===v);if(!g.length)return;html+=`<tr class="grp"><td class="l" colspan="4">${VN[v]}</td></tr>`+g.map(({r,i})=>`<tr><td class="l">${scopeName(r.o.scope)}</td><td style="white-space:normal;max-width:300px">${valTxt(r.o)}</td><td class="l">${kb(r)}</td>${act(i)}</tr>`).join('');});}
+  else{$('#ovr-head').innerHTML='<tr><th class="l">Mục tuỳ chỉnh</th><th>Giá trị</th><th class="l">Kịch bản</th><th></th></tr>';
+    const sc=[...new Set(L.map(r=>r.o.scope))].sort((a,b)=>'pdjn'.indexOf(a[0])-'pdjn'.indexOf(b[0]));
+    sc.forEach(scp=>{const g=idx.filter(x=>x.r.o.scope===scp).sort((a,b)=>order.indexOf(a.r.o.v)-order.indexOf(b.r.o.v));html+=`<tr class="grp"><td class="l" colspan="4">${scopeName(scp)}</td></tr>`+g.map(({r,i})=>`<tr><td class="l">${VN[r.o.v]}</td><td style="white-space:normal;max-width:300px">${valTxt(r.o)}</td><td class="l">${kb(r)}</td>${act(i)}</tr>`).join('');});}
+  $('#ovr').innerHTML=html||'<tr><td colspan="4" class="l sub">Chưa có tuỳ chỉnh – mọi nơi dùng mức chung</td></tr>';
+  $$('#ovr [data-ed]').forEach(x=>x.onclick=()=>{const r=L[+x.dataset.ed];FORM={v:r.o.v,type:r.o.scope[0],units:new Set([r.o.scope.slice(2)]),val:r.o.val,all:r.all,scn:new Set(r.all?[CUR]:r.ks),edit:r.items};renderOvr();$('#ovr-form').scrollIntoView({block:'nearest'});});
+  $$('#ovr [data-del]').forEach(x=>x.onclick=()=>{if(!confirm('Xoá dòng tuỳ chỉnh này?'))return;const r=L[+x.dataset.del];r.items.forEach(e=>{const i=e.arr.indexOf(e.o);if(i>=0)e.arr.splice(i,1);});renderOvr();renderAll();});
+  $('#ovr-add').disabled=!!FORM;renderForm();
+}
+$('#ovr-add').onclick=()=>{FORM={v:'kpi',type:'p',units:new Set(),val:CFG().vars.kpi,all:false,scn:new Set([CUR])};renderOvr();};
+$$('#ovr-view button').forEach(b=>b.onclick=()=>{OVV=b.dataset.v;$$('#ovr-view button').forEach(x=>x.classList.toggle('on',x===b));renderOvr();});
+const ALWOPEN=new Set(),AF={root:'',q:''},LOPEN=new Set();
+function alwList(a,i){
+  if(a.mode==='meal'){a.lt=a.lt||{};a.lo=a.lo||{};const sel=(attr,val,extra='')=>`<select ${attr}>${extra}${a.grp.map((g,gi)=>`<option value="${gi}" ${val===gi?'selected':''}>${g.n}</option>`).join('')}</select>`;
+    return `<tr><td colspan="5" style="background:#fafbfc;padding:8px 12px"><div style="width:0;min-width:100%"><div class="sub" style="margin-bottom:6px">Khối lấy theo <b>địa điểm làm việc</b> trên KOI (${CO_LOCS.length} địa điểm T02). Gán theo loại địa điểm; địa điểm nào khác loại thì chỉnh riêng.</div>
+      <table class="pjt"><thead><tr><th class="l">Loại địa điểm</th><th>Số NV</th><th class="l">Khối ăn</th><th class="l">Địa điểm</th></tr></thead><tbody>${LTYPES.map(([t,l])=>{const ls=CO_LOCS.filter(x=>locType(x[0])===t),n=ls.reduce((s,x)=>s+x[1],0),open=LOPEN.has(t);
+        return `<tr><td class="l"><b>${l}</b></td><td>${n}</td><td class="l">${sel(`data-a="${i}" data-lt="${t}"`,a.lt[t]??0)}</td><td class="l"><a href="#" class="sub" data-lopen="${t}">${open?'▾':'▸'} ${ls.length} địa điểm</a></td></tr>`+(open?ls.map(([nm,c])=>`<tr><td class="l" style="padding-left:24px">${nm}</td><td class="sub">${c}</td><td class="l" colspan="2">${sel(`data-a="${i}" data-lo="${nm}"`,a.lo[nm]??-1,`<option value="-1" ${a.lo[nm]==null?'selected':''}>theo loại (${a.grp[a.lt[t]??0].n})</option>`)}</td></tr>`).join(''):'');}).join('')}</tbody></table>
+      <div class="sub" style="margin-top:4px">Người đang giữ: lấy địa điểm của họ. Định biên mới: chọn địa điểm ở mục 5.</div></div></td></tr>`;}
+  const list=CO_JOBS.filter(x=>(!AF.root||String(x[2])===AF.root)&&(!AF.q||x[1].toLowerCase().includes(AF.q.toLowerCase())));
+  
+  const rows=list.slice(0,200).map(([id,name,r])=>{const auto=koiAl(id,a.k),off=a.off&&a.off[id],sug=auto>0&&(a.byJob||{})[id]==null;
+    return `<tr style="${off?'opacity:.45':''}"><td class="l"><input type="checkbox" data-a="${i}" data-on="${id}" ${off?'':'checked'}></td><td class="l">${name}</td><td class="l sub">${rootName(r)}</td><td>${a.mode==='meal'?`<select data-a="${i}" data-jg="${id}" ${off?'disabled':''}>${a.grp.map((g,gi)=>`<option value="${gi}" ${((a.jg||{})[id]||0)==gi?'selected':''}>${g.n} · ${fmt(g.rate*g.days)}</option>`).join('')}</select>`:`<input class="money" style="width:110px" data-a="${i}" data-job="${id}" ${off?'disabled':''} value="${(a.byJob||{})[id]!=null?fmt(a.byJob[id]):''}" placeholder="${auto!=null?fmt(Math.round(auto)):(a.amount?fmt(a.amount):'0')}">`}</td><td class="l sub">${auto>0?`<b style="color:var(--ok)">${fmt(Math.round(auto))}</b>${sug?' <span class="tag t-pos">gợi ý</span>':''}`:auto===0?'0 đ (người hiện có chưa hưởng)':'chưa có người'}</td></tr>`;}).join('');
+  return `<tr><td colspan="5" style="background:#fafbfc;padding:8px 12px"><div style="width:0;min-width:100%">
+    <div class="row" style="gap:8px;flex-wrap:wrap;margin-bottom:6px"><select data-af="root"><option value="">Tất cả phòng ban (${CO_JOBS.length} vị trí)</option>${CO_ROOTS.map(([id,n])=>`<option value="${id}" ${AF.root===String(id)?'selected':''}>${n}</option>`).join('')}</select><input data-af="q" placeholder="Tìm vị trí…" value="${AF.q}" style="width:200px">
+      <span class="sub">Với ${list.length} vị trí đang lọc:</span>${a.mode==='meal'?`<select data-bulkg="${i}"><option value="">Gán khối…</option>${a.grp.map((g,gi)=>`<option value="${gi}">${g.n}</option>`).join('')}</select>`:`<input class="money" style="width:100px" id="bulkv-${i}" placeholder="Mức…"><button class="btn" data-bulkv="${i}">Áp mức</button>`}<button class="btn primary" data-bulkkoi="${i}" title="Lấy đúng mức đang có trên KOI cho các vị trí đang lọc; vị trí không ai hưởng thì đánh Không hưởng">⤓ Theo KOI</button><button class="btn" data-bulkon="${i}">Cho hưởng</button><button class="btn" data-bulkoff="${i}">Không hưởng</button></div>
+    <div style="max-height:300px;overflow:auto"><table class="pjt"><thead><tr><th class="l">Hưởng</th><th class="l">Vị trí</th><th class="l">Phòng ban</th><th>${a.mode==='meal'?'Khối áp dụng':'Mức / tháng'}</th><th class="l">Đang có trên KOI</th></tr></thead><tbody>${rows}</tbody></table>${list.length>200?`<div class="sub">Hiện 200/${list.length} – lọc thêm để thu hẹp</div>`:''}</div>
+    <div class="sub" style="margin-top:4px">Bỏ tích = vị trí không hưởng. ${a.mode==='meal'?'Mặc định khối đầu tiên.':'Để trống mức = tự lấy mức đang có trên KOI của vị trí (gợi ý) → TB ngạch → mức mặc định. Bấm “⤓ Theo KOI” để điền hàng loạt.'}</div></div></td></tr>`;
+}
+function renderAlw(){
+  const MODES=[['pos','Theo vị trí'],['meal','Định mức bữa × ngày công'],['level','Theo bậc tay nghề'],['fixed','Mức cố định'],['none','Không hoạch định sẵn']],WHO2={all:'Tất cả',ql:'Ngạch quản lý',cv:'Từ chuyên viên'};
+  const cnt=k=>k==='lunch'?'428 NV':(n=>n?n+' vị trí':0)(CO_JOBS.filter(x=>koiAl(x[0],k)>0).length);
+  $('#alw').innerHTML=ALW.map((a,i)=>`<tr style="${a.mode==='none'?'opacity:.6':''}"><td class="l">${a.n}${(a.mode==='pos'||a.mode==='meal')?`<div><a href="#" class="sub" data-open="${i}">${ALWOPEN.has(i)?'▾':'▸'} ${a.mode==='meal'?'Gán khối theo địa điểm':'Chọn vị trí &amp; mức'}${(Object.keys(a.byJob||{}).length+Object.keys(a.off||{}).length)?' ('+(Object.keys(a.byJob||{}).length+Object.keys(a.off||{}).length)+' chỉnh)':''}</a></div>`:''}</td><td class="l"><select data-a="${i}" data-f="mode">${MODES.map(([k,l])=>`<option value="${k}" ${a.mode===k?'selected':''}>${l}</option>`).join('')}</select></td>
+    ${a.mode==='meal'?`<td colspan="2" class="l">${a.grp.map((g,gi)=>`<div style="white-space:nowrap;margin:2px 0"><input data-a="${i}" data-g="${gi}" data-gf="n" value="${g.n}" style="width:175px"> <input class="money" style="width:80px" data-a="${i}" data-g="${gi}" data-gf="rate" value="${fmt(g.rate)}"> đ/bữa × <input class="num" style="width:46px" data-a="${i}" data-g="${gi}" data-gf="days" value="${g.days}"> ngày = <b>${fmt(g.rate*g.days)}</b></div>`).join('')}<div class="sub" style="margin-top:3px;white-space:normal">Phân theo trường <b>Địa điểm làm việc</b> trên KOI: làm việc <b>tại Nhà máy</b> → ${a.grp[1]?a.grp[1].n:''}; <b>còn lại</b> (văn phòng, thị trường, kho, điểm bán) → ${a.grp[0].n}.</div><a href="#" class="sub" data-gadd="${i}">+ thêm khối</a></td>`:a.mode==='level'?`<td colspan="2" class="l">${(a.lv=a.lv||[0,0,0,0,0]).map((x,b)=>`<span style="white-space:nowrap;margin-right:6px"><span class="sub">B${b+1}</span> <input class="money" style="width:82px" data-a="${i}" data-lv="${b}" value="${x?fmt(x):''}" placeholder="0"></span>`).join('')}<div class="sub">Người mới: chọn bậc ở cột “Bậc” của mục 5</div></td>`:`<td>${a.mode==='none'?'<span class="sub">–</span>':`<input class="money" style="width:110px" data-a="${i}" data-f="amount" value="${a.amount?fmt(a.amount):''}" placeholder="0">`}</td>
+    <td class="l">${a.mode==='none'?'<span class="sub">–</span>':`<select data-a="${i}" data-f="who">${Object.entries(WHO2).map(([k,l])=>`<option value="${k}" ${a.who===k?'selected':''}>${l}</option>`).join('')}</select>`}</td>`}<td>${cnt(a.k)||'<span class="sub">0</span>'}</td></tr>`+((a.mode==='pos'||a.mode==='meal')&&ALWOPEN.has(i)?alwList(a,i):'')).join('');
+  $$('#alw [data-af]').forEach(x=>{const ev=x.tagName==='INPUT'?'oninput':'onchange';x[ev]=()=>{AF[x.dataset.af]=x.value;renderAlw();if(x.tagName==='INPUT'){const q=$('#alw [data-af="q"]');q.focus();q.setSelectionRange(q.value.length,q.value.length);}};});
+  const filtered=()=>CO_JOBS.filter(x=>(!AF.root||String(x[2])===AF.root)&&(!AF.q||x[1].toLowerCase().includes(AF.q.toLowerCase()))).map(x=>x[0]);
+  $$('#alw [data-bulkg]').forEach(x=>x.onchange=()=>{if(x.value==='')return;const a=ALW[+x.dataset.bulkg];a.jg=a.jg||{};filtered().forEach(id=>a.jg[id]=+x.value);renderAlw();renderPrice();renderAll();});
+  $$('#alw [data-bulkkoi]').forEach(x=>x.onclick=()=>{const a=ALW[+x.dataset.bulkkoi];a.byJob=a.byJob||{};a.off=a.off||{};let n=0;filtered().forEach(id=>{const v=koiAl(id,a.k);if(v>0){a.byJob[id]=Math.round(v);delete a.off[id];n++;}});renderAlw();renderPrice();renderAll();});
+  $$('#alw [id^="bulkv-"]').forEach(x=>x.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();$('#alw [data-bulkv="'+x.id.slice(6)+'"]').click();}});
+  $$('#alw [data-bulkv]').forEach(x=>x.onclick=()=>{const a=ALW[+x.dataset.bulkv];a.byJob=a.byJob||{};const v=+($('#bulkv-'+x.dataset.bulkv).value||'').replace(/\D/g,'')||0;filtered().forEach(id=>{a.byJob[id]=v;if(a.off)delete a.off[id];});renderAlw();renderPrice();renderAll();});
+  $$('#alw [data-bulkon]').forEach(x=>x.onclick=()=>{const a=ALW[+x.dataset.bulkon];a.off=a.off||{};filtered().forEach(id=>delete a.off[id]);renderAlw();renderPrice();renderAll();});
+  $$('#alw [data-bulkoff]').forEach(x=>x.onclick=()=>{const a=ALW[+x.dataset.bulkoff];a.off=a.off||{};filtered().forEach(id=>a.off[id]=true);renderAlw();renderPrice();renderAll();});
+  $$('#alw [data-lopen]').forEach(x=>x.onclick=e=>{e.preventDefault();const t=x.dataset.lopen;LOPEN.has(t)?LOPEN.delete(t):LOPEN.add(t);renderAlw();});
+  $$('#alw [data-gadd]').forEach(x=>x.onclick=e=>{e.preventDefault();ALW[+x.dataset.gadd].grp.push({n:'Khối mới',rate:0,days:26});renderAlw();});
+  $$('#alw [data-open]').forEach(x=>x.onclick=e=>{e.preventDefault();const i=+x.dataset.open;ALWOPEN.has(i)?ALWOPEN.delete(i):ALWOPEN.add(i);renderAlw();});
+  $$('#alw [data-a]').forEach(x=>x.onchange=()=>{const a=ALW[+x.dataset.a],f=x.dataset.f;if(x.dataset.gf){const g=a.grp[+x.dataset.g];g[x.dataset.gf]=x.dataset.gf==='n'?x.value:+x.value.replace(/\D/g,'')||0;renderAlw();renderPrice();renderAll();return;}if(x.dataset.lt){a.lt[x.dataset.lt]=+x.value;renderAlw();renderPrice();renderAll();return;}if(x.dataset.lo){if(+x.value<0)delete a.lo[x.dataset.lo];else a.lo[x.dataset.lo]=+x.value;renderAlw();renderPrice();renderAll();return;}if(x.dataset.jg){a.jg=a.jg||{};a.jg[x.dataset.jg]=+x.value;renderAlw();renderPrice();renderAll();return;}if(f==='mode'&&x.value==='meal')ALWOPEN.add(+x.dataset.a);if(x.dataset.on){a.off=a.off||{};if(x.checked)delete a.off[x.dataset.on];else a.off[x.dataset.on]=true;renderAlw();renderPrice();renderAll();return;}if(f==='mode'&&x.value==='pos')ALWOPEN.add(+x.dataset.a);if(x.dataset.job){a.byJob=a.byJob||{};const t=x.value.trim();if(t==='')delete a.byJob[x.dataset.job];else{a.byJob[x.dataset.job]=+t.replace(/\D/g,'')||0;if(a.off)delete a.off[x.dataset.job];}renderAlw();renderPrice();renderAll();return;}if(x.dataset.lv!=null){a.lv[+x.dataset.lv]=+x.value.replace(/\D/g,'')||0;renderAlw();renderPrice();renderAll();return;}a[f]=f==='amount'?+x.value.replace(/\D/g,'')||0:x.value;renderAlw();renderPrice();renderAll();});
+}
+function renderPrice(){
+  $('#price-head').innerHTML=`<tr><th class="l" rowspan="2">Vị trí</th><th colspan="3" style="text-align:center;border-bottom:1px solid var(--line)">Q1 – quản lý điền</th><th colspan="2" style="text-align:center;border-bottom:1px solid var(--line)">Q2 – quản lý điền</th><th colspan="2" style="text-align:center;border-bottom:1px solid var(--line)">Nhập nếu có</th><th colspan="2" style="text-align:center;border-bottom:1px solid var(--line);color:var(--muted)">Theo cấu hình chung</th><th rowspan="2">Địa điểm<br>làm việc</th><th rowspan="2">Comp ước tính<br>/ tháng</th><th class="l" rowspan="2">Nguồn</th></tr>
+    <tr><th>Lương cơ bản</th><th>Thưởng đánh giá</th><th>= Q1</th><th>Q2 tháng</th><th>Q2 quý</th><th>Bậc tay nghề</th><th>PC đặc thù</th><th style="color:var(--muted)">Phụ cấp (mục 3)</th><th style="color:var(--muted)">Q2 năm / 12</th></tr>`;
+  $('#price').innerHTML=JOBS.map(j=>{const p=priceOf(j);const need=Object.values(SCN).some(c=>hcOf(j,c).some(h=>h>j.people.length));const man=ST.manual[j.id]||{};
+    const inp=k=>{const val=k==='pcx'?(man.pcx||0):p.p[k];return `<td><input class="money ${man[k]!=null?'edited':''}" style="width:${k==='pcx'?84:100}px" data-j="${j.id}" data-k="${k}" value="${val?fmt(Math.round(val)):''}" placeholder="0"></td>`;};
+    return `<tr><td class="l">${j.name}<div class="sub">ngạch ${j.ng}${need?' · <b style="color:#6b3fc7">có định biên mới</b>':''}</div></td>${inp('lcb')}${inp('tdg')}<td>${fmt(Math.round(p.p.lcb+p.p.tdg))}</td>${inp('q2m')}${inp('q2q')}<td><select data-lvl="${j.id}"><option value="">–</option>${[1,2,3,4,5].map(b=>`<option value="${b}" ${man.lvl==b?'selected':''}>Bậc ${b}</option>`).join('')}</select></td>${inp('pcx')}<td class="sub" title="${Object.values(p.pc.det).map(d=>d.n+': '+fmt(Math.round(d.v))+' ('+d.src+')').join('\n')}" style="cursor:help">${fmt(Math.round(p.pc.v))}</td><td class="sub">${fmt(Math.round(p.p.q2y/12))}</td><td><select data-loc="${j.id}" style="max-width:150px">${CO_LOCS.map(([nm])=>`<option value="${nm}" ${jobLoc(j)===nm?'selected':''}>${nm.replace(/^\[[^\]]+\] /,'')}</option>`).join('')}</select></td><td><b>${fmt(Math.round(p.val))}</b></td><td class="l"><span class="tag t-${p.src==='ng'?'tit':p.src}">${p.label}</span>${p.src==='man'?` <button class="btn" data-reset="${j.id}" title="Về giá tự tính">↺</button>`:''}</td></tr>`;}).join('');
+  $$('#price [data-j]').forEach(x=>x.onchange=()=>{const id=x.dataset.j,k=x.dataset.k,v=+x.value.replace(/\D/g,'')||0;ST.manual[id]={...(ST.manual[id]||{}),[k]:v};renderPrice();renderAll();});
+  $$('#price [data-loc]').forEach(x=>x.onchange=()=>{const id=x.dataset.loc;ST.manual[id]={...(ST.manual[id]||{}),loc:x.value};renderPrice();renderAll();});
+  $$('#price [data-lvl]').forEach(x=>x.onchange=()=>{const id=x.dataset.lvl;ST.manual[id]={...(ST.manual[id]||{}),lvl:+x.value||0};renderPrice();renderAll();});
+  $$('#price [data-reset]').forEach(x=>x.onclick=()=>{delete ST.manual[x.dataset.reset];renderPrice();renderAll();});
+}
+
+
+const VMAP={inc:'#v-inc',q2n:'#v-q2n',kpi:'#v-kpi',kpiq:'#v-kpiq',incmin:'#v-incmin',q3:'#v-q3',incm:'#v-incm',q3pct:'#v-q3pct'};
+// ---- Cấu trúc lương (Comp1 → Comp5) dùng cho các ô chọn nhiều ----
+const STRUCT=[
+ ['Comp1 · Lương Q1',[['lcb','Lương cơ bản'],['tdg','Thưởng đánh giá tháng (hiệu suất)']]],
+ ['Comp2 · Comp1 + Phụ cấp',[['responsibility_allowance','PC trách nhiệm'],['concurrent_allowance','PC kiêm nhiệm'],['seniority_allowance','PC thâm niên'],['skill_allowance','PC kỹ năng (theo vị trí)'],['attendance_allowance','PC chuyên cần'],['pc','PC ăn trưa'],['transport_allowance','PC đi lại'],['phone_allowance','PC điện thoại'],['laptop_allowance','PC laptop'],['working_condition_allowance','PC điều kiện làm việc'],['accompaniment_allowance','PC hỗ trợ đi kèm (đào tạo/nhà ở)'],['overseas_business_allowance','PC công tác nước ngoài'],['allowance_11','Phụ cấp 11–15']]],
+ ['Comp3 · Comp2 + Thưởng ngắn hạn',[['q2m','Thưởng Q2 tháng'],['q2q','Thưởng Q2 quý'],['q2y','Thưởng Q2 cơ bản năm'],['q3','Thưởng Q3 tháng'],['q3_quarterly_bonus','Thưởng Q3 quý'],['q3_emulation_program_bonus','Thưởng Q3 chương trình thi đua'],['recognition_bonus','Thưởng ghi nhận'],['special_annual_planning_bonus','Thưởng đặc biệt hoạch định năm'],['other_special_bonus','Thưởng đặc biệt khác'],['sti_phase_planning_bonus','STI hoạch định theo giai đoạn']]],
+ ['Comp4 · Comp3 + LTI',[['lti_core_annual_bonus','LTI-CORE năm'],['lti_tb_bonus','LTI-TB']]],
+ ['Comp5 · Comp4 + Phúc lợi năm',[['ben','Tổng phúc lợi năm (mục 2)']]]];
+const HASDATA=new Set(['lcb','tdg','pc','q2m','q2q','q2y','q3']);
+const STRUCT_LBL=Object.fromEntries(STRUCT.flatMap(g=>g[1]));
+function buildMsel(el){
+  const ex=(el.dataset.ex||'').split(',');
+  el.innerHTML=`<button type="button" class="mbtn"></button><div class="mpanel">${STRUCT.map(([g,items],gi)=>{const its=items.filter(([k])=>!ex.includes(k));if(!its.length)return '';
+    return `<div class="mg" data-g="${gi}"><input type="checkbox" class="gchk"> ${g}</div>`+its.map(([k,l])=>`<label><input type="checkbox" value="${k}" data-g="${gi}"> ${l}</label>`).join('');}).join('')}</div>`;
+  el.querySelector('.mbtn').onclick=e=>{e.stopPropagation();$$('.msel.open').forEach(o=>o!==el&&o.classList.remove('open'));el.classList.toggle('open');};
+  el.querySelector('.mpanel').onclick=e=>e.stopPropagation();
+  el.querySelectorAll('.mg').forEach(g=>g.onclick=e=>{const box=g.querySelector('.gchk');if(e.target!==box)box.checked=!box.checked;
+    el.querySelectorAll(`input[value][data-g="${g.dataset.g}"]`).forEach(x=>x.checked=box.checked);saveInputs();mselLabel(el);renderAll();});
+  el.querySelectorAll('input[value]').forEach(x=>x.addEventListener('change',()=>{mselLabel(el);saveInputs();renderAll();}));
+}
+function mselLabel(el){
+  const on=[...el.querySelectorAll('input[value]:checked')].map(x=>x.value);
+  el.querySelectorAll('.mg').forEach(g=>{const xs=[...el.querySelectorAll(`input[value][data-g="${g.dataset.g}"]`)];const n=xs.filter(x=>x.checked).length;const b=g.querySelector('.gchk');b.checked=n===xs.length;b.indeterminate=n>0&&n<xs.length;});
+  el.querySelector('.mbtn').innerHTML=on.length?on.map(k=>`<span class="tag">${STRUCT_LBL[k]}</span>`).join(''):'<span class="sub">— chọn cấu phần —</span>';
+}
+document.addEventListener('click',()=>$$('.msel.open').forEach(o=>o.classList.remove('open')));
+const COMMON={ins:INS0(),ben:SCN.A.ben,pay:SCN.A.pay,ovr:[]};const shareCommon=c=>{c.ins=COMMON.ins;c.ben=COMMON.ben;c.pay=COMMON.pay;};Object.values(SCN).forEach(shareCommon);
+// ---- Lưu cấu hình (trình duyệt trên máy này) ----
+const SKEY='ngan-sach-cau-hinh-v1';
+function core(){return JSON.stringify({scn:SCN,common:COMMON,alw:ALW,manual:ST.manual});}
+function snapshot(){return JSON.stringify({savedAt:new Date().toISOString(),cur:CUR,scn:SCN,common:COMMON,alw:ALW,manual:ST.manual});}
+(function restore(){try{const raw=localStorage.getItem(SKEY);if(!raw)return;const d=JSON.parse(raw);
+  Object.keys(SCN).forEach(k=>delete SCN[k]);Object.assign(SCN,d.scn);Object.assign(COMMON,d.common);ALW.splice(0,ALW.length,...d.alw);Object.assign(ST.manual,d.manual||{});
+  Object.values(SCN).forEach(shareCommon);if(SCN[d.cur])CUR=d.cur;window.__saved=d.savedAt;}catch(e){console.warn('Không đọc được cấu hình đã lưu',e);}})();
+let DIRTY=false,SAVED_SNAP=null;
+function markSave(){const el=$('#save-st');if(!el)return;const now=core();DIRTY=SAVED_SNAP!==null&&now!==SAVED_SNAP;
+  el.innerHTML=DIRTY?'<span style="color:#b54708">● Có thay đổi chưa lưu</span>':(window.__saved?'✓ Đã lưu '+new Date(window.__saved).toLocaleString('vi-VN',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit'}):'Chưa lưu lần nào');}
+function doSave(){try{localStorage.setItem(SKEY,snapshot());window.__saved=new Date().toISOString();SAVED_SNAP=core();markSave();}catch(e){alert('Không lưu được: '+e.message);}}
+function doExport(){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([snapshot()],{type:'application/json'}));a.download='cau-hinh-ngan-sach-'+new Date().toISOString().slice(0,10)+'.json';a.click();}
+function doImport(f){const r=new FileReader();r.onload=()=>{try{JSON.parse(r.result);localStorage.setItem(SKEY,r.result);location.reload();}catch(e){alert('File không hợp lệ');}};r.readAsText(f);}
+window.addEventListener('beforeunload',e=>{if(DIRTY){e.preventDefault();e.returnValue='';}});
+$('#unit-sel').innerHTML='<option selected>T02 – Công ty CP Tập đoàn Karofi (toàn công ty)</option>'+CO_ROOTS.map(([id,n])=>`<option>└ ${n}</option>`).join('');
+$('#unit-sel').selectedIndex=0;
+$$('.msel').forEach(buildMsel);
+$('#ins-who').innerHTML=JOBS.flatMap((j,ji)=>j.people.map((p,pi)=>`<option value="${ji}:${pi}">${p.name} – ${j.name}</option>`)).join('');
+$('#ins-m').innerHTML=M.map((t,i)=>`<option value="${i}">${t}</option>`).join('');
+['#ins-who','#ins-m'].forEach(id=>$(id).onchange=insDemo);
+$$('#cfgnav>button').forEach(b=>b.onclick=()=>{$$('#cfgnav>button').forEach(x=>x.classList.toggle('on',x===b));$$('.cp').forEach(c=>c.classList.toggle('hidden',c.id!==b.dataset.c));});
+function renderIns(){const I=CFG().ins;
+  $('#ins-rows').innerHTML=I.rows.map((r,i)=>`<tr><td class="l">${r.n}<span class="sub"> · trần ${r.cap==='ref'?'20 × tham chiếu':r.cap==='minw'?'20 × LTT vùng':'không'}</span></td><td><input class="num" data-i="${i}" data-s="dn" value="${r.dn}"> %</td><td><input class="num" data-i="${i}" data-s="nld" value="${r.nld}"> %</td></tr>`).join('')
+    +`<tr class="tot"><td class="l">Cộng</td><td>${I.rows.reduce((s,r)=>s+(+r.dn||0),0)} %</td><td>${I.rows.reduce((s,r)=>s+(+r.nld||0),0)} %</td></tr>`;
+  $$('#ins-rows input').forEach(x=>x.onchange=()=>{I.rows[+x.dataset.i][x.dataset.s]=+x.value||0;renderIns();renderAll();});
+  $('#i-ref').value=fmt(I.ref);$('#i-minw').value=fmt(I.minw);$('#pit-on').checked=I.pit.on;$('#pit-self').value=fmt(I.pit.self);$('#pit-dep').value=fmt(I.pit.dep);$('#pit-ndep').value=I.pit.ndep;
+  $$('.insbase input[value]').forEach(x=>x.checked=I.base.includes(x.value));mselLabel($('.insbase'));insDemo();}
+function insDemo(){const cfg=CFG(),[ji,pi]=($('#ins-who').value||'0:0').split(':').map(Number),j=JOBS[ji],p=j&&j.people[pi];if(!p){$('#ins-demo').innerHTML='';return;}
+  const m=+$('#ins-m').value||0,t=alloc(personMonth(p,m,j,'exp',cfg),m,cfg,j,p),n=netOf(t,cfg);
+  $('#ins-demo').innerHTML=`<div class="demo"><span class="k">Tổng thu nhập</span><span class="k">DN đóng BH</span><span class="k">Chi phí DN</span><span class="k">NLĐ đóng BH</span><span class="k">Thuế TNCN</span><span class="k">Thực nhận</span><b>${fmt(n.g)}</b><b>${fmt(n.dn)}</b><b>${fmt(n.g+n.dn)}</b><b>${fmt(n.bh)}</b><b>${fmt(n.tx)}</b><b style="color:var(--brand)">${fmt(n.net)}</b></div>`;}
+function saveIns(){const I=CFG().ins,num=x=>+String(x).replace(/\D/g,'')||0;I.ref=num($('#i-ref').value);I.minw=num($('#i-minw').value);I.pit.on=$('#pit-on').checked;I.pit.self=num($('#pit-self').value);I.pit.dep=num($('#pit-dep').value);I.pit.ndep=+$('#pit-ndep').value||0;I.base=$$('.insbase input[value]:checked').map(x=>x.value);}
+function loadInputs(){const v=CFG().vars;for(const [k,sel] of Object.entries(VMAP))$(sel).value=v[k];$$('.incon input[value]').forEach(x=>x.checked=v.incon.includes(x.value));
+  $$('.q2base input[value]').forEach(x=>x.checked=(v.q2base||[]).includes(x.value));renderIns();$('#v-incbasis').value=v.incbasis||'fe';$('#v-incrule').value=v.incrule||'reach';$('#v-q2kpi').value=v.q2kpi===false?'none':v.q2kpi===true?'m':(v.q2kpi||'m');$$('.q3base input[value]').forEach(x=>x.checked=(v.q3base||[]).includes(x.value));$('#v-q3mode').value=v.q3mode||'pct';$('#v-q3fund').value=fmt(+v.q3fund||0);q3Vis();$$('.msel').forEach(mselLabel);}
+function saveInputs(){saveIns();const v=CFG().vars;for(const [k,sel] of Object.entries(VMAP))v[k]=+$(sel).value||0;v.incon=$$('.incon input[value]:checked').map(x=>x.value);v.q2base=$$('.q2base input[value]:checked').map(x=>x.value);v.q2kpi=$('#v-q2kpi').value;v.incbasis=$('#v-incbasis').value;v.incrule=$('#v-incrule').value;v.q3base=$$('.q3base input[value]:checked').map(x=>x.value);v.q3mode=$('#v-q3mode').value;v.q3fund=+$('#v-q3fund').value.replace(/\D/g,'')||0;q3Vis();}
+Object.values(VMAP).forEach(sel=>$(sel).addEventListener('input',()=>{saveInputs();renderAll();}));
+['#i-ref','#i-minw','#pit-on','#pit-self','#pit-dep','#pit-ndep'].forEach(id=>$(id).addEventListener('change',()=>{saveIns();renderIns();renderAll();}));
+['#v-incbasis','#v-incrule'].forEach(id=>$(id).addEventListener('change',()=>{saveInputs();renderAll();}));
+['#v-q2kpi','#v-q3mode','#v-q3fund'].forEach(id=>$(id).addEventListener('change',()=>{saveInputs();renderAll();}));
+function q3Vis(){const f=$('#v-q3mode').value==='fixed';$('#q3-pct').style.display=f?'none':'';$('#q3-fixed').style.display=f?'':'none';}
+// ---- Khung 4: phúc lợi ----
+const WHO={all:'Tất cả',ql:'Ngạch quản lý',cv:'Từ chuyên viên',flag:'Theo cờ trên Comp'};
+const chips=(arr,attr)=>`<span class="mchips">${M.map((t,i)=>`<button data-${attr}="${i}" title="${t}" class="${arr.includes(i)?'on':''}">${i+1}</button>`).join('')}</span>`;
+function headsFor(b){let n=0;JOBS.forEach(j=>j.people.forEach(p=>{if(eligible(b,j,p))n++;}));return n;}
+function renderBen(){
+  const c=CFG();
+  $('#ben').innerHTML=c.ben.map((b,i)=>{const n=headsFor(b),est=b.on?n*(b.type==='event'?b.amount*b.rate/100:b.amount):0;return `<tr data-i="${i}" style="${b.on?'':'opacity:.5'}">
+    <td><input type="checkbox" data-f="on" ${b.on?'checked':''}></td>
+    <td class="l"><input data-f="name" value="${b.name}" style="width:170px" title="${b.src||''}"></td>
+    <td class="l"><select data-f="type"><option value="person" ${b.type==='person'?'selected':''}>Định kỳ / người</option><option value="event" ${b.type==='event'?'selected':''}>Theo sự kiện</option></select></td>
+    <td><input class="money" data-f="amount" value="${fmt(b.amount)}"></td>
+    <td class="l"><select data-f="who">${Object.entries(WHO).map(([k,l])=>`<option value="${k}" ${b.who===k?'selected':''}>${l}</option>`).join('')}</select></td>
+    <td>${b.type==='event'?`<input class="num" data-f="rate" value="${b.rate}"> %`:'<span class="sub">100%</span>'}</td>
+    <td class="l">${chips(b.months,'bm')}</td>
+    <td>${fmt(est)}</td><td><button class="btn" data-bdel="${i}">✕</button></td></tr>`;}).join('');
+  $$('#ben tr[data-i]').forEach(tr=>{const b=c.ben[+tr.dataset.i];
+    tr.querySelectorAll('[data-f]').forEach(x=>x.onchange=()=>{const f=x.dataset.f;b[f]=f==='on'?x.checked:f==='amount'?+x.value.replace(/\D/g,''):f==='rate'?+x.value:x.value;renderBen();renderAll();});
+    tr.querySelectorAll('[data-bm]').forEach(x=>x.onclick=()=>{const m=+x.dataset.bm;b.months=b.months.includes(m)?b.months.filter(y=>y!==m):[...b.months,m].sort((a,b)=>a-b);renderBen();renderAll();});});
+  $$('#ben [data-bdel]').forEach(x=>x.onclick=()=>{if(!confirm('Xoá phúc lợi này?'))return;c.ben.splice(+x.dataset.bdel,1);renderBen();renderAll();});
+}
+$('#ben-add').onclick=()=>{CFG().ben.push({id:'b'+Date.now(),name:'Phúc lợi mới',type:'person',amount:0,who:'all',rate:100,months:[],on:true,src:'nhập tay'});renderBen();renderAll();};
+// ---- Khung 5: lịch chi trả ----
+function renderPay(){
+  const P=CFG().pay;
+  $$('#pay-mode button').forEach(b=>b.classList.toggle('on',b.dataset.v===P.mode));
+  ['q2q','q2y','q3q'].forEach(k=>{const el=$('#pm-'+k);el.innerHTML=chips(P[k],'p-'+k);
+    el.querySelectorAll(`[data-p-${k}]`).forEach(x=>x.onclick=()=>{const m=+x.getAttribute('data-p-'+k);P[k]=P[k].includes(m)?P[k].filter(y=>y!==m):[...P[k],m].sort((a,b)=>a-b);renderPay();renderAll();});});
+}
+
+$$('#pay-mode button').forEach(b=>b.onclick=()=>{CFG().pay.mode=b.dataset.v;renderPay();renderAll();});
+// ---- Vai trò: Admin HR / Quản lý đơn vị ----
+function mgrSum(){const c=CFG(),v=c.vars,I=c.ins,row=(k,x)=>`<tr><th>${k}</th><td>${x}</td></tr>`;
+  $('#mgr-sum').innerHTML=`<p class="hint">Các mục dưới đây do Admin HR thiết lập cho cả công ty; quản lý chỉ cần nhập <b>định biên</b> và <b>Q1, Q2 cho vị trí mới</b> (mục 2).</p><table class="form"><tbody>
+    ${row('Kịch bản',c.name)}${row('Tăng lương',`${v.inc}% từ ${M[v.incm]} · thâm niên ≥ ${v.incmin} tháng`)}${row('KPI tháng / quý',`${v.kpi}% / ${v.kpiq??v.kpi}%`)}${row('Q2 cơ bản năm',`${v.q2n} tháng`)}
+    ${row('Bảo hiểm DN / NLĐ',`${I.rows.reduce((s,r)=>s+(+r.dn||0),0)}% / ${I.rows.reduce((s,r)=>s+(+r.nld||0),0)}%`)}${row('Phúc lợi',c.ben.filter(b=>b.on).map(b=>b.name).join(', '))}${row('Phụ cấp',ALW.filter(a=>a.mode!=='none').map(a=>a.n).join(', ')+' – tự tính theo vị trí / địa điểm')}</tbody></table>`;}
+function setRole(r){document.body.classList.toggle('mgr',r==='mgr');$$('#role button').forEach(b=>b.classList.toggle('on',b.dataset.r===r));
+  const u=$('#unit-sel');if(r==='mgr'){[...u.options].forEach((o,i)=>{if(/HOẠCH ĐỊNH VÀ PHÁT TRIỂN/.test(o.text))u.selectedIndex=i;});u.disabled=true;}else{u.disabled=false;u.selectedIndex=0;}
+  const target=r==='mgr'?'c10':'c7';$$('#cfgnav>button').forEach(x=>x.classList.toggle('on',x.dataset.c===target));$$('.cp').forEach(c=>c.classList.toggle('hidden',c.id!==target));
+  const n=$('#cfgnav [data-c="c6"] b');n.textContent=r==='mgr'?'2':'5';mgrSum();}
+$$('#role button').forEach(b=>b.onclick=()=>setRole(b.dataset.r));
+$('#save-btn').onclick=doSave;$('#exp-btn').onclick=doExport;$('#imp-file').onchange=e=>e.target.files[0]&&doImport(e.target.files[0]);
+document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='s'){e.preventDefault();doSave();}});
+document.addEventListener('input',()=>setTimeout(markSave,0));document.addEventListener('change',()=>setTimeout(markSave,0));
+// ---- Quản lý kịch bản ----
+function renderScope(){const c=CFG();$('#ng-dot').style.background=c.color;$('#ng-scn').textContent='đang sửa: '+c.name;$$('.scope.s').forEach(x=>{x.textContent='Riêng kịch bản '+c.name;x.style.background=c.color;});}
+function renderChips(){renderScope();
+  $('#scn-chips').innerHTML=Object.entries(SCN).map(([k,c])=>`<button class="chip ${k===CUR?'on':''}" data-s="${k}"><i style="background:${c.color}"></i>${c.name}</button>`).join('');
+  $$('#scn-chips [data-s]').forEach(b=>b.onclick=()=>{CUR=b.dataset.s;FORM=null;loadInputs();renderChips();renderOvr();renderAlw();renderPrice();renderBen();renderPay();renderAll();});
+  $('#scn-del').disabled=Object.keys(SCN).length<=1;
+}
+$('#scn-add').onclick=()=>{const name=prompt('Tên kịch bản mới (nhân bản từ "'+CFG().name+'"):','D – Kịch bản mới');if(!name)return;
+  const k='S'+Date.now();const c=JSON.parse(JSON.stringify(CFG()));shareCommon(c);c.name=name;c.color=COLORS[Object.keys(SCN).length%COLORS.length];SCN[k]=c;CUR=k;loadInputs();renderChips();renderOvr();renderBen();renderPay();renderAll();};
+$('#scn-ren').onclick=()=>{const n=prompt('Đổi tên kịch bản:',CFG().name);if(n){CFG().name=n;renderChips();renderAll();}};
+$('#scn-del').onclick=()=>{if(Object.keys(SCN).length<=1)return;if(!confirm('Xoá kịch bản "'+CFG().name+'"?'))return;delete SCN[CUR];CUR=Object.keys(SCN)[0];loadInputs();renderChips();renderOvr();renderBen();renderPay();renderAll();};
+// ---- So sánh kịch bản ----
+let CCOST=false;
+function renderCmp(){
+  const ks=Object.keys(SCN),T=ks.map(k=>({k,c:SCN[k],t:totals(SCN[k],CCOST)})),base=T[0].t.e;
+  const hcT=c=>JOBS.reduce((s,j)=>s+hcOf(j,c)[11],0),hcAvg=c=>JOBS.reduce((s,j)=>s+hcOf(j,c).reduce((a,b)=>a+b,0),0)/12;
+  const row=(l,f)=>`<tr><td class="l">${l}</td>${T.map(x=>`<td>${f(x)}</td>`).join('')}</tr>`;
+  $('#cmp-t').innerHTML=`<thead><tr><th class="l">Chỉ tiêu</th>${T.map(x=>`<th><span class="chip" style="cursor:default"><i style="background:${x.c.color}"></i>${x.c.name}</span></th>`).join('')}</tr></thead><tbody>
+    ${row('Định biên cuối kỳ (T12)',x=>hcT(x.c))}${row('Định biên bình quân',x=>hcAvg(x.c).toFixed(1))}
+    ${row('Tăng lương',x=>`${x.c.vars.inc}% từ T${x.c.vars.incm+1}`)}${row('% KPI tháng',x=>x.c.vars.kpi+'%')}${row('% KPI quý',x=>(x.c.vars.kpiq??x.c.vars.kpi)+'%')}${row('% thi đua Q3',x=>x.c.vars.q3+'%')}${row('Số dòng ghi đè',x=>x.c.ovr.length)}
+    ${row('<b>Ngân sách năm – dự kiến</b>',x=>`<b>${fmt(x.t.e)}</b>`)}${row('Bình quân tháng',x=>fmt(x.t.e/12))}
+    ${row('So với kịch bản đầu',x=>x.t.e===base?'–':`<span class="${x.t.e>base?'up':'down'}">${x.t.e>base?'+':''}${fmt(x.t.e-base)} (${((x.t.e-base)/base*100).toFixed(1)}%)</span>`)}</tbody>`;
+  $('#cmp-lg').innerHTML=T.map(x=>`<span><i style="background:${x.c.color}"></i>${x.c.name}</span>`).join('');
+  const mx=Math.max(...T.flatMap(x=>x.t.em)),W=1000,H=220,P=40,X=i=>P+i*(W-2*P)/11,Y=v=>H-26-v/mx*(H-46);
+  $('#cmp-ch').innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:230px">${[0,.25,.5,.75,1].map(r=>`<line x1="${P}" x2="${W-P}" y1="${Y(mx*r)}" y2="${Y(mx*r)}" stroke="#eef0f3"/><text x="${P-6}" y="${Y(mx*r)+4}" font-size="11" text-anchor="end" fill="#98a2b3">${Math.round(mx*r/1e6)}tr</text>`).join('')}
+    ${M.map((m,i)=>`<text x="${X(i)}" y="${H-8}" font-size="11" text-anchor="middle" fill="#667085">${m}</text>`).join('')}
+    ${T.map(x=>`<polyline fill="none" stroke="${x.c.color}" stroke-width="2.5" points="${x.t.em.map((v,i)=>X(i)+','+Y(v)).join(' ')}"/>${x.t.em.map((v,i)=>`<circle cx="${X(i)}" cy="${Y(v)}" r="3" fill="${x.c.color}"><title>${x.c.name} ${M[i]}: ${fmt(v)}</title></circle>`).join('')}`).join('')}</svg>`;
+  $('#cmp-hc').innerHTML=`<thead><tr><th class="sticky l">Vị trí</th><th>Hiện có</th><th class="l">Kịch bản</th>${M.map(m=>`<th>${m}</th>`).join('')}</tr></thead><tbody>${JOBS.map(j=>ks.map((k,n)=>`<tr${n===0?' style="border-top:2px solid #e3e6eb"':''}>${n===0?`<td class="sticky l" rowspan="${ks.length}">${j.name}</td><td rowspan="${ks.length}">${j.people.length}</td>`:''}<td class="l"><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${SCN[k].color}"></i> ${SCN[k].name}</td>${hcOf(j,SCN[k]).map((h,m)=>`<td><input class="hcin ${SCN[k].hc[j.id]?'chg':''}" data-k="${k}" data-j="${j.id}" data-m="${m}" value="${h}"></td>`).join('')}</tr>`).join('')).join('')}</tbody>`;
+  $$('#cmp-hc .hcin').forEach(x=>x.onchange=()=>{const c=SCN[x.dataset.k],j=JOBS.find(y=>y.id==x.dataset.j);if(!c.hc[j.id])c.hc[j.id]=[...j.hc];c.hc[j.id][+x.dataset.m]=Math.max(0,parseInt(x.value)||0);renderAll();});
+}
+$$('#c-cost button').forEach(b=>b.onclick=()=>{$$('#c-cost button').forEach(x=>x.classList.toggle('on',x===b));CCOST=b.dataset.v==='cost';renderCmp();});
+
+// ---- Ngân sách theo kế hoạch ----
+let VIEW='exp',COST=false,UNIT=1;const OPEN=new Set([807,747]);
+function seg(id,cb){$$(id+' button').forEach(b=>b.onclick=()=>{$$(id+' button').forEach(x=>x.classList.toggle('on',x===b));cb(b.dataset.v);renderAll();});}
+seg('#s-view',v=>VIEW=v);seg('#s-cost',v=>COST=v==='cost');seg('#s-unit',v=>UNIT=+v);
+const F=n=>UNIT===1?fmt(n):(n/1e6).toLocaleString('vi-VN',{maximumFractionDigits:1});
+function val(job){const a=jobBudget(job,'plan',COST),b=jobBudget(job,'exp',COST);
+  const pick=(x,y)=>VIEW==='plan'?x:VIEW==='exp'?y:y.map((v,i)=>v-x[i]);
+  return {m:pick(a.months,b.months),detail:b.detail.map((d,i)=>({name:d.name,cut:d.cut,v:pick(a.detail[i].v,d.v)})),vac:{...b.vac,v:pick(a.vac.v,b.vac.v)},price:b.price,plan:a.months,exp:b.months};}
+function renderGrid(){
+  const tot=Array(12).fill(0);let body='';
+  for(const d of DEPTS){const js=JOBS.filter(j=>j.d===d.id);const sub=Array(12).fill(0);const vs=js.map(j=>val(j));vs.forEach(v=>v.m.forEach((x,i)=>sub[i]+=x));sub.forEach((x,i)=>tot[i]+=x);
+    body+=`<tr class="grp"><td class="sticky l">${d.name}</td><td></td><td></td>${sub.map(x=>`<td>${F(x)}</td>`).join('')}<td>${F(sub.reduce((a,b)=>a+b,0))}</td></tr>`;
+    js.forEach((j,k)=>{const v=vs[k];const open=OPEN.has(j.id);
+      body+=`<tr class="pos" data-j="${j.id}"><td class="sticky l">${open?'▾':'▸'} ${j.name}</td><td>${j.people.length}</td><td>${hcOf(j)[11]}</td>${v.m.map(x=>`<td>${F(x)}</td>`).join('')}<td><b>${F(v.m.reduce((a,b)=>a+b,0))}</b></td></tr>`;
+      if(open){v.detail.forEach(p=>body+=`<tr class="det"><td class="sticky l">👤 ${p.name}${p.cut.some(x=>x)?' <span class="tag t-none">dự kiến cắt giảm</span>':''}</td><td></td><td></td>${p.v.map((x,i)=>`<td>${p.cut[i]?'<span class="sub">–</span>':F(x)}</td>`).join('')}<td>${F(p.v.reduce((a,b)=>a+b,0))}</td></tr>`);
+        if(v.vac.n.some(x=>x))body+=`<tr class="det vac"><td class="sticky l">➕ Định biên mới × đơn giá ${fmt(v.price.val)} <span class="tag t-${v.price.src}">${v.price.label}</span></td><td></td><td></td>${v.vac.v.map((x,i)=>`<td>${v.vac.n[i]?F(x):''}</td>`).join('')}<td>${F(v.vac.v.reduce((a,b)=>a+b,0))}</td></tr>`;
+        if(!v.detail.length&&!v.vac.n.some(x=>x))body+=`<tr class="det"><td class="sticky l sub" colspan="16">Chưa có người, chưa có định biên</td></tr>`;}
+    });
+  }
+  body+=`<tr class="tot"><td class="sticky l">Tổng ${VIEW==='diff'?'chênh lệch':''}</td><td>${JOBS.reduce((s,j)=>s+j.people.length,0)}</td><td>${JOBS.reduce((s,j)=>s+hcOf(j)[11],0)}</td>${tot.map(x=>`<td>${F(x)}</td>`).join('')}<td>${F(tot.reduce((a,b)=>a+b,0))}</td></tr>`;
+  $('#grid').innerHTML=`<thead><tr><th class="sticky l">Vị trí / người</th><th>Hiện có</th><th>ĐB T12</th>${M.map(m=>`<th>${m}</th>`).join('')}<th>Cả năm</th></tr></thead><tbody>${body}</tbody>`;
+  $$('#grid tr.pos').forEach(tr=>tr.onclick=()=>{const id=+tr.dataset.j;OPEN.has(id)?OPEN.delete(id):OPEN.add(id);renderGrid();});
+}
+function totals(cfg=CFG(),cost=COST){let p=0,e=0;const pm=Array(12).fill(0),em=Array(12).fill(0);JOBS.forEach(j=>{const v={plan:jobBudget(j,'plan',cost,cfg).months,exp:jobBudget(j,'exp',cost,cfg).months};v.plan.forEach((x,i)=>{pm[i]+=x;p+=x;});v.exp.forEach((x,i)=>{em[i]+=x;e+=x;});});return {p,e,pm,em};}
+function renderKpis(){
+  const t=totals(),d=t.e-t.p,unf=JOBS.filter(j=>hcOf(j).some(h=>h>j.people.length)&&priceOf(j).src==='none').length;
+  const k=[[`Ngân sách năm – Hoạch định`,fmt(t.p),''],[`Ngân sách năm – Dự kiến`,fmt(t.e),`<span class="${d>0?'up':'down'}">${d>0?'+':''}${fmt(d)} (${(d/t.p*100).toFixed(1)}%)</span>`],['Bình quân tháng (dự kiến)',fmt(t.e/12),''],['Định biên T12 / hiện có',`${JOBS.reduce((s,j)=>s+hcOf(j)[11],0)} / ${JOBS.reduce((s,j)=>s+j.people.length,0)}`,''],['Vị trí mới chưa có đơn giá',unf,unf?'<span class="up">cần nhập ở mục 5</span>':'']];
+  const html=k.map(([l,v,dd])=>`<div class="kpi"><div class="l">${l}${COST?' · chi phí DN':''} <span style="color:${CFG().color}">· ${CFG().name}</span></div><div class="v">${v}</div><div class="d">${dd}</div></div>`).join('');
+  $('#kpis').innerHTML=html;$('#kpis2').innerHTML=html;
+}
+// ---- Tổng hợp ----
+const COMPS=[['q1','Q1 (LCB + thưởng đánh giá)','#0a6bc4'],['pc','Phụ cấp','#7aa7e8'],['q2','Q2 tháng','#12805c'],['q2q','Q2 quý','#3fa37a'],['q2y','Q2 cơ bản năm','#7cc4a0'],['q3','Q3','#b54708'],['ben','Phúc lợi','#9d174d'],['vac','Định biên mới','#6b3fc7']];
+function renderSum(){
+  const q={};DEPTS.forEach(d=>q[d.id]=[0,0,0,0]);
+  const cs={q1:0,pc:0,q2:0,q2q:0,q2y:0,q3:0,ben:0,vac:0};
+  JOBS.forEach(j=>{const b=jobBudget(j,'exp',false);b.months.forEach((x,i)=>q[j.d][Math.floor(i/3)]+=x);
+    for(let m=0;m<12;m++){j.people.forEach(p=>{const t=alloc(personMonth(p,m,j,'exp'),m,CFG(),j,p);['q1','pc','q2','q2q','q2y','q3'].forEach(k=>cs[k]+=t[k]||0);cs.ben+=Object.values(t.ben).reduce((a,b)=>a+b,0);});cs.vac+=b.vac.v[m];}});
+  $('#byq').innerHTML=`<thead><tr><th class="l">Bộ phận</th><th>Quý 1</th><th>Quý 2</th><th>Quý 3</th><th>Quý 4</th><th>Năm</th></tr></thead><tbody>${DEPTS.map(d=>`<tr><td class="l">${d.name}</td>${q[d.id].map(x=>`<td>${(x/1e6).toLocaleString('vi-VN',{maximumFractionDigits:1})}</td>`).join('')}<td><b>${(q[d.id].reduce((a,b)=>a+b,0)/1e6).toLocaleString('vi-VN',{maximumFractionDigits:1})}</b></td></tr>`).join('')}</tbody>`;
+  const tot=Object.values(cs).reduce((a,b)=>a+b,0);
+  $('#lg').innerHTML=COMPS.map(([k,l,c])=>`<span><i style="background:${c}"></i>${l}</span>`).join('');
+  $('#bycomp').innerHTML=`<div style="display:flex;height:26px;border-radius:6px;overflow:hidden">${COMPS.map(([k,l,c])=>`<div title="${l}: ${fmt(cs[k])}" style="width:${cs[k]/tot*100}%;background:${c}"></div>`).join('')}</div>
+    <table style="margin-top:10px">${COMPS.map(([k,l,c])=>`<tr><td class="l"><i class="bar" style="width:10px;background:${c}"></i> ${l}</td><td>${fmt(cs[k])}</td><td>${(cs[k]/tot*100).toFixed(1)}%</td></tr>`).join('')}<tr class="tot"><td class="l">Tổng</td><td>${fmt(tot)}</td><td>100%</td></tr></table>`;
+  const t=totals(),mx=Math.max(...t.pm,...t.em);
+  $('#bym').innerHTML=`<div class="legend"><span><i style="background:#c7d7ee"></i>Hoạch định</span><span><i style="background:#0a6bc4"></i>Dự kiến</span></div><div style="display:flex;gap:10px;align-items:flex-end;height:170px;margin-top:10px">${M.map((m,i)=>`<div style="flex:1;text-align:center"><div style="display:flex;gap:2px;align-items:flex-end;height:140px;justify-content:center"><div title="Hoạch định ${fmt(t.pm[i])}" style="width:40%;height:${t.pm[i]/mx*100}%;background:#c7d7ee;border-radius:3px 3px 0 0"></div><div title="Dự kiến ${fmt(t.em[i])}" style="width:40%;height:${t.em[i]/mx*100}%;background:#0a6bc4;border-radius:3px 3px 0 0"></div></div><div class="sub">${m}</div></div>`).join('')}</div>`;
+}
+// ---- Ngân sách theo tháng × khoản ----
+const KHOAN0=[['lcb','Lương cơ bản'],['tdg','Thưởng đánh giá tháng'],['pc','Phụ cấp'],['q2','Thưởng Q2 tháng'],['q2q','Thưởng Q2 quý'],['q2y','Thưởng Q2 cơ bản năm'],['q3','Thưởng Q3 (thi đua)']];
+const KH=(cfg=CFG())=>[...KHOAN0,...cfg.ben.filter(b=>b.on).map(b=>['b_'+b.id,'Phúc lợi – '+b.name]),['ins','Bảo hiểm & KPCĐ (DN đóng)'],['vac','Định biên mới (đơn giá + phúc lợi)']];
+let BK={mode:'exp',cost:false,per:'m',dept:''};
+function breakdown(cfg,mode,cost,dept){
+  const R=Object.fromEntries([...KH(cfg).map(([k])=>k),'nld','pit'].map(k=>[k,Array(12).fill(0)]));
+  JOBS.filter(j=>!dept||j.d===dept).forEach(j=>{const hc=hcOf(j,cfg),b=jobBudget(j,mode,cost,cfg);
+    for(let m=0;m<12;m++){j.people.forEach((p,i)=>{if(i>=hc[m])return;const t=alloc(personMonth(p,m,j,mode,cfg),m,cfg,j,p);
+      R.lcb[m]+=t.lcb;R.tdg[m]+=t.tdg;R.pc[m]+=t.pc;R.q2[m]+=t.q2;R.q2q[m]+=t.q2q||0;R.q2y[m]+=t.q2y;R.q3[m]+=t.q3;for(const [id,x] of Object.entries(t.ben))if(R['b_'+id])R['b_'+id][m]+=x;if(cost)R.ins[m]+=insAmt(t,cfg,'dn');else{const n=netOf(t,cfg);R.nld[m]+=n.bh;R.pit[m]+=n.tx;}});
+      R.vac[m]+=b.vac.v[m];}});
+  return R;
+}
+function renderBk(){
+  const cfg=CFG();$('#bk-sc').textContent='· '+cfg.name;
+  let R;if(BK.mode==='diff'){const a=breakdown(cfg,'plan',BK.cost,BK.dept),b=breakdown(cfg,'exp',BK.cost,BK.dept);R=Object.fromEntries([...KH(cfg).map(([k])=>k),'nld','pit'].map(k=>[k,b[k].map((x,i)=>x-a[k][i])]));}else R=breakdown(cfg,BK.mode,BK.cost,BK.dept);
+  const cols=BK.per==='m'?M:['Quý 1','Quý 2','Quý 3','Quý 4'],agg=a=>BK.per==='m'?a:[0,1,2,3].map(q=>a[q*3]+a[q*3+1]+a[q*3+2]);
+  const rows=KH(cfg).filter(([k])=>k!=='ins'||BK.cost).filter(([k])=>R[k].some(x=>Math.abs(x)>0.5)||['lcb','tdg','pc','q2','q2y'].includes(k));
+  const tot=Array(cols.length).fill(0);
+  const body=rows.map(([k,l])=>{const v=agg(R[k]);v.forEach((x,i)=>tot[i]+=x);const y=v.reduce((a,b)=>a+b,0);return `<tr><td class="l">${l}</td>${v.map(x=>`<td>${fmt(x)}</td>`).join('')}<td><b>${fmt(y)}</b></td></tr>`;}).join('');
+  const ty=tot.reduce((a,b)=>a+b,0);
+  $('#bk').innerHTML=`<thead><tr><th class="l">Khoản</th>${cols.map(c=>`<th>${c}</th>`).join('')}<th>Cả năm</th></tr></thead><tbody>${body}<tr class="tot"><td class="l">Tổng ${BK.mode==='diff'?'chênh lệch':''}</td>${tot.map(x=>`<td>${fmt(x)}</td>`).join('')}<td>${fmt(ty)}</td></tr>${BK.cost?'':(()=>{const nl=agg(R.nld),tx=agg(R.pit),vac=agg(R.vac),net=tot.map((x,i)=>x-vac[i]-nl[i]-tx[i]);const r=(l,a,c='')=>`<tr class="${c}"><td class="l">${l}</td>${a.map(x=>`<td>${fmt(x)}</td>`).join('')}<td>${fmt(a.reduce((p,q)=>p+q,0))}</td></tr>`;return `<tr><td class="l sub" colspan="${cols.length+2}" style="padding-top:12px">Thực nhận của người đang giữ vị trí (không gồm định biên mới)</td></tr>`+r('(–) Bảo hiểm NLĐ đóng',nl.map(x=>-x))+r('(–) Thuế TNCN (ước tính)',tx.map(x=>-x))+r('= Thực nhận',net,'tot');})()}</tbody>`;
+  BK.last={cols,rows:rows.map(([k,l])=>[l,...agg(R[k]).map(Math.round),Math.round(agg(R[k]).reduce((a,b)=>a+b,0))]),tot:['Tổng',...tot.map(Math.round),Math.round(ty)]};
+}
+$('#bk-dept').innerHTML+=DEPTS.map(d=>`<option value="${d.id}">${d.name}</option>`).join('');
+$('#bk-dept').onchange=e=>{BK.dept=e.target.value;renderBk();};
+[['#bk-mode','mode'],['#bk-cost','cost'],['#bk-per','per']].forEach(([id,key])=>$$(id+' button').forEach(b=>b.onclick=()=>{$$(id+' button').forEach(x=>x.classList.toggle('on',x===b));BK[key]=key==='cost'?b.dataset.v==='cost':b.dataset.v;renderBk();}));
+$('#bk-csv').onclick=()=>{const L=BK.last,rows=[['Khoản',...L.cols,'Cả năm'],...L.rows,L.tot];const csv='\ufeff'+rows.map(r=>r.map(c=>`"${c}"`).join(',')).join('\r\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download=`ngan-sach-theo-khoan_${CFG().name}.csv`;a.click();};
+function renderElig(){const el=$('#inc-elig');if(!el)return;let a=0,l=[],n=[];JOBS.forEach(j=>j.people.forEach(p=>{const f=incFrom(p,vars(j));if(f===vars(j).incm)a++;else if(f<12)l.push(p.name.split(' ').slice(-2).join(' ')+' ('+M[f]+')');else n.push(p.name.split(' ').slice(-2).join(' '));}));
+  el.innerHTML=`Người đang giữ vị trí: <b>${a}</b> người tăng đúng kỳ · <b>${l.length}</b> tăng muộn${l.length?': '+l.join(', '):''} · <b>${n.length}</b> không tăng năm nay${n.length?': '+n.join(', '):''}. Định biên mới không áp tăng lương (đơn giá đã là mức tuyển mới).`;}
+function renderAll(){setTimeout(markSave,0);if(document.body.classList.contains('mgr'))mgrSum();renderElig();renderGrid();renderKpis();renderSum();renderBk();renderCmp();}
+$$('#tabs button').forEach(b=>b.onclick=()=>{$$('#tabs button').forEach(x=>x.classList.toggle('on',x===b));$$('[data-p]').forEach(p=>p.classList.toggle('hidden',p.dataset.p!==b.dataset.t));});
+loadInputs();renderChips();renderOvr();renderAlw();renderPrice();renderBen();renderPay();renderAll();SAVED_SNAP=core();markSave();
+</script>
+</body>
+</html>

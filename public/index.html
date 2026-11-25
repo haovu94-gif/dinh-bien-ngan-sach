@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Định biên & Ngân sách – KOI local</title>
+<style>
+:root{--bg:#f5f6f8;--card:#fff;--line:#e3e6eb;--text:#1c2430;--muted:#687385;--brand:#0a6bc4;--brand-2:#e7f0fb;--ok:#12805c;--ok-2:#e6f5ee;--warn:#b54708;--warn-2:#fff3e2;--bad:#b42318;--bad-2:#fdeceb;--chg:#fff6d6}
+*{box-sizing:border-box}
+body{margin:0;font:13.5px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text)}
+header{display:flex;align-items:center;gap:14px;padding:10px 18px;background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20}
+header h1{font-size:15px;margin:0}
+header .me{margin-left:auto;color:var(--muted);font-size:12.5px}
+main{padding:14px 18px;max-width:1700px;margin:0 auto}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:12px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:end}
+.between{justify-content:space-between;align-items:center}
+label{display:flex;flex-direction:column;gap:3px;font-size:11.5px;color:var(--muted)}
+select,input,textarea{font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:7px;background:#fff;color:var(--text)}
+textarea{min-height:64px;resize:vertical}
+.btn{font:inherit;padding:6px 12px;border-radius:7px;border:1px solid var(--line);background:#fff;cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:#c7ccd4}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff;font-weight:600}
+.btn.ok{background:var(--ok);border-color:var(--ok);color:#fff;font-weight:600}
+.btn.danger{color:var(--bad)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.badge{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11.5px;font-weight:600}
+.s-draft{background:#eef1f5;color:#475467}.s-confirm{background:var(--warn-2);color:var(--warn)}.s-validate{background:var(--ok-2);color:var(--ok)}.s-refuse,.s-cancel{background:var(--bad-2);color:var(--bad)}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.tabs button{border:0;background:none;padding:8px 12px;cursor:pointer;font:inherit;color:var(--muted);border-bottom:2px solid transparent}
+.tabs button.on{color:var(--brand);border-bottom-color:var(--brand);font-weight:600}
+.msg{padding:9px 12px;border-radius:8px;margin-bottom:10px}
+.msg.err{background:var(--bad-2);color:var(--bad)}.msg.ok{background:var(--ok-2);color:var(--ok)}.msg.info{background:var(--brand-2);color:var(--brand)}
+.muted{color:var(--muted)} .sub{font-size:11px;color:var(--muted)} .hidden{display:none!important}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.kpi{border:1px solid var(--line);border-radius:9px;padding:8px 11px;background:#fff}
+.kpi .v{font-size:19px;font-weight:700;font-variant-numeric:tabular-nums}.kpi .l{font-size:11.5px;color:var(--muted)}
+.wrap{overflow:auto;max-height:68vh;border:1px solid var(--line);border-radius:9px;background:#fff}
+table{border-collapse:separate;border-spacing:0;width:100%;font-variant-numeric:tabular-nums}
+th,td{padding:4px 6px;border-bottom:1px solid var(--line);white-space:nowrap;text-align:center}
+th{background:#f8f9fb;position:sticky;top:0;z-index:3;font-size:11.5px;color:var(--muted);font-weight:600}
+th.cur,td.cur{background:#f2f7fd}
+td.l,th.l{text-align:left}
+.sticky{position:sticky;left:0;background:#fff;z-index:2;min-width:300px;max-width:360px;overflow:hidden;text-overflow:ellipsis}
+th.sticky{z-index:4;background:#f8f9fb}
+tr.grp td{background:#f3f5f8;font-weight:600;font-size:12px}
+tr.grp td.sticky{background:#f3f5f8}
+tr.total td{background:#eef3fa;font-weight:700;position:sticky;bottom:0;z-index:2}
+tr.total td.sticky{background:#eef3fa;z-index:3}
+td input.c{width:44px;text-align:center;padding:3px 2px;border-radius:5px}
+td input.c.chg{background:var(--chg);border-color:#e8c650}
+td input.c.under{border-color:var(--bad);color:var(--bad);font-weight:700}
+td .ro{display:inline-block;min-width:30px}
+td .ro.zero{color:#c0c6cf}
+.dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--warn);margin-left:2px;vertical-align:top}
+.link{color:var(--brand);cursor:pointer;text-decoration:underline dotted}
+.tag{display:inline-block;font-size:10.5px;padding:0 6px;border-radius:4px;margin-left:4px;vertical-align:middle}
+.tag.new{background:#efe7fd;color:#6b3fc7}.tag.unp{background:var(--warn-2);color:var(--warn)}
+.bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.modal-bg{position:fixed;inset:0;background:rgba(16,24,40,.35);display:flex;align-items:center;justify-content:center;z-index:50}
+.modal{background:#fff;border-radius:12px;padding:16px 18px;width:min(640px,94vw);max-height:88vh;overflow:auto;box-shadow:0 12px 40px rgba(0,0,0,.18)}
+.modal h3{margin:0 0 10px;font-size:15px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.list{max-height:240px;overflow:auto;border:1px solid var(--line);border-radius:8px;padding:6px 8px}
+.list label{flex-direction:row;align-items:center;gap:6px;color:var(--text);font-size:13px;padding:2px 0}
+.hist td,.hist th{text-align:left}
+.empty{padding:28px;text-align:center;color:var(--muted)}
+nav.top{display:flex;gap:4px;margin-left:12px}
+nav.top button{border:0;background:none;padding:6px 12px;border-radius:7px;cursor:pointer;font:inherit;color:var(--muted)}
+nav.top button.on{background:var(--brand-2);color:var(--brand);font-weight:600}
+.steps{display:flex;align-items:center;gap:6px;margin-top:6px;font-size:12px}
+.steps span{padding:2px 10px;border-radius:999px;background:#eef1f5;color:#98a2b3}
+.steps span.done{background:var(--ok-2);color:var(--ok)}.steps span.cur{background:var(--brand);color:#fff;font-weight:600}
+.steps span.bad{background:var(--bad-2);color:var(--bad);font-weight:600}
+.pend{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:var(--warn-2);border:1px solid #f3d19c;color:var(--warn);border-radius:10px;padding:8px 12px;margin-bottom:12px}
+.pend .btn{padding:3px 10px;font-size:12.5px}
+th.q{background:#eef2f7;color:#344054;border-bottom:1px solid var(--line)}
+th.qs{border-left:2px solid #d0d5dd} td.qs{border-left:2px solid #eef0f3}
+.checks li{margin:4px 0}.checks .ok{color:var(--ok)}.checks .bad{color:var(--bad)}.checks .warn{color:var(--warn)}
+.chart{width:100%;height:260px}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--muted)}.legend i{display:inline-block;width:14px;height:3px;vertical-align:middle;margin-right:5px}
+.note-btn{border:0;background:none;cursor:pointer;color:#98a2b3;font-size:13px;padding:0 4px}.note-btn.has{color:var(--brand)}
+.note-txt{font-size:11.5px;color:#5b6b85;font-style:italic;white-space:normal;max-width:330px;margin-top:2px}
+.cmt{padding:8px 0;border-bottom:1px solid var(--line)}.cmt .h{font-size:11.5px;color:var(--muted)}
+.note-cell:hover{background:#f5f9ff}
+</style>
+</head>
+<body>
+<header>
+  <h1>Định biên & Ngân sách</h1>
+  <span class="sub">bản local độc lập · không kết nối KOI</span>
+  <nav class="top" id="topnav"><button data-v="plan" class="on">Tạo và xem Kế hoạch định biên</button><button data-v="dash">Dashboard hoạch định nhân sự</button></nav>
+  <div class="me" id="me">Đang tải…</div>
+  <button class="btn" id="d-backup" title="Tải toàn bộ dữ liệu về máy">Sao lưu</button>
+  <label class="btn" style="flex-direction:row;color:var(--text);font-size:13.5px" title="Nạp lại từ file sao lưu">Khôi phục<input type="file" id="d-restore" accept=".json" hidden></label>
+</header>
+<main>
+  <div id="msg"></div>
+
+  <!-- ỨNG DỤNG -->
+  <section id="app" class="hidden">
+    <div class="card row">
+      <label>Công ty<select id="f-company" style="min-width:240px"></select></label>
+      <label style="flex:1;min-width:320px">Đơn vị (gồm các đơn vị con)<select id="f-dept"></select></label>
+      <label>Kịch bản<select id="f-scenario"></select></label>
+      <label>Năm<select id="f-year"></select></label>
+      <button class="btn primary" id="f-open">Mở kế hoạch</button>
+    </div>
+
+    <div id="pending"></div>
+    <div id="dash" class="hidden"></div>
+    <div id="planbar" class="card hidden"></div>
+    <div id="kpis" class="kpis hidden" style="margin-bottom:12px"></div>
+
+    <div id="work" class="hidden">
+      <div class="tabs" id="tabs">
+        <button data-t="matrix" class="on">Ma trận định biên</button>
+        <button data-t="chk">Biểu đồ & kiểm tra</button>
+        <button data-t="rep">Báo cáo Quý / Năm</button>
+        <button data-t="adj">Điều chỉnh <span id="adj-count"></span></button>
+        <button data-t="talk">Trao đổi <span id="talk-count"></span></button>
+        <button data-t="hist">Lịch sử & phiên bản</button>
+        <button data-t="budget">Ngân sách</button>
+      </div>
+
+      <div data-p="matrix">
+        <div class="card bar" id="tools"></div>
+        <div class="wrap"><table id="grid"></table></div>
+        <div class="sub" style="margin-top:6px">Ô vàng = đã sửa, chưa lưu · Ô đỏ = thấp hơn số người đang giữ (bị chặn với vị trí có Kiểm soát vị trí – VLD-HC-05) · <span class="dot"></span> = đang có điều chỉnh chờ duyệt · Tick ô đầu dòng để chọn vị trí cho Điền nhanh.</div>
+      </div>
+      <div data-p="chk" class="hidden"><div class="card" id="chk"></div></div>
+      <div data-p="rep" class="hidden"><div class="card" id="rep"></div></div>
+      <div data-p="adj" class="hidden"><div class="card" id="adj"></div></div>
+      <div data-p="talk" class="hidden"><div class="card" id="talk"></div></div>
+      <div data-p="hist" class="hidden"><div class="card" id="hist"></div></div>
+      <div data-p="budget" class="hidden"><div class="card empty">Phần <b>Ngân sách</b> đang thiết kế. <a href="/ngan-sach-mau.html" target="_blank">Mở bản mẫu để hình dung ↗</a></div></div>
+    </div>
+  </section>
+</main>
+<div id="modal"></div>
+
+<script>
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const ST={draft:'Nháp',confirm:'Chờ phê duyệt',validate:'Đã phê duyệt',refuse:'Từ chối',cancel:'Đã huỷ'};
+const ACT={resize:'Tăng/giảm',add:'Thêm',remove:'Xoá',change_period:'Đổi kỳ',transfer:'Điều chuyển đơn vị'};
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const nm=v=>Array.isArray(v)?v[1]:(v||'');
+async function api(p,b){const r=await fetch(p,b?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)}:{});const d=await r.json();if(d&&d.error)throw new Error(d.error);return d;}
+function msg(t,k='err'){$('#msg').innerHTML=t?`<div class="msg ${k}">${t}</div>`:'';if(t)window.scrollTo({top:0,behavior:'smooth'});}
+async function busy(btn,fn){const t=btn.textContent;btn.disabled=true;btn.textContent='Đang xử lý…';try{return await fn();}finally{btn.disabled=false;btn.textContent=t;}}
+function modal(html,onMount){$('#modal').innerHTML=`<div class="modal-bg"><div class="modal">${html}</div></div>`;const bg=$('#modal .modal-bg');bg.onclick=e=>{if(e.target===bg)closeModal();};onMount&&onMount($('#modal .modal'));}
+function closeModal(){$('#modal').innerHTML='';}
+
+// ---------- Trạng thái ----------
+const S={data:null,edit:{},checked:new Set(),proposal:false};
+// edit[job_id][month] = số mới (chưa lưu)
+
+// ---------- Khởi động ----------
+(async function init(){
+  try{
+    const me=await api('/api/me'); $('#me').textContent=`${me.name} · dữ liệu gốc chụp từ KOI ngày ${me.snapshot||'?'}`;
+    $('#app').classList.remove('hidden');
+    const [comps,scs]=await Promise.all([api('/api/companies'),api('/api/scenarios')]);
+    $('#f-company').innerHTML=comps.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');
+    $('#f-scenario').innerHTML=scs.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join('');
+    const y=new Date().getFullYear();
+    $('#f-year').innerHTML=[y-1,y,y+1,y+2].map(v=>`<option ${v===y+1?'selected':''}>${v}</option>`).join('');
+    const last=JSON.parse(localStorage.getItem('db-last')||'{}');
+    if(last.company)$('#f-company').value=last.company;
+    await loadDepts(last.dept);
+    if(last.scenario)$('#f-scenario').value=last.scenario; if(last.year)$('#f-year').value=last.year;
+    loadPending();
+  }catch(e){
+    $('#me').textContent='Lỗi';msg('Không tải được dữ liệu: '+esc(e.message));
+  }
+})();
+$('#f-company').onchange=()=>loadDepts();
+async function loadDepts(sel){
+  const ds=await api('/api/departments?company_id='+$('#f-company').value);
+  $('#f-dept').innerHTML=ds.map(d=>`<option value="${d.id}">${esc(d.complete_name)}</option>`).join('');
+  if(sel&&ds.some(d=>d.id==sel))$('#f-dept').value=sel;
+}
+$('#f-open').onclick=e=>busy(e.target,()=>openPlan());
+$$('#tabs button').forEach(b=>b.onclick=()=>{
+  $$('#tabs button').forEach(x=>x.classList.toggle('on',x===b));
+  $$('[data-p]').forEach(p=>p.classList.toggle('hidden',p.dataset.p!==b.dataset.t));
+  if(b.dataset.t==='hist')loadHistory();
+  if(b.dataset.t==='chk'&&S.data)renderChecks();if(b.dataset.t==='rep'&&S.data)renderReport();
+});
+window.addEventListener('beforeunload',e=>{if(dirtyCount()){e.preventDefault();e.returnValue='';}});
+
+async function openPlan(planId){
+  if(!$('#dash').classList.contains('hidden'))showView('plan');
+  if(dirtyCount()&&!confirm('Có ô đã sửa chưa lưu. Bỏ các thay đổi đó?'))return;
+  msg('');
+  const q={dept_id:$('#f-dept').value,scenario_id:$('#f-scenario').value,year:$('#f-year').value};
+  localStorage.setItem('db-last',JSON.stringify({company:$('#f-company').value,dept:q.dept_id,scenario:q.scenario_id,year:q.year}));
+  if(planId)q.plan_id=planId;
+  try{
+    S.data=fix(await api('/api/grid?'+new URLSearchParams(q))); S.edit={}; S.checked=new Set();
+    S.proposal=!S.data.plan; loadPending();
+    if(S.proposal) S.data.rows.forEach(r=>{S.edit[r.job_id]={};for(let m=0;m<12;m++)S.edit[r.job_id][m]=r.employees.length;});
+    render();
+  }catch(e){msg(esc(e.message));}
+}
+
+let CUR=null;fetch('/dinh-bien-hien-tai.json').then(r=>r.json()).then(j=>{CUR=j;if(S.data){fix(S.data);render();}}).catch(()=>{});
+function fix(d){if(CUR){d.current_hc_month=d.current_hc_month||CUR.month;d.rows.forEach(r=>{if(r.current_hc==null&&CUR.hc[r.job_id]!=null)r.current_hc=CUR.hc[r.job_id];});}d.notes=d.notes||{};d.comments=d.comments||[];d.adjustments=d.adjustments||[];if(d.ref_month==null)d.ref_month=d.current_month??0;return d;}
+// ---------- Quy tắc theo trạng thái ----------
+const status=()=>S.data.plan?S.data.plan.status:null;
+const editable=()=>S.proposal||['draft','validate'].includes(status());
+function val(r,m){const e=S.edit[r.job_id];if(e&&e[m]!=null)return e[m];const c=r.cells[m];return c?c.hc:null;}
+function orig(r,m){const c=r.cells[m];return c?c.hc:null;}
+function dirtyCount(){let n=0;if(!S.data)return 0;for(const r of S.data.rows){const e=S.edit[r.job_id];if(!e)continue;for(const m in e){if((e[m]??0)!==(orig(r,+m)??0))n++;}}return S.proposal?0:n;}
+
+// ---------- Vẽ ----------
+function render(){
+  $('#planbar').classList.remove('hidden');$('#kpis').classList.remove('hidden');$('#work').classList.remove('hidden');
+  renderBar();renderTools();renderGrid();renderKpis();renderAdj();renderChecks();renderReport();renderTalk();
+}
+function renderBar(){
+  const d=S.data,p=d.plan;
+  if(!p){
+    $('#planbar').innerHTML=`<div class="row between"><div><b>${esc(d.root.name)}</b> · ${$('#f-scenario').selectedOptions[0].text} · ${$('#f-year').value}
+      <div class="sub">Chưa có kế hoạch định biên cho đơn vị / kịch bản / năm này. Bên dưới là <b>bản đề xuất</b> = số người đang giữ từng vị trí. Chỉnh rồi bấm “Tạo kế hoạch Nháp”.</div></div>
+      <button class="btn primary" id="b-create">Tạo kế hoạch Nháp</button></div>`;
+    $('#b-create').onclick=e=>busy(e.target,createPlan);return;
+  }
+  const others=d.plans.length>1?`<select id="b-ver">${d.plans.map(x=>`<option value="${x.id}" ${x.id===p.id?'selected':''}>${esc(x.code)} · v${x.version} · ${ST[x.status]}</option>`).join('')}</select>`:'';
+  const btn=[];
+  if(p.status==='draft')btn.push(`<button class="btn ok" data-a="action_submit">Gửi phê duyệt</button>`,`<button class="btn danger" data-a="action_cancel">Huỷ</button>`);
+  if(p.status==='confirm')btn.push(`<button class="btn ok" data-a="action_approve">Duyệt</button>`,`<button class="btn danger" data-a="action_reject">Từ chối</button>`,`<button class="btn" data-a="action_cancel">Huỷ (rút lại)</button>`);
+  if(p.status==='validate')btn.push(`<button class="btn" data-a="action_create_new_version">Tạo phiên bản mới</button>`);
+  if(['refuse','cancel'].includes(p.status))btn.push(`<button class="btn" data-a="action_reset_draft">Đặt lại về Nháp</button>`);
+  $('#planbar').innerHTML=`<div class="row between"><div>
+      <b>${esc(p.name)}</b> <span class="badge s-${p.status}">${ST[p.status]}</span>
+      <div class="sub">${esc(p.code)} · phiên bản ${p.version} · ${esc(nm(p.scenario_id))} · Kỳ 01/${p.year} → 12/${p.year} · người lập: ${esc(nm(p.owner_id))}${p.approval_date?` · duyệt ${p.approval_date.slice(0,10)}`:''}</div>${stepper(p.status)}</div>
+    <div class="bar">${others}${btn.join('')}</div></div>`;
+  if($('#b-ver'))$('#b-ver').onchange=e=>openPlan(+e.target.value);
+  $$('#planbar [data-a]').forEach(b=>b.onclick=()=>planAction(b,b.dataset.a));
+}
+function stepper(st){
+  const order=['draft','confirm','validate'],i=order.indexOf(st);
+  if(i<0)return `<div class="steps"><span class="done">Nháp</span>›<span class="done">Chờ phê duyệt</span>›<span class="bad">${ST[st]}</span></div>`;
+  return `<div class="steps">${order.map((x,k)=>`<span class="${k<i?'done':k===i?'cur':''}">${ST[x]}</span>`).join('›')}</div>`;
+}
+function renderTools(){
+  const st=status(),t=[];
+  if(S.proposal) t.push(`<button class="btn" id="t-newpos">+ Vị trí mới</button>`,btnQF(),`<span class="muted">Bản đề xuất – chưa lưu. Bấm “Tạo kế hoạch Nháp” ở trên để lưu.</span>`);
+  else if(st==='draft') t.push(`<button class="btn primary" id="t-save">Lưu bảng</button>`,btnQF(),`<button class="btn" id="t-newpos">+ Vị trí mới</button>`,`<button class="btn" id="t-transfer">Điều chuyển</button>`,`<button class="btn" id="t-undo">Bỏ thay đổi</button>`);
+  else if(st==='validate') t.push(`<button class="btn primary" id="t-adj">Tạo điều chỉnh</button>`,btnQF(),`<button class="btn" id="t-newpos">+ Vị trí mới</button>`,`<button class="btn" id="t-transfer">Điều chuyển</button>`,`<button class="btn" id="t-undo">Bỏ thay đổi</button>`,`<span class="sub">Kế hoạch đã duyệt: sửa ô rồi bấm “Tạo điều chỉnh” để gửi duyệt.</span>`);
+  else if(st==='confirm') t.push(`<button class="btn" disabled title="Kế hoạch đang chờ duyệt – duyệt hoặc huỷ trước">+ Vị trí mới</button>`,`<span class="muted">Kế hoạch đang Chờ phê duyệt – bị khoá. Duyệt / Từ chối / Huỷ ở thẻ phía trên.</span>`);
+  else t.push(`<button class="btn primary" id="t-reset">Đặt lại về Nháp để sửa</button>`,`<button class="btn" disabled title="Đặt lại về Nháp trước">+ Vị trí mới</button>`,`<span class="muted">Kế hoạch ${ST[st]} – chỉ xem.</span>`);
+  t.push(`<span style="flex:1"></span><button class="btn" id="t-csv">Xuất Excel (CSV)</button><span class="sub" id="dirty"></span>`);
+  $('#tools').innerHTML=t.join('');
+  const on=(id,f)=>{const el=$(id);if(el)el.onclick=f;};
+  on('#t-save',e=>busy(e.target,saveGrid)); on('#t-qf',quickFill); on('#t-newpos',newPosition); on('#t-transfer',transfer);
+  on('#t-reset',e=>planAction(e.target,'action_reset_draft'));
+  on('#t-undo',()=>{S.edit={};renderGrid();renderKpis();}); on('#t-adj',adjustPreview); on('#t-csv',exportCsv);
+  updDirty();
+}
+const btnQF=()=>`<button class="btn" id="t-qf">Điền nhanh</button>`;
+function updDirty(){const n=dirtyCount();const el=$('#dirty');if(el)el.textContent=n?`${n} ô chưa lưu`:'';}
+
+function renderGrid(){
+  const d=S.data,cm=d.current_month,ed=editable();
+  const rm=d.ref_month;
+  const head=`<tr><th class="sticky l" rowspan="2">${ed?'<input type="checkbox" id="chk-all"> ':''}Vị trí</th><th rowspan="2" class="l" style="min-width:200px">Ghi chú / giải trình</th><th rowspan="2" title="Định biên đã duyệt đang hiệu lực trên KOI tháng ${esc(d.current_hc_month)}">ĐB hiện tại<div class="sub">${esc(d.current_hc_month)}</div></th><th rowspan="2" title="Số nhân viên đang giữ vị trí">Hiện có</th>${[1,2,3,4].map(q=>`<th class="q qs" colspan="3">Quý ${q}</th>`).join('')}<th rowspan="2" title="Tháng tham chiếu">ĐB T${rm+1}</th><th rowspan="2">Cần tuyển</th><th rowspan="2">Vượt</th></tr>
+  <tr>${d.periods.map((p,i)=>`<th style="top:27px" class="${i===rm?'cur':''} ${i%3===0?'qs':''}">T${i+1}</th>`).join('')}</tr>`;
+  const byDept={};d.rows.forEach(r=>(byDept[r.dept_id]=byDept[r.dept_id]||[]).push(r));
+  const order=[...d.depts.map(x=>x.id),...Object.keys(byDept).map(Number).filter(id=>!d.depts.some(x=>x.id===id))];
+  let body='';const tot=Array(12).fill(0);let totEmp=0,totReq=0;
+  for(const did of order){
+    const rows=byDept[did];if(!rows)continue;
+    const dep=d.depts.find(x=>x.id===did);const sub=Array(12).fill(0);
+    rows.forEach(r=>{for(let m=0;m<12;m++)sub[m]+=val(r,m)||0;});
+    const gEmp=rows.reduce((s,r)=>s+r.employees.length,0);
+    body+=`<tr class="grp"><td class="sticky l">${esc(dep?dep.full.split(' / ').slice(1).join(' / ')||dep.name:'Khác')}</td><td></td><td>${rows.reduce((s,r)=>s+(r.current_hc||0),0)}</td><td>${gEmp}</td>${sub.map((v,i)=>`<td class="${i===rm?'cur':''} ${i%3===0?'qs':''}">${v}</td>`).join('')}<td>${sub[rm]}</td><td>${rows.reduce((s,r)=>s+Math.max(0,(val(r,rm)||0)-r.employees.length),0)||''}</td><td>${rows.reduce((s,r)=>s+Math.max(0,r.employees.length-(val(r,rm)||0)),0)||''}</td></tr>`;
+    for(const r of rows){
+      totEmp+=r.employees.length;totReq+=r.requests.reduce((s,q)=>s+q.qty,0);
+      const cells=[];for(let m=0;m<12;m++){
+        const v=val(r,m),o=orig(r,m),c=r.cells[m];tot[m]+=v||0;
+        const chg=!S.proposal&&(v??0)!==(o??0);const under=(v??0)<r.employees.length&&(v!=null||c);
+        const dot=c&&c.pending?'<span class="dot" title="Có điều chỉnh chờ duyệt"></span>':'';
+        cells.push(`<td class="${m===rm?'cur':''} ${m%3===0?'qs':''}">${ed?`<input class="c ${chg?'chg':''} ${under&&r.controlled?'under':''}" data-j="${r.job_id}" data-m="${m}" value="${v??''}" inputmode="numeric">`:`<span class="ro ${!v?'zero':''}">${v??'–'}</span>`}${dot}</td>`);
+      }
+      const reqN=r.requests.reduce((s,q)=>s+q.qty,0);
+      body+=`<tr><td class="sticky l" title="${esc(r.name)}">${ed?`<input type="checkbox" class="chk" data-j="${r.job_id}" ${S.checked.has(r.job_id)?'checked':''}> `:''}${esc(r.name)}${r.is_new?`<span class="tag new">Mới</span>${editable()?`<button class="note-btn" data-move="${r.job_id}" title="Đổi phòng ban">⇄ đổi phòng ban</button>`:''}`:''}${r.unplanned?'<span class="tag unp" title="Có người nhưng chưa có định biên hiệu lực">Ngoài ĐB</span>':''}</td>
+        ${noteCell(r.job_id)}<td title="${r.current_hc==null?'Chưa có định biên duyệt trên KOI':''}">${r.current_hc==null?'<span class="sub">–</span>':`<b>${r.current_hc}</b>`}</td><td>${r.employees.length}</td>
+        ${cells.join('')}<td><b>${val(r,rm)??0}</b></td><td>${Math.max(0,(val(r,rm)||0)-r.employees.length)||''}</td><td style="color:var(--bad)">${Math.max(0,r.employees.length-(val(r,rm)||0))||''}</td></tr>`;
+    }
+  }
+  const tv=d.rows.reduce((s,r)=>s+Math.max(0,(val(r,rm)||0)-r.employees.length),0),to=d.rows.reduce((s,r)=>s+Math.max(0,r.employees.length-(val(r,rm)||0)),0);
+  body+=`<tr class="total"><td class="sticky l">Tổng định biên</td><td></td><td>${d.rows.reduce((s,r)=>s+(r.current_hc||0),0)}</td><td>${totEmp}</td>${tot.map((v,i)=>`<td class="${i===rm?'cur':''} ${i%3===0?'qs':''}">${v}</td>`).join('')}<td>${tot[rm]}</td><td>${tv}</td><td>${to}</td></tr>`;
+  $('#grid').innerHTML=`<thead>${head}</thead><tbody>${body}</tbody>`;
+  $$('#grid input.c').forEach(inp=>{
+    inp.onchange=()=>{const j=+inp.dataset.j,m=+inp.dataset.m;const v=inp.value.trim()===''?null:Math.max(0,parseInt(inp.value,10)||0);(S.edit[j]=S.edit[j]||{})[m]=v;renderGrid();renderKpis();updDirty();};
+    inp.onkeydown=e=>{if(['Enter','ArrowDown','ArrowUp','ArrowLeft','ArrowRight'].includes(e.key)){const all=$$('#grid input.c');const i=all.indexOf(inp);const cols=12;let n=i;
+      if(e.key==='ArrowRight')n=i+1;else if(e.key==='ArrowLeft')n=i-1;else if(e.key==='ArrowUp')n=i-cols;else n=i+cols;
+      if(all[n]){e.preventDefault();inp.dispatchEvent(new Event('change'));setTimeout(()=>{const a2=$$('#grid input.c');a2[n]&&a2[n].select();},0);}}};
+    inp.onfocus=()=>inp.select();
+  });
+  $$('#grid [data-move]').forEach(b=>b.onclick=()=>moveModal(+b.dataset.move));
+  $$('#grid [data-note]').forEach(b=>b.onclick=()=>noteModal(+b.dataset.note));
+  $$('#grid .chk').forEach(c=>c.onchange=()=>{c.checked?S.checked.add(+c.dataset.j):S.checked.delete(+c.dataset.j);});
+  if($('#chk-all'))$('#chk-all').onchange=e=>{S.checked=new Set(e.target.checked?S.data.rows.map(r=>r.job_id):[]);renderGrid();};
+  $$('#grid [data-emp]').forEach(x=>x.onclick=()=>{const r=S.data.rows.find(r=>r.job_id==x.dataset.emp);modal(`<h3>${esc(r.name)} – ${r.employees.length} người</h3><div class="list">${r.employees.map(e=>`<div>${esc(e.name)} <span class="sub">${esc(e.code||'')}</span></div>`).join('')}</div><div style="margin-top:12px;text-align:right"><button class="btn" onclick="closeModal()">Đóng</button></div>`);});
+  $$('#grid [data-req]').forEach(x=>x.onclick=()=>{const r=S.data.rows.find(r=>r.job_id==x.dataset.req);modal(`<h3>Yêu cầu tuyển – ${esc(r.name)}</h3><div class="list">${r.requests.map(q=>`<div>${esc(q.name)} · ${q.state==='approved'?'Đã duyệt':'Chờ duyệt'} · còn ${q.qty}</div>`).join('')}</div><div style="margin-top:12px;text-align:right"><button class="btn" onclick="closeModal()">Đóng</button></div>`);});
+}
+function stats(){
+  const d=S.data,rm=d.ref_month,rows=d.rows;
+  const sum=m=>rows.reduce((s,r)=>s+(val(r,m)||0),0);
+  const emp=rows.reduce((s,r)=>s+r.employees.length,0);
+  const vac=rows.reduce((s,r)=>s+Math.max(0,(val(r,rm)||0)-r.employees.length),0);
+  const over=rows.reduce((s,r)=>s+Math.max(0,r.employees.length-(val(r,rm)||0)),0);
+  const held=rows.reduce((s,r)=>s+Math.min(r.employees.length,val(r,rm)||0),0);
+  const months=Array.from({length:12},(_,m)=>sum(m));
+  return {rm,ref:sum(rm),eop:sum(11),avg:months.reduce((a,b)=>a+b,0)/12,emp,vac,over,cov:sum(rm)?held/sum(rm)*100:0,months};
+}
+function renderKpis(){
+  const t=stats();
+  const k=[[`Định biên T${t.rm+1} (tham chiếu)`,t.ref],['Định biên cuối kỳ (T12)',t.eop],['Bình quân tháng',t.avg.toLocaleString('vi-VN',{maximumFractionDigits:1})],['Hiện có',t.emp],['Cần tuyển',t.vac],['Vượt định biên',t.over],['Tỷ lệ bao phủ',t.cov.toFixed(0)+'%']];
+  $('#kpis').innerHTML=k.map(([l,v])=>`<div class="kpi"><div class="l">${l}</div><div class="v">${v}</div></div>`).join('');
+}
+function renderAdj(){
+  const a=S.data.adjustments||[];$('#adj-count').textContent=a.length?`(${a.length})`:'';
+  if(!S.data.plan){$('#adj').innerHTML='<div class="empty">Chưa có kế hoạch.</div>';return;}
+  if(!a.length){$('#adj').innerHTML='<div class="empty">Chưa có điều chỉnh nào. Điều chỉnh chỉ tạo được trên kế hoạch Đã phê duyệt.</div>';return;}
+  const drafts=a.filter(x=>x.status==='draft').map(x=>x.id);
+  const waits=a.filter(x=>x.status==='confirm').map(x=>x.id);
+  $('#adj').innerHTML=`<div class="bar" style="margin-bottom:8px">${drafts.length?`<button class="btn ok" id="adj-send">Gửi duyệt ${drafts.length} điều chỉnh Nháp</button>`:''}${waits.length?`<button class="btn ok" id="adj-appr">Duyệt tất cả ${waits.length} điều chỉnh chờ duyệt</button>`:''}</div>
+  <div class="wrap" style="max-height:60vh"><table class="hist"><thead><tr><th>Mã</th><th>Hành động</th><th>Vị trí</th><th>Tháng</th><th>Hiện hành → Đích</th><th>Thay đổi</th><th>Lý do</th><th>Người yêu cầu</th><th>Trạng thái</th><th></th></tr></thead><tbody>
+  ${a.map(x=>`<tr><td>${esc(x.code)}${x.transfer_ref?'<span class="tag new" title="Một nửa của cặp điều chuyển">cặp ĐC</span>':''}</td><td>${ACT[x.action]||x.action}</td><td>${esc(nm(x.position_id))}</td><td>${esc(nm(x.period_id))}</td><td>${x.current_planned_hc} → ${x.target_planned_hc}</td><td>${x.change_qty>0?'+':''}${x.change_qty}</td><td style="white-space:normal;max-width:260px">${esc(x.reason)}</td><td>${esc(nm(x.requester_id))}</td><td><span class="badge s-${x.status}">${ST[x.status]}</span></td>
+    <td>${x.status==='draft'?`<button class="btn" data-adj="action_submit" data-id="${x.id}">Gửi</button>`:''}${x.status==='confirm'?`<button class="btn ok" data-adj="action_approve" data-id="${x.id}">Duyệt</button><button class="btn danger" data-adj="action_reject" data-id="${x.id}">Từ chối</button>`:''}${['draft','confirm'].includes(x.status)?`<button class="btn" data-adj="action_cancel" data-id="${x.id}">Huỷ</button>`:''}${['refuse','cancel'].includes(x.status)?`<button class="btn" data-adj="action_reset_draft" data-id="${x.id}">Về Nháp</button>`:''}</td></tr>`).join('')}
+  </tbody></table></div>`;
+  if($('#adj-send'))$('#adj-send').onclick=e=>busy(e.target,()=>adjAction('action_submit',drafts));
+  if($('#adj-appr'))$('#adj-appr').onclick=e=>{if(confirm('Duyệt tất cả điều chỉnh đang chờ?'))busy(e.target,()=>adjAction('action_approve',waits));};
+  $$('#adj [data-adj]').forEach(b=>b.onclick=()=>busy(b,()=>adjAction(b.dataset.adj,[+b.dataset.id])));
+}
+async function adjAction(method,ids){try{await api('/api/adjustment/action',{method,ids});await openPlan(S.data.plan.id);switchTab('adj');msg('Đã cập nhật điều chỉnh.','ok');}catch(e){await openPlan(S.data.plan.id);switchTab('adj');msg(esc(e.message));}}
+function switchTab(t){$(`#tabs [data-t="${t}"]`).click();}
+
+async function loadHistory(){
+  if(!S.data||!S.data.plan){$('#hist').innerHTML='<div class="empty">Chưa có kế hoạch.</div>';return;}
+  $('#hist').innerHTML='<div class="muted">Đang tải…</div>';
+  try{const h=await api('/api/history?plan_id='+S.data.plan.id);
+    $('#hist').innerHTML=`<h3 style="margin:0 0 8px;font-size:14px">Các phiên bản</h3>
+    <table class="hist"><thead><tr><th>Phiên bản</th><th>Tên</th><th>Trạng thái</th><th>Người tạo</th><th>Ngày tạo</th><th>Ngày duyệt</th><th></th></tr></thead><tbody>
+    ${h.versions.map(v=>`<tr><td>v${v.version}</td><td>${esc(v.name)}</td><td><span class="badge s-${v.status}">${ST[v.status]}</span></td><td>${esc(nm(v.create_uid))}</td><td>${(v.create_date||'').slice(0,10)}</td><td>${(v.approval_date||'').slice(0,10)}</td><td>${v.id!==S.data.plan.id?`<button class="btn" data-open="${v.id}">Mở</button>`:'<span class="sub">đang xem</span>'}</td></tr>`).join('')}</tbody></table>
+    <h3 style="margin:16px 0 8px;font-size:14px">Nhật ký</h3>
+    <div>${h.messages.map(m=>`<div style="padding:6px 0;border-bottom:1px solid var(--line)"><span class="sub">${(m.date||'').slice(0,16)} · ${esc(m.author||'')}</span><div>${m.body||''}</div></div>`).join('')||'<div class="muted">Chưa có ghi chép.</div>'}</div>`;
+    $$('#hist [data-open]').forEach(b=>b.onclick=()=>openPlan(+b.dataset.open).then(()=>switchTab('matrix')));
+  }catch(e){$('#hist').innerHTML=`<div class="msg err">${esc(e.message)}</div>`;}
+}
+
+// ---------- Ghi chú & trao đổi ----------
+function noteCell(jid){
+  const n=S.data.notes[jid]||'',can=S.data.plan&&S.data.plan.status!=='confirm';
+  if(!S.data.plan&&!S.pendingNotes?.[jid])return `<td class="l sub" title="Tạo kế hoạch Nháp để ghi chú">–</td>`;
+  const t=n||S.pendingNotes?.[jid]||'';
+  return `<td class="l note-cell ${can?'link-cell':''}" ${can?`data-note="${jid}"`:''} title="${can?'Bấm để sửa ghi chú':''}" style="white-space:normal;max-width:280px;cursor:${can?'pointer':'default'}">${t?`<span class="note-txt" style="font-style:normal">${esc(t)}</span>`:(can?'<span class="sub">✎ Thêm ghi chú</span>':'')}</td>`;
+}
+function noteModal(jid){
+  const r=S.data.rows.find(x=>x.job_id===jid),cur=S.data.notes[jid]||'';
+  modal(`<h3>Ghi chú / giải trình – ${esc(r.name)}</h3><p class="sub" style="margin-top:0">Ví dụ: lý do tăng/giảm, thời điểm tuyển, dự án liên quan. Để trống rồi Lưu để xoá ghi chú.</p>
+  <textarea id="nt" style="width:100%;min-height:110px">${esc(cur)}</textarea>
+  <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="btn" onclick="closeModal()">Huỷ</button><button class="btn primary" id="nt-ok">Lưu ghi chú</button></div>`,()=>{
+    $('#nt').focus();
+    $('#nt-ok').onclick=e=>busy(e.target,async()=>{try{await api('/api/plan/note',{plan_id:S.data.plan.id,job_id:jid,text:$('#nt').value});const keep=S.edit;closeModal();await reload(keep);}catch(err){alert(err.message);}});
+  });
+}
+async function reload(keep){const id=S.data.plan.id;const q={dept_id:$('#f-dept').value,scenario_id:$('#f-scenario').value,year:$('#f-year').value,plan_id:id};S.data=fix(await api('/api/grid?'+new URLSearchParams(q)));S.edit=keep||{};render();}
+function renderTalk(){
+  const d=S.data,c=d.comments||[];$('#talk-count').textContent=c.length?`(${c.length})`:'';
+  if(!d.plan){$('#talk').innerHTML='<div class="empty">Chưa có kế hoạch.</div>';return;}
+  $('#talk').innerHTML=`<div style="display:flex;gap:8px;align-items:flex-start"><textarea id="tk" placeholder="Viết trao đổi về kế hoạch này…" style="flex:1"></textarea><button class="btn primary" id="tk-ok">Gửi</button></div>
+  <div style="margin-top:10px">${c.map(x=>`<div class="cmt"><div class="h"><b>${esc(x.author)}</b> · ${esc(x.date)} · v${x.version}</div><div style="white-space:pre-wrap">${esc(x.body)}</div></div>`).join('')||'<div class="muted" style="padding:8px 0">Chưa có trao đổi.</div>'}</div>`;
+  $('#tk-ok').onclick=e=>busy(e.target,async()=>{try{await api('/api/plan/comment',{plan_id:d.plan.id,body:$('#tk').value});await reload(S.edit);switchTab('talk');}catch(err){alert(err.message);}});
+}
+
+// ---------- Chờ bạn duyệt ----------
+async function loadPending(){
+  try{const p=await api('/api/pending');const n=p.plans.length+p.adjustments.length;
+    if(!n){$('#pending').innerHTML='';return;}
+    $('#pending').innerHTML=`<div class="pend"><b>Chờ bạn duyệt:</b>${p.plans.map(x=>`<button class="btn" data-pp="${x.id}" data-s="${x.scope_id}" data-sc="${x.scenario_id}" data-y="${x.year}" data-c="${x.company_id}">Kế hoạch ${esc(x.code)} v${x.version}</button>`).join('')}${p.adjustments.map(x=>`<button class="btn" data-pp="${x.plan_id}" data-adj="1" data-s="${x.scope_id}" data-sc="${x.scenario_id}" data-y="${x.year}" data-c="${x.company_id}">${x.count} điều chỉnh · ${esc(x.code)}</button>`).join('')}</div>`;
+    $$('#pending [data-pp]').forEach(b=>b.onclick=async()=>{showView('plan');$('#f-company').value=b.dataset.c;await loadDepts(b.dataset.s);$('#f-scenario').value=b.dataset.sc;$('#f-year').value=b.dataset.y;await openPlan(+b.dataset.pp);if(b.dataset.adj)switchTab('adj');});
+  }catch(e){}
+}
+// ---------- Biểu đồ & kiểm tra ----------
+function chartSvg(series,labels){
+  const W=900,H=240,P=34,max=Math.max(1,...series.flatMap(s=>s.v))*1.15;
+  const x=i=>P+i*(W-2*P)/(labels.length-1),y=v=>H-P-v/max*(H-2*P);
+  let g='';for(let k=0;k<=4;k++){const v=max/4*k;g+=`<line x1="${P}" x2="${W-P}" y1="${y(v)}" y2="${y(v)}" stroke="#eef0f3"/><text x="${P-6}" y="${y(v)+4}" font-size="11" text-anchor="end" fill="#98a2b3">${Math.round(v)}</text>`;}
+  labels.forEach((l,i)=>g+=`<text x="${x(i)}" y="${H-12}" font-size="11" text-anchor="middle" fill="#667085">${l}</text>`);
+  series.forEach(s=>{g+=`<polyline fill="none" stroke="${s.c}" stroke-width="2.5" ${s.dash?'stroke-dasharray="5 4"':''} points="${s.v.map((v,i)=>x(i)+','+y(v)).join(' ')}"/>`;s.v.forEach((v,i)=>g+=`<circle cx="${x(i)}" cy="${y(v)}" r="3" fill="${s.c}"><title>${s.n} ${labels[i]}: ${v}</title></circle>`);});
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${g}</svg>`;
+}
+function renderChecks(){
+  const d=S.data,t=stats(),rm=d.ref_month,rows=d.rows,items=[];
+  const under=rows.filter(r=>r.controlled&&r.employees.length>0&&(val(r,rm)??0)<r.employees.length&&(val(r,rm)??0)>0);
+  const noHc=rows.filter(r=>r.employees.length>0&&!(val(r,rm)>0));
+  const empty=rows.filter(r=>r.employees.length===0&&!(val(r,rm)>0));
+  const vac=rows.filter(r=>(val(r,rm)||0)>r.employees.length);
+  const dirty=dirtyCount();
+  items.push(d.plan?['ok',`Kế hoạch ${d.plan.code} v${d.plan.version} – ${ST[d.plan.status]}`]:['warn','Chưa có kế hoạch cho đơn vị / kịch bản / năm này']);
+  items.push(under.length?['bad',`${under.length} vị trí có Kiểm soát vị trí đang có định biên thấp hơn số người (VLD-HC-05): ${under.map(r=>esc(r.name)).join(', ')}`]:['ok','Không có vị trí nào vi phạm VLD-HC-05']);
+  items.push(noHc.length?['warn',`${noHc.length} vị trí có người nhưng định biên T${rm+1} = 0 (ngoài định biên): ${noHc.map(r=>esc(r.name)).join(', ')}`]:['ok','Mọi vị trí có người đều có định biên']);
+  items.push(vac.length?['warn',`${vac.length} vị trí còn chỗ trống, cần tuyển ${t.vac}: ${vac.map(r=>esc(r.name)+' (+'+((val(r,rm)||0)-r.employees.length)+')').join(', ')}`]:['ok','Không có chỗ trống cần tuyển']);
+  if(empty.length)items.push(['warn',`${empty.length} vị trí không người, không định biên – cân nhắc gỡ khỏi cơ cấu: ${empty.map(r=>esc(r.name)).join(', ')}`]);
+  if(dirty)items.push(['warn',`${dirty} ô đã sửa nhưng chưa lưu`]);
+  const pend=(d.adjustments||[]).filter(a=>a.status==='confirm').length; if(pend)items.push(['warn',`${pend} phiếu điều chỉnh đang chờ duyệt`]);
+  $('#chk').innerHTML=`<div class="row between"><h3 style="margin:0;font-size:14px">Xu hướng định biên theo tháng</h3><div class="legend"><span><i style="background:#0a6bc4"></i>Định biên</span><span><i style="background:#12805c"></i>Hiện có</span></div></div>
+    ${chartSvg([{n:'Định biên',c:'#0a6bc4',v:t.months},{n:'Hiện có',c:'#12805c',dash:1,v:Array(12).fill(t.emp)}],d.periods.map((_,i)=>'T'+(i+1)))}
+    <h3 style="margin:14px 0 6px;font-size:14px">Kiểm tra tự động</h3><ul class="checks">${items.map(([k,tx])=>`<li class="${k}">${k==='ok'?'✓':k==='bad'?'✕':'!'} ${tx}</li>`).join('')}</ul>`;
+}
+// ---------- Báo cáo Quý / Năm ----------
+let REP_MODE='eop';
+function renderReport(){
+  const d=S.data,rows=d.rows;
+  const agg=(arr)=>REP_MODE==='eop'?arr[arr.length-1]:REP_MODE==='avg'?arr.reduce((a,b)=>a+b,0)/arr.length:arr.reduce((a,b)=>a+b,0);
+  const f=v=>REP_MODE==='avg'?v.toLocaleString('vi-VN',{maximumFractionDigits:1}):v;
+  const line=r=>{const m=Array.from({length:12},(_,i)=>val(r,i)||0);return [0,1,2,3].map(q=>agg(m.slice(q*3,q*3+3))).concat([agg(m)]);};
+  const tot=[0,0,0,0,0];
+  const body=rows.map(r=>{const v=line(r);v.forEach((x,i)=>tot[i]+=x);return `<tr><td class="l">${esc(r.name)}<div class="sub">${esc((d.depts.find(x=>x.id===r.dept_id)||{}).name||'')}</div></td>${v.map(x=>`<td>${f(x)}</td>`).join('')}</tr>`;}).join('');
+  $('#rep').innerHTML=`<div class="row between" style="margin-bottom:8px"><div class="seg-tabs bar">${[['eop','Cuối kỳ (mặc định)'],['avg','Bình quân'],['sum','Tổng các tháng']].map(([k,l])=>`<button class="btn ${REP_MODE===k?'primary':''}" data-rm="${k}">${l}</button>`).join('')}</div>
+    <span class="sub">Cuối kỳ = tháng 3/6/9/12 (Quý) hoặc tháng 12 (Năm) · Tổng = nhu cầu cộng dồn, không phải số người</span></div>
+    <div class="wrap" style="max-height:60vh"><table><thead><tr><th class="l">Vị trí</th><th>Quý 1</th><th>Quý 2</th><th>Quý 3</th><th>Quý 4</th><th>Năm</th></tr></thead><tbody>${body}
+    <tr class="total"><td class="l">Tổng</td>${tot.map(x=>`<td>${f(x)}</td>`).join('')}</tr></tbody></table></div>`;
+  $$('#rep [data-rm]').forEach(b=>b.onclick=()=>{REP_MODE=b.dataset.rm;renderReport();});
+}
+// ---------- Dashboard ----------
+function showView(v){
+  msg('');
+  $$('#topnav button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
+  $('#dash').classList.toggle('hidden',v!=='dash');
+  ['#planbar','#kpis','#work'].forEach(x=>$(x).classList.toggle('hidden',v==='dash'||!S.data));
+  if(v==='dash')loadDash();
+}
+$$('#topnav button').forEach(b=>b.onclick=()=>showView(b.dataset.v));
+async function loadDash(){
+  $('#dash').innerHTML='<div class="card muted">Đang tải…</div>';
+  try{const y=+$('#f-year').value,d=await api(`/api/dashboard?company_id=${$('#f-company').value}&scenario_id=${$('#f-scenario').value}&year=${y}`);
+    const T=d.units.reduce((a,u)=>({p:a.p+u.planned,o:a.o+u.occupied,v:a.v+u.vacant,x:a.x+u.over,m:a.m.map((v,i)=>v+u.months[i])}),{p:0,o:0,v:0,x:0,m:Array(12).fill(0)});
+    const noPlan=d.units.filter(u=>!u.plan||u.plan.status!=='validate').length;
+    $('#dash').innerHTML=`<div class="kpis" style="margin-bottom:12px">${[[`Định biên được duyệt T${d.ref_month+1}/${y}`,T.p],['Hiện có',T.o],['Cần tuyển',T.v],['Vượt định biên',T.x],['Tỷ lệ bao phủ',(T.p?Math.round((T.o-T.x)/T.p*100):0)+'%'],['Đơn vị chưa có KH duyệt',noPlan],['Vị trí ngoài định biên',d.unplanned.length]].map(([l,v])=>`<div class="kpi"><div class="l">${l}</div><div class="v">${v}</div></div>`).join('')}</div>
+    <div class="card"><h3 style="margin:0 0 6px;font-size:14px">Định biên được duyệt theo tháng – toàn công ty</h3>${chartSvg([{n:'Định biên',c:'#0a6bc4',v:T.m},{n:'Hiện có',c:'#12805c',dash:1,v:Array(12).fill(T.o)}],Array.from({length:12},(_,i)=>'T'+(i+1)))}</div>
+    <div class="card"><h3 style="margin:0 0 8px;font-size:14px">Theo đơn vị cấp cao nhất · tháng tham chiếu T${d.ref_month+1}</h3><div class="wrap" style="max-height:55vh"><table><thead><tr><th class="l">Đơn vị</th><th>Số vị trí</th><th>Định biên</th><th>Hiện có</th><th>Cần tuyển</th><th>Vượt</th><th>Bao phủ</th><th class="l">Kế hoạch ${y}</th><th></th></tr></thead><tbody>
+    ${d.units.map(u=>`<tr><td class="l">${esc(u.name)}</td><td>${u.jobs}</td><td>${u.planned}</td><td>${u.occupied}</td><td>${u.vacant||''}</td><td style="color:var(--bad)">${u.over||''}</td><td>${u.planned?u.coverage+'%':'–'}</td><td class="l">${u.plan?`<span class="badge s-${u.plan.status}">${ST[u.plan.status]}</span> <span class="sub">${esc(u.plan.code)} v${u.plan.version}</span>`:'<span class="sub">Chưa có</span>'}</td><td>${u.dept_id?`<button class="btn" data-go="${u.dept_id}">Mở</button>`:''}</td></tr>`).join('')}</tbody></table></div></div>
+    <div class="card"><h3 style="margin:0 0 8px;font-size:14px">Các vị trí ngoài định biên (${d.unplanned.length}) <span class="sub">– có người nhưng chưa có định biên được duyệt T${d.ref_month+1}/${y}</span></h3><div class="wrap" style="max-height:45vh"><table><thead><tr><th class="l">Vị trí</th><th class="l">Đơn vị</th><th>Hiện có</th><th>Kiểm soát vị trí</th></tr></thead><tbody>
+    ${d.unplanned.map(j=>`<tr><td class="l">${esc(j.name)}</td><td class="l">${esc(j.dept)}</td><td>${j.employees}</td><td>${j.controlled?'Có':'Không'}</td></tr>`).join('')||'<tr><td colspan="4" class="muted">Không có</td></tr>'}</tbody></table></div></div>`;
+    $$('#dash [data-go]').forEach(b=>b.onclick=async()=>{$('#f-dept').value=b.dataset.go;showView('plan');await openPlan();});
+  }catch(e){$('#dash').innerHTML=`<div class="msg err">${esc(e.message)}</div>`;}
+}
+
+// ---------- Hành động ----------
+function changedCells(){const out=[];for(const r of S.data.rows){const e=S.edit[r.job_id];if(!e)continue;for(const m in e){const v=e[m]??0,o=orig(r,+m)??0;if(v!==o)out.push({job_id:r.job_id,dept_id:r.dept_id,month:+m,from:o,to:v,hc:v,line_id:r.cells[m]?r.cells[m].line_id:null,name:r.name});}}return out;}
+
+async function createPlan(){
+  try{
+    const r=await api('/api/plan/create',{dept_id:+$('#f-dept').value,scenario_id:+$('#f-scenario').value,year:+$('#f-year').value});
+    const cells=[];for(const row of S.data.rows){for(let m=0;m<12;m++){const v=S.edit[row.job_id]?.[m];if(v)cells.push({job_id:row.job_id,month:m,hc:v});}}
+    const s=await api('/api/plan/save',{plan_id:r.id,year:+$('#f-year').value,cells});
+    for(const [jid,text] of Object.entries(S.pendingNotes||{}))await api('/api/plan/note',{plan_id:r.id,job_id:+jid,text});S.pendingNotes={};
+    S.edit={};await openPlan(r.id);
+    msg(`Đã tạo kế hoạch Nháp và lưu ${s.ok} ô.${s.errors.length?` <b>${s.errors.length} ô bị KOI từ chối:</b><br>`+errList(s.errors):''}`,s.errors.length?'err':'ok');
+  }catch(e){msg(esc(e.message));}
+}
+function errList(errs){return errs.slice(0,15).map(x=>{const r=S.data&&S.data.rows.find(r=>r.job_id===x.job_id);return `• ${esc(r?r.name:'')}${x.month!=null?' T'+(x.month+1):''}: ${esc(x.error)}`;}).join('<br>');}
+
+async function saveGrid(){
+  const cells=changedCells();if(!cells.length)return msg('Không có ô nào thay đổi.','info');
+  try{const r=await api('/api/plan/save',{plan_id:S.data.plan.id,year:+$('#f-year').value,cells});
+    S.edit={};await openPlan(S.data.plan.id);
+    msg(`Đã lưu ${r.ok} ô.${r.errors.length?` <b>${r.errors.length} ô bị KOI từ chối:</b><br>`+errList(r.errors):''}`,r.errors.length?'err':'ok');
+  }catch(e){msg(esc(e.message));}
+}
+
+async function planAction(btn,method){
+  const p=S.data.plan;
+  const ask={action_submit:'Gửi kế hoạch này đi phê duyệt? Sau khi gửi sẽ không sửa được nữa.',action_cancel:'Huỷ kế hoạch này? (các điều chỉnh Nháp/Chờ duyệt cũng bị huỷ)',action_reset_draft:'Đặt kế hoạch về Nháp?',action_create_new_version:'Tạo phiên bản mới (bản Nháp với định biên hiện hành)? Bản cũ vẫn hiệu lực đến khi bản mới được duyệt.',action_approve:'Duyệt kế hoạch này?',action_reject:'Từ chối kế hoạch này?'}[method];
+  if(method==='action_submit'&&dirtyCount()&&!confirm('Có ô chưa lưu – các ô đó sẽ KHÔNG được gửi. Tiếp tục?'))return;
+  if(!confirm(ask))return;
+  const label=btn.textContent;await busy(btn,async()=>{try{const r=await api('/api/plan/action',{plan_id:p.id,method});await openPlan(r.new_plan_id||p.id);msg('Đã thực hiện: '+label,'ok');}catch(e){msg(esc(e.message));}});
+}
+
+function monthOpts(sel){return Array.from({length:12},(_,i)=>`<option value="${i}" ${i===sel?'selected':''}>T${i+1}</option>`).join('');}
+function quickFill(){
+  const rows=S.data.rows;
+  modal(`<h3>Điền nhanh</h3><p class="sub" style="margin-top:0">Đặt một số định biên cho nhiều vị trí và nhiều tháng.</p>
+  <div class="list" id="qf-list">${rows.map(r=>`<label><input type="checkbox" value="${r.job_id}" ${S.checked.has(r.job_id)?'checked':''}>${esc(r.name)} <span class="sub">(${r.employees.length} người)</span></label>`).join('')}</div>
+  <div class="row" style="margin-top:10px"><label>Từ tháng<select id="qf-from">${monthOpts(0)}</select></label><label>Đến tháng<select id="qf-to">${monthOpts(11)}</select></label>
+  <label>Số định biên<input id="qf-v" type="number" min="0" style="width:90px" placeholder="vd 2"></label><label class="sub" style="flex-direction:row;align-items:center;gap:6px"><input type="checkbox" id="qf-emp">Bằng số người đang giữ</label></div>
+  <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn" onclick="closeModal()">Huỷ</button><button class="btn primary" id="qf-ok">Áp dụng</button></div>`,()=>{
+    $('#qf-ok').onclick=()=>{const ids=$$('#qf-list input:checked').map(x=>+x.value);const f=+$('#qf-from').value,t=+$('#qf-to').value;const useEmp=$('#qf-emp').checked;const v=parseInt($('#qf-v').value,10);
+      if(!ids.length||(!useEmp&&isNaN(v)))return alert('Chọn vị trí và nhập số');
+      for(const id of ids){const r=rows.find(r=>r.job_id===id);for(let m=Math.min(f,t);m<=Math.max(f,t);m++)(S.edit[id]=S.edit[id]||{})[m]=useEmp?r.employees.length:Math.max(0,v);}
+      closeModal();renderGrid();renderKpis();updDirty();};
+  });
+}
+function deptOptions(sel){
+  const d=S.data,depth=x=>{let n=0,c=x;while(c&&c.parent_id&&d.depts.some(y=>y.id===c.parent_id)){n++;c=d.depts.find(y=>y.id===c.parent_id);}return n;};
+  const kids=pid=>d.depts.filter(x=>pid==null?!d.depts.some(y=>y.id===x.parent_id):x.parent_id===pid).sort((a,b)=>a.name.localeCompare(b.name));
+  const out=[];const walk=pid=>kids(pid).forEach(x=>{out.push(x);walk(x.id);});walk(null);
+  return `<option value="">— Chọn phòng ban / bộ phận —</option>`+out.map(x=>`<option value="${x.id}" ${x.id===sel?'selected':''}>${'\u00a0\u00a0\u00a0\u00a0'.repeat(depth(x))}${depth(x)?'└ ':''}${esc(x.name)}</option>`).join('');
+}
+function moveModal(jid){
+  const r=S.data.rows.find(x=>x.job_id===jid);
+  modal(`<h3>Đổi phòng ban – ${esc(r.name)}</h3><label>Chuyển sang<select id="mv-d">${deptOptions(r.dept_id)}</select></label>
+  <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="btn" onclick="closeModal()">Huỷ</button><button class="btn primary" id="mv-ok">Đổi phòng ban</button></div>`,()=>{
+    $('#mv-ok').onclick=e=>busy(e.target,async()=>{if(!$('#mv-d').value)return alert('Chọn phòng ban');try{await api('/api/position/move',{job_id:jid,dept_id:+$('#mv-d').value,plan_id:S.data.plan?S.data.plan.id:null});closeModal();const keep=S.edit;const q={dept_id:$('#f-dept').value,scenario_id:$('#f-scenario').value,year:$('#f-year').value};if(S.data.plan)q.plan_id=S.data.plan.id;S.data=fix(await api('/api/grid?'+new URLSearchParams(q)));S.edit=keep;render();msg('Đã đổi phòng ban.','ok');}catch(err){alert(err.message);}});
+  });
+}
+function newPosition(){
+  const d=S.data;
+  modal(`<h3>Vị trí mới</h3><p class="sub" style="margin-top:0">Tạo vị trí công việc mới (trong app) trong đơn vị đã chọn, kèm định biên các tháng.${status()==='validate'?' Kế hoạch đã duyệt: định biên sẽ thành điều chỉnh “Thêm” cần duyệt.':''}</p>
+  <div style="display:grid;gap:10px"><label><span>Phòng ban / bộ phận <b style="color:var(--bad)">*</b></span><select id="np-dept">${deptOptions(null)}</select></label>
+  <label><span>Tên vị trí <b style="color:var(--bad)">*</b></span><input id="np-name" placeholder="vd Chuyên viên C&B"></label>
+  <label>Lý do mở vị trí / ghi chú<textarea id="np-note" placeholder="vd Mở mới để phụ trách mảng C&B từ Q2"></textarea></label>
+  <div class="row"><label>Từ tháng<select id="np-from">${monthOpts(0)}</select></label><label>Đến tháng<select id="np-to">${monthOpts(11)}</select></label><label>Định biên<input id="np-v" type="number" min="1" value="1" style="width:80px"></label></div></div>
+  <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn" onclick="closeModal()">Huỷ</button><button class="btn primary" id="np-ok">Tạo vị trí</button></div>`,()=>{
+    $('#np-ok').onclick=e=>busy(e.target,async()=>{const name=$('#np-name').value.trim();if(!$('#np-dept').value)return alert('Chọn phòng ban / bộ phận');if(!name)return alert('Nhập tên vị trí');
+      if(!confirm(`Tạo vị trí "${name}"?`))return;
+      try{const note=$('#np-note').value.trim(),pid=S.data.plan?S.data.plan.id:null;
+        const r=await api('/api/position',{name,dept_id:+$('#np-dept').value,plan_id:pid,note});
+        if(!pid&&note)(S.pendingNotes=S.pendingNotes||{})[r.id]=note;
+        const f=+$('#np-from').value,t=+$('#np-to').value,v=+$('#np-v').value||1;const keep=S.edit;
+        const q={dept_id:$('#f-dept').value,scenario_id:$('#f-scenario').value,year:$('#f-year').value};if(pid)q.plan_id=pid;
+        S.data=fix(await api('/api/grid?'+new URLSearchParams(q)));S.edit=keep;S.edit[r.id]={};for(let m=0;m<12;m++)S.edit[r.id][m]=(m>=f&&m<=t)?v:(pid?null:0);if(pid)for(let m=0;m<12;m++)if(S.edit[r.id][m]==null)delete S.edit[r.id][m];
+        if(!pid)Object.assign(S.data.notes,S.pendingNotes||{});
+        if(pid&&S.data.plan.status==='draft'){const cells=[];for(let m=f;m<=t;m++)cells.push({job_id:r.id,month:m,hc:v});await api('/api/plan/save',{plan_id:pid,year:+$('#f-year').value,cells});delete keep[r.id];S.data=fix(await api('/api/grid?'+new URLSearchParams(q)));S.edit=keep;render();closeModal();return msg(`Đã thêm vị trí "${esc(name)}" vào kế hoạch.`,'ok');}
+        render();
+        closeModal();msg(`Đã tạo vị trí "${esc(name)}". Định biên đã điền vào bảng – bấm ${!S.data.plan?'“Tạo kế hoạch Nháp”':status()==='validate'?'“Tạo điều chỉnh”':'“Lưu bảng”'} để lưu.`,'info');
+      }catch(err){alert(err.message);}});
+  });
+}
+function transfer(){
+  const rows=S.data.rows,opt=rows.map(r=>`<option value="${r.job_id}">${esc(r.name)}</option>`).join('');
+  modal(`<h3>Điều chuyển định biên</h3><p class="sub" style="margin-top:0">Chuyển số định biên từ vị trí này sang vị trí khác trong các tháng chọn. Bắt buộc có lý do.${status()==='validate'?' <b>Kế hoạch đã duyệt:</b> tạo cặp phiếu điều chỉnh (giảm nguồn, tăng đích) – cả cặp được duyệt hoặc không.':''}</p>
+  <div style="display:grid;gap:10px"><label>Từ vị trí<select id="tr-from">${opt}</select></label><label>Sang vị trí<select id="tr-to">${opt}</select></label>
+  <div class="row"><label>Từ tháng<select id="tr-m1">${monthOpts(0)}</select></label><label>Đến tháng<select id="tr-m2">${monthOpts(11)}</select></label><label>Số lượng<input id="tr-q" type="number" min="1" value="1" style="width:80px"></label></div>
+  <label>Lý do<textarea id="tr-r"></textarea></label></div>
+  <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn" onclick="closeModal()">Huỷ</button><button class="btn primary" id="tr-ok">Điều chuyển & lưu</button></div>`,()=>{
+    $('#tr-ok').onclick=e=>busy(e.target,async()=>{const a=+$('#tr-from').value,b=+$('#tr-to').value,q=+$('#tr-q').value,reason=$('#tr-r').value.trim();
+      const m1=+$('#tr-m1').value,m2=+$('#tr-m2').value;if(a===b)return alert('Chọn hai vị trí khác nhau');if(!reason)return alert('Nhập lý do');
+      const ra=rows.find(r=>r.job_id===a),rb=rows.find(r=>r.job_id===b);const months=[];
+      for(let m=m1;m<=m2;m++){const va=val(ra,m)||0;if(va<q)return alert(`${ra.name} tháng ${m+1} chỉ có ${va} định biên`);months.push(m);}
+      if(status()!=='validate')months.forEach(m=>{(S.edit[a]=S.edit[a]||{})[m]=(val(ra,m)||0)-q;(S.edit[b]=S.edit[b]||{})[m]=(val(rb,m)||0)+q;});
+      const appr=status()==='validate';
+      try{const r=await api('/api/plan/transfer',{plan_id:S.data.plan.id,year:+$('#f-year').value,from_job:a,to_job:b,months,qty:q,reason,cells:appr?[]:changedCells(),submit:appr});
+        closeModal();S.edit={};await openPlan(S.data.plan.id);
+        if(appr){switchTab('adj');msg(`Đã tạo ${r.adjustments} phiếu điều chuyển (theo cặp) và gửi duyệt. Hai nửa của mỗi cặp được duyệt / từ chối cùng nhau.`,'ok');}
+        else msg(`Đã điều chuyển và lưu ${r.ok} ô.${r.errors.length?'<br>'+errList(r.errors):''}`,r.errors.length?'err':'ok');}
+      catch(err){alert(err.message);}});
+  });
+}
+function adjustPreview(){
+  const ch=changedCells();if(!ch.length)return msg('Chưa sửa ô nào. Sửa định biên trong bảng rồi bấm “Tạo điều chỉnh”.','info');
+  const act=c=>c.line_id?(c.to===0?'Xoá':'Tăng/giảm'):'Thêm';
+  modal(`<h3>Tạo ${ch.length} điều chỉnh định biên</h3>
+  <div class="wrap" style="max-height:300px"><table class="hist"><thead><tr><th>Vị trí</th><th>Tháng</th><th>Hành động</th><th>Hiện hành → Đích</th></tr></thead><tbody>
+  ${ch.map(c=>`<tr><td>${esc(c.name)}</td><td>T${c.month+1}</td><td>${act(c)}</td><td>${c.from} → <b>${c.to}</b></td></tr>`).join('')}</tbody></table></div>
+  <label style="margin-top:10px">Lý do (áp dụng cho tất cả)<textarea id="ad-r" placeholder="Để trống sẽ ghi 'Điều chỉnh định biên'"></textarea></label>
+  <label class="sub" style="flex-direction:row;align-items:center;gap:6px;margin-top:8px"><input type="checkbox" id="ad-send" checked> Gửi phê duyệt luôn</label>
+  <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn" onclick="closeModal()">Huỷ</button><button class="btn primary" id="ad-ok">Tạo điều chỉnh</button></div>`,()=>{
+    $('#ad-ok').onclick=e=>busy(e.target,async()=>{
+      try{const r=await api('/api/adjustments',{plan_id:S.data.plan.id,year:+$('#f-year').value,changes:ch,reason:$('#ad-r').value.trim(),submit:$('#ad-send').checked});
+        closeModal();S.edit={};await openPlan(S.data.plan.id);switchTab('adj');
+        msg(`Đã tạo ${r.created} điều chỉnh${r.submitted?`, đã gửi duyệt ${r.submitted}`:''}.${r.errors.length?` <b>${r.errors.length} lỗi:</b><br>`+errList(r.errors):''}`,r.errors.length?'err':'ok');}
+      catch(err){alert(err.message);}});
+  });
+}
+function exportCsv(){
+  const d=S.data,rows=[['Đơn vị','Vị trí','ĐB hiện tại '+d.current_hc_month,'Hiện có',...d.periods.map((_,i)=>'T'+(i+1)),'Ghi chú']];
+  for(const r of d.rows){const dep=d.depts.find(x=>x.id===r.dept_id);rows.push([dep?dep.full:'',r.name,r.current_hc??'',r.employees.length,...Array.from({length:12},(_,m)=>val(r,m)??''),d.notes[r.job_id]||'']);}
+  const csv='﻿'+rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\r\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download=`dinh-bien_${(d.plan&&d.plan.code)||'de-xuat'}_${$('#f-year').value}.csv`;a.click();
+}
+// Tự tải lại trang khi app được cập nhật (không mất ô chưa lưu)
+let VER=null;setInterval(async()=>{try{const v=await fetch('/api/version').then(r=>r.json());const k=v.boot+'|'+v.page;
+  if(VER&&VER!==k){if(!dirtyCount()&&!$('#modal').innerHTML)location.reload();else if(!$('#upd'))document.body.insertAdjacentHTML('afterbegin','<div id="upd" class="msg info" style="position:fixed;bottom:12px;right:12px;z-index:60;cursor:pointer" onclick="location.reload()">Đã có bản cập nhật – lưu xong rồi bấm vào đây để tải lại</div>');}
+  VER=k;}catch(e){}},4000);
+$('#d-backup').onclick=async()=>{const d=await api('/api/data');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(d)],{type:'application/json'}));a.download=`dinh-bien-sao-luu-${new Date().toISOString().slice(0,10)}.json`;a.click();};
+$('#d-restore').onchange=async e=>{const f=e.target.files[0];if(!f)return;if(!confirm('Thay toàn bộ dữ liệu hiện tại bằng file "'+f.name+'"? (dữ liệu hiện tại được tự sao lưu trước)'))return;
+  try{await api('/api/data',JSON.parse(await f.text()));msg('Đã khôi phục dữ liệu.','ok');S.data&&openPlan();}catch(err){msg('Không khôi phục được: '+esc(err.message));}e.target.value='';};
+</script>
+</body>
+</html>
