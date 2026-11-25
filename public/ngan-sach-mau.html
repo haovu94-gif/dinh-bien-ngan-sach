@@ -95,6 +95,7 @@ table.form td:nth-child(2){width:190px;white-space:nowrap}
 tr.grp td{background:#f7f8fa;font-weight:600;font-size:12px}
 body.mgr [data-admin]{display:none!important}body.mgr [data-mgr]{display:block!important}body.mgr #price .mgr-hide{display:none}
 #ben tr.bsub td{background:#fafbfc;font-size:12px}#ben-funds label{font-weight:500}
+.tag.t-band{background:#eef4ff;color:#0a6bc4}
 </style>
 </head>
 <body>
@@ -126,12 +127,13 @@ body.mgr [data-admin]{display:none!important}body.mgr [data-mgr]{display:block!i
         <button data-admin data-c="c3"><b>2</b> Phúc lợi</button>
         <button data-admin data-c="c9"><b>3</b> Phụ cấp</button>
         <button data-admin data-c="c8"><b>4</b> Tháng chi thưởng</button>
-        <button data-c="c6"><b data-n="5">5</b> Đơn giá vị trí mới</button>
+        <button data-admin data-c="c11"><b>5</b> Khung thu nhập</button>
+        <button data-c="c6"><b data-n="6">6</b> Đơn giá vị trí mới</button>
         <div class="ng" data-admin style="margin-top:8px"><span class="dot" id="ng-dot"></span>Biến số kịch bản<div class="sub" id="ng-scn"></div></div>
-        <button data-admin data-c="c1"><b>6</b> Lương &amp; KPI</button>
-        <button data-admin data-c="c2"><b>7</b> Quỹ Q3</button>
+        <button data-admin data-c="c1"><b>7</b> Lương &amp; KPI</button>
+        <button data-admin data-c="c2"><b>8</b> Quỹ Q3</button>
         <div class="ng" data-admin style="margin-top:8px"><span class="dot" style="background:#b54708"></span>Tuỳ chỉnh riêng<div class="sub">theo phòng / vị trí / ngạch</div></div>
-        <button data-admin data-c="c5"><b>8</b> Tuỳ chỉnh riêng</button>
+        <button data-admin data-c="c5"><b>9</b> Tuỳ chỉnh riêng</button>
       </nav>
       <div class="cfgbody">
         <div class="card cp hidden" id="c1"><h3>Lương &amp; KPI <span class="scope s"></span></h3>
@@ -185,6 +187,11 @@ body.mgr [data-admin]{display:none!important}body.mgr [data-mgr]{display:block!i
             <div class="row"><span class="sub">Xem theo</span><div class="seg" id="ovr-view"><button data-v="item" class="on">Mục tuỳ chỉnh</button><button data-v="unit">Đơn vị</button></div><button class="btn primary" id="ovr-add">+ Thêm tuỳ chỉnh</button></div></div>
           <div id="ovr-form"></div>
           <table style="margin-top:8px"><thead id="ovr-head"></thead><tbody id="ovr"></tbody></table></div>
+        <div class="card cp hidden" id="c11"><div class="row between"><h3 style="margin:0">Khung thu nhập theo chức danh <span class="scope g">Chung toàn công ty</span> <span class="i" title="Mỗi chức danh có 5 bậc Q1 (L1–L5). Định biên mới lấy bậc L3 (giữa khung) làm đơn giá, tách LCB / Thưởng đánh giá / Q2 tháng theo tỷ lệ. Vị trí ad-hoc khác cấu trúc thì nhập tay ở mục 6.">ⓘ</span></h3>
+          <div class="row"><input id="bd-q" placeholder="Tìm mã / chức danh…" style="width:220px"><button class="btn" id="bd-sug" title="Tính khung từ lương người đang giữ: L3 = TB Q1, L1/L5 = ±20%">Gợi ý từ dữ liệu</button><button class="btn" id="bd-paste">Dán từ Excel</button><button class="btn" id="bd-exp">Xuất CSV</button><button class="btn" id="bd-add">+ Thêm chức danh</button></div></div>
+          <div class="sub" style="margin-top:6px">Q1 = Lương cơ bản + Thưởng đánh giá tháng. Đơn giá định biên mới mặc định lấy <b>L3</b>; chọn bậc khác cho từng vị trí ở mục 6. <span id="bd-cnt"></span></div>
+          <div id="bd-pastebox" class="hidden" style="margin-top:8px"><textarea id="bd-text" rows="5" style="width:100%" placeholder="Dán các dòng từ Excel theo thứ tự cột: Mã | Chức danh | L1 | L2 | L3 | L4 | L5 | LCB/Q1 (%) | Q2 tháng/Q1 (%)"></textarea><div class="row" style="margin-top:6px"><label style="flex-direction:row;gap:6px;align-items:center"><input type="checkbox" id="bd-replace"> Thay toàn bộ khung hiện có</label><button class="btn primary" id="bd-import">Nhập</button><span class="sub" id="bd-imsg"></span></div></div>
+          <div class="wrap" style="max-height:560px;margin-top:8px"><table id="bd-tbl"><thead><tr><th class="l">Mã</th><th class="l">Chức danh</th><th>L1</th><th>L2</th><th style="background:#eef4ff">L3 · giữa khung</th><th>L4</th><th>L5</th><th>LCB / Q1</th><th>Q2 tháng / Q1</th><th class="l">Nguồn</th><th></th></tr></thead><tbody id="bands"></tbody></table></div></div>
         <div class="card cp hidden" id="c6"><h3>Đơn giá cho định biên phát sinh mới <span class="scope g">Chung toàn công ty</span></h3>
           <p class="hint">Chỉ cho phần <b>định biên vượt số người đang giữ</b> (người đang giữ tính theo lương thật). Quản lý chỉ điền <b>Q1, Q2</b> (và PC đặc thù nếu có); phụ cấp theo mục 3, Q2 năm, Q3, phúc lợi, bảo hiểm và tăng lương tự ăn theo cấu hình chung. Ô trống được gợi ý: TB cùng vị trí → TB chức danh → TB ngạch.</p>
 
@@ -307,6 +314,11 @@ const BEN_V5=()=>JSON.parse(JSON.stringify([
  {id:'quit',product:true,name:'Quà tặng nghỉ việc (CBQL)',grp:'VI. Nghỉ việc',type:'event',who:'ql',rate:10,months:[],on:true,pl:0,cd:0,hp:5000000,
   tiers:[{g:'QL1 – QL3 (TBP trở lên)',re:'^QL[1-3]',pl:0,cd:0,hp:5000000},{g:'QL4 trở lên (GĐ chức năng)',re:'^(QL[4-6]|LĐ|LD)',pl:0,cd:0,hp:5000000}],note:'CBQL thâm niên ≥3 năm. GĐ chức năng trở lên thêm tiệc chia tay 5.000.000. Cấp NV/CV không áp dụng.'},
 ]));
+// ---- Khung thu nhập theo chức danh ----
+const BANDS0=()=>JSON.parse(JSON.stringify([{"code":"DEMO.M.001","t":"Trưởng phòng (demo)","lv":[24000000,27000000,30000000,33000000,36000000],"lcbr":0.5,"q2r":0.13,"n":1,"src":"Demo"},{"code":"DEMO.P.001","t":"Chuyên viên (demo)","lv":[12000000,13500000,15000000,16500000,18000000],"lcbr":0.4,"q2r":0.13,"n":2,"src":"Demo"},{"code":"DEMO.S.001","t":"Nhân viên (demo)","lv":[8000000,9000000,10000000,11000000,12000000],"lcbr":0.55,"q2r":0.1,"n":1,"src":"Demo"},{"code":"DEMO.P.002","t":"Trưởng nhóm (demo)","lv":[17600000,19800000,22000000,24200000,26400000],"lcbr":0.41,"q2r":0.14,"n":1,"src":"Demo"},{"code":"DEMO.P.003","t":"Chuyên viên mới (demo)","lv":[12000000,13500000,15000000,16500000,18000000],"lcbr":0.4,"q2r":0.13,"n":0,"src":"Demo"}]));
+const titleKey=n=>String(n||'').split(' / ')[0].trim().toLowerCase();
+function bandOf(job){const B=(typeof COMMON!=='undefined'&&COMMON.bands)||[];const k=titleKey(job.title||job.name);return B.find(b=>b.t.trim().toLowerCase()===k)||null;}
+function bandPrice(b,lv){const q1=+b.lv[(lv||3)-1]||0,lcb=Math.round(q1*(+b.lcbr||0));return {lcb,tdg:q1-lcb,q2m:Math.round(q1*(+b.q2r||0)),q2q:0};}
 const SCN={
  A:{name:'A – Thuận lợi',color:COLORS[0],vars:{q3mode:'pct',q3pct:5,q3base:['lcb','tdg'],q3fund:0,incmin:6,incbasis:'fe',incrule:'reach',inc:8,incm:3,incon:['lcb','tdg'],q2base:['lcb','tdg','responsibility_allowance','q2m','q2q'],q2kpi:'m',q2n:1,kpi:100,kpiq:100,q3:90,ins:23.5},pay:{mode:'accrual',q2y:[11],q2q:[2,5,8,11],q3q:[2,5,8,11]},ben:BEN_V5(),ovr:[],hc:{}},
  B:{name:'B – Cơ sở',color:COLORS[1],vars:{q3mode:'pct',q3pct:5,q3base:['lcb','tdg'],q3fund:0,incmin:6,incbasis:'fe',incrule:'reach',inc:5,incm:3,incon:['lcb','tdg'],q2base:['lcb','tdg','responsibility_allowance','q2m','q2q'],q2kpi:'m',q2n:1,kpi:90,kpiq:85,q3:80,ins:23.5},pay:{mode:'accrual',q2y:[11],q2q:[2,5,8,11],q3q:[2,5,8,11]},ben:BEN_V5(),ovr:[],hc:{747:Array(12).fill(0)}},
@@ -379,10 +391,12 @@ function newPC(job){const det={};ALW.forEach(a=>{let v=0,src='';
 const avgP=(ps,name)=>{const o={name};PK.forEach(([k])=>o[k]=ps.reduce((s,p)=>s+(p[k]||0),0)/ps.length);return o;};
 function priceOf(job){
   let r;
-  if(job.people.length)r={src:'pos',label:`TB vị trí (${job.people.length})`,p:avgP(job.people,'(TB vị trí)')};
+  const bd=bandOf(job),blv=(ST.manual[job.id]||{}).bl||3;
+  if(bd&&+bd.lv[blv-1])r={src:'band',label:`Khung L${blv}${bd.code?' · '+bd.code:''}`,p:{name:'(khung)',...bandPrice(bd,blv)}};
+  else if(job.people.length)r={src:'pos',label:`TB vị trí (${job.people.length})`,p:avgP(job.people,'(TB vị trí)')};
   else if(TITLE_AVG[job.id])r={src:'tit',label:TITLE_AVG[job.id].label,p:TITLE_AVG[job.id].p};
   else{const ps=JOBS.filter(j=>j.ng===job.ng).flatMap(j=>j.people);r=ps.length?{src:'ng',label:`TB ngạch (${ps.length})`,p:avgP(ps,'(TB ngạch)')}:{src:'none',label:'Cần nhập',p:avgP([{}],'(trống)')};}
-  const mm={...(ST.manual[job.id]||{})};delete mm.pcx;delete mm.lvl;delete mm.loc;if(Object.keys(mm).length){r={...r,src:'man',label:'Nhập tay',auto:r.p,p:{...r.p,...mm}};}
+  const mm={...(ST.manual[job.id]||{})};delete mm.pcx;delete mm.lvl;delete mm.loc;delete mm.bl;if(Object.keys(mm).length){r={...r,src:'man',label:'Nhập tay',auto:r.p,p:{...r.p,...mm}};}
   const q=r.p,B=new Set(CFG().vars.q2base||[]);
   const npc=newPC(job);r.pc=npc;
   r.p={...q,pc:npc.v,q3:0,q2y:((B.has('lcb')?q.lcb:0)+(B.has('tdg')?q.tdg:0)+(B.has('pc')?npc.v:0)+(B.has('q2m')?q.q2m:0)+(B.has('q2q')?(q.q2q||0)/3:0))*(CFG().vars.q2n||0)};
@@ -530,9 +544,10 @@ function renderPrice(){
     <tr><th>Lương cơ bản</th><th>Thưởng đánh giá</th><th>= Q1</th><th>Q2 tháng</th><th>Q2 quý</th><th>Bậc tay nghề</th><th>PC đặc thù</th><th style="color:var(--muted)">Phụ cấp (mục 3)</th><th style="color:var(--muted)">Q2 năm / 12</th></tr>`;
   $('#price').innerHTML=JOBS.map(j=>{const p=priceOf(j);const need=Object.values(SCN).some(c=>hcOf(j,c).some(h=>h>j.people.length));const man=ST.manual[j.id]||{};
     const inp=k=>{const val=k==='pcx'?(man.pcx||0):p.p[k];return `<td><input class="money ${man[k]!=null?'edited':''}" style="width:${k==='pcx'?84:100}px" data-j="${j.id}" data-k="${k}" value="${val?fmt(Math.round(val)):''}" placeholder="0"></td>`;};
-    return `<tr><td class="l">${j.name}<div class="sub">ngạch ${j.ng}${need?' · <b style="color:#6b3fc7">có định biên mới</b>':''}</div></td>${inp('lcb')}${inp('tdg')}<td>${fmt(Math.round(p.p.lcb+p.p.tdg))}</td>${inp('q2m')}${inp('q2q')}<td><select data-lvl="${j.id}"><option value="">–</option>${[1,2,3,4,5].map(b=>`<option value="${b}" ${man.lvl==b?'selected':''}>Bậc ${b}</option>`).join('')}</select></td>${inp('pcx')}<td class="sub" title="${Object.values(p.pc.det).map(d=>d.n+': '+fmt(Math.round(d.v))+' ('+d.src+')').join('\n')}" style="cursor:help">${fmt(Math.round(p.pc.v))}</td><td class="sub">${fmt(Math.round(p.p.q2y/12))}</td><td><select data-loc="${j.id}" style="max-width:150px">${CO_LOCS.map(([nm])=>`<option value="${nm}" ${jobLoc(j)===nm?'selected':''}>${nm.replace(/^\[[^\]]+\] /,'')}</option>`).join('')}</select></td><td><b>${fmt(Math.round(p.val))}</b></td><td class="l"><span class="tag t-${p.src==='ng'?'tit':p.src}">${p.label}</span>${p.src==='man'?` <button class="btn" data-reset="${j.id}" title="Về giá tự tính">↺</button>`:''}</td></tr>`;}).join('');
+    const bd=bandOf(j);return `<tr><td class="l">${j.name}<div class="sub">${bd?`<select data-bl="${j.id}" title="Bậc khung thu nhập">${[1,2,3,4,5].map(n=>`<option value="${n}" ${((man.bl||3)==n)?'selected':''}>L${n}</option>`).join('')}</select> `:'<span title="Chưa có khung cho chức danh này – nhập tay">chưa có khung</span> · '}ngạch ${j.ng}${need?' · <b style="color:#6b3fc7">có định biên mới</b>':''}</div></td>${inp('lcb')}${inp('tdg')}<td>${fmt(Math.round(p.p.lcb+p.p.tdg))}</td>${inp('q2m')}${inp('q2q')}<td><select data-lvl="${j.id}"><option value="">–</option>${[1,2,3,4,5].map(b=>`<option value="${b}" ${man.lvl==b?'selected':''}>Bậc ${b}</option>`).join('')}</select></td>${inp('pcx')}<td class="sub" title="${Object.values(p.pc.det).map(d=>d.n+': '+fmt(Math.round(d.v))+' ('+d.src+')').join('\n')}" style="cursor:help">${fmt(Math.round(p.pc.v))}</td><td class="sub">${fmt(Math.round(p.p.q2y/12))}</td><td><select data-loc="${j.id}" style="max-width:150px">${CO_LOCS.map(([nm])=>`<option value="${nm}" ${jobLoc(j)===nm?'selected':''}>${nm.replace(/^\[[^\]]+\] /,'')}</option>`).join('')}</select></td><td><b>${fmt(Math.round(p.val))}</b></td><td class="l"><span class="tag t-${p.src==='ng'?'tit':p.src}">${p.label}</span>${p.src==='man'?` <button class="btn" data-reset="${j.id}" title="Về giá tự tính">↺</button>`:''}</td></tr>`;}).join('');
   $$('#price [data-j]').forEach(x=>x.onchange=()=>{const id=x.dataset.j,k=x.dataset.k,v=+x.value.replace(/\D/g,'')||0;ST.manual[id]={...(ST.manual[id]||{}),[k]:v};renderPrice();renderAll();});
   $$('#price [data-loc]').forEach(x=>x.onchange=()=>{const id=x.dataset.loc;ST.manual[id]={...(ST.manual[id]||{}),loc:x.value};renderPrice();renderAll();});
+  $$('#price [data-bl]').forEach(x=>x.onchange=()=>{const id=x.dataset.bl;ST.manual[id]={...(ST.manual[id]||{}),bl:+x.value||3};renderPrice();renderAll();});
   $$('#price [data-lvl]').forEach(x=>x.onchange=()=>{const id=x.dataset.lvl;ST.manual[id]={...(ST.manual[id]||{}),lvl:+x.value||0};renderPrice();renderAll();});
   $$('#price [data-reset]').forEach(x=>x.onclick=()=>{delete ST.manual[x.dataset.reset];renderPrice();renderAll();});
 }
@@ -564,7 +579,7 @@ function mselLabel(el){
   el.querySelector('.mbtn').innerHTML=on.length?on.map(k=>`<span class="tag">${STRUCT_LBL[k]}</span>`).join(''):'<span class="sub">— chọn cấu phần —</span>';
 }
 document.addEventListener('click',()=>$$('.msel.open').forEach(o=>o.classList.remove('open')));
-const COMMON={ins:INS0(),ben:SCN.A.ben,pay:SCN.A.pay,ovr:[],benVer:'PLV-2025-06',benFunds:['pl','hp'],giftRate:50};const shareCommon=c=>{c.ins=COMMON.ins;c.ben=COMMON.ben;c.pay=COMMON.pay;};Object.values(SCN).forEach(shareCommon);
+const COMMON={bands:BANDS0(),ins:INS0(),ben:SCN.A.ben,pay:SCN.A.pay,ovr:[],benVer:'PLV-2025-06',benFunds:['pl','hp'],giftRate:50};const shareCommon=c=>{c.ins=COMMON.ins;c.ben=COMMON.ben;c.pay=COMMON.pay;};Object.values(SCN).forEach(shareCommon);
 // ---- Lưu cấu hình (trình duyệt trên máy này) ----
 const SKEY='ngan-sach-cau-hinh-v1';
 function core(){return JSON.stringify({scn:SCN,common:COMMON,alw:ALW,manual:ST.manual});}
@@ -572,6 +587,7 @@ function snapshot(){return JSON.stringify({savedAt:new Date().toISOString(),cur:
 (function restore(){try{const raw=localStorage.getItem(SKEY);if(!raw)return;const d=JSON.parse(raw);
   Object.keys(SCN).forEach(k=>delete SCN[k]);Object.assign(SCN,d.scn);Object.assign(COMMON,d.common);ALW.splice(0,ALW.length,...d.alw);Object.assign(ST.manual,d.manual||{});
   Object.values(SCN).forEach(shareCommon);if(SCN[d.cur])CUR=d.cur;window.__saved=d.savedAt;}catch(e){console.warn('Không đọc được cấu hình đã lưu',e);}})();
+if(!COMMON.bands)COMMON.bands=BANDS0();
 if(COMMON.benVer!==BEN_VER){COMMON.ben=BEN_V5();COMMON.benVer=BEN_VER;if(!COMMON.benFunds)COMMON.benFunds=['pl','hp'];Object.values(SCN).forEach(shareCommon);window.__benMigrated=true;}
 let DIRTY=false,SAVED_SNAP=null;
 function markSave(){const el=$('#save-st');if(!el)return;const now=core();DIRTY=SAVED_SNAP!==null&&now!==SAVED_SNAP;
@@ -586,7 +602,44 @@ $$('.msel').forEach(buildMsel);
 $('#ins-who').innerHTML=JOBS.flatMap((j,ji)=>j.people.map((p,pi)=>`<option value="${ji}:${pi}">${p.name} – ${j.name}</option>`)).join('');
 $('#ins-m').innerHTML=M.map((t,i)=>`<option value="${i}">${t}</option>`).join('');
 ['#ins-who','#ins-m'].forEach(id=>$(id).onchange=insDemo);
-$$('#cfgnav>button').forEach(b=>b.onclick=()=>{$$('#cfgnav>button').forEach(x=>x.classList.toggle('on',x===b));$$('.cp').forEach(c=>c.classList.toggle('hidden',c.id!==b.dataset.c));});
+
+// ---- Màn hình khung thu nhập ----
+const BD={q:''};
+function renderBands(){
+  const B=COMMON.bands,q=BD.q.trim().toLowerCase(),used=new Set(JOBS.map(j=>titleKey(j.name)));
+  const list=B.map((b,i)=>[b,i]).filter(([b])=>!q||(b.t+' '+(b.code||'')).toLowerCase().includes(q));
+  const pct=v=>v==null||v===''?'':Math.round(v*1000)/10;
+  $('#bd-cnt').innerHTML=`${B.length} chức danh có khung · ${JOBS.filter(j=>bandOf(j)).length}/${JOBS.length} vị trí đang có khung.`;
+  $('#bands').innerHTML=list.slice(0,400).map(([b,i])=>`<tr data-bi="${i}" ${used.has(b.t.trim().toLowerCase())?'style="background:#f6fbf8"':''}>
+    <td class="l"><input data-bf="code" value="${b.code||''}" style="width:112px"></td><td class="l"><input data-bf="t" value="${b.t.replace(/"/g,'&quot;')}" style="width:230px"></td>
+    ${[0,1,2,3,4].map(n=>`<td ${n===2?'style="background:#eef4ff"':''}><input class="money" style="width:96px;${n===2?'font-weight:600':''}" data-bl5="${n}" value="${b.lv[n]?fmt(b.lv[n]):''}"></td>`).join('')}
+    <td><input class="num" data-bf="lcbr" value="${pct(b.lcbr)}" style="width:52px"> %</td><td><input class="num" data-bf="q2r" value="${pct(b.q2r)}" style="width:52px"> %</td>
+    <td class="l sub">${b.src||''}${b.n!=null?` · ${b.n} người`:''}</td><td><button class="btn" data-bdx="${i}">✕</button></td></tr>`).join('')+(list.length>400?`<tr><td class="l sub" colspan="11">… còn ${list.length-400} dòng – gõ tìm để lọc.</td></tr>`:'')||'<tr><td class="l sub" colspan="11">Chưa có khung nào.</td></tr>';
+  $$('#bands tr[data-bi]').forEach(tr=>{const b=B[+tr.dataset.bi];
+    tr.querySelectorAll('[data-bf]').forEach(x=>x.onchange=()=>{const f=x.dataset.bf;b[f]=(f==='lcbr'||f==='q2r')?(+x.value.replace(',','.')||0)/100:x.value.trim();b.src='Nhập tay';renderBands();renderPrice();renderAll();});
+    tr.querySelectorAll('[data-bl5]').forEach(x=>x.onchange=()=>{const n=+x.dataset.bl5;b.lv[n]=+x.value.replace(/\D/g,'')||0;
+      if(n===2&&x.dataset.auto!=='0'&&confirm('Tự tính lại L1–L5 theo biên độ ±20% quanh L3 mới?')){const m=b.lv[2];b.lv=[.8,.9,1,1.1,1.2].map(r=>Math.round(m*r/100000)*100000);}
+      b.src='Nhập tay';renderBands();renderPrice();renderAll();});});
+  $$('#bands [data-bdx]').forEach(x=>x.onclick=()=>{if(!confirm('Xoá khung chức danh này?'))return;B.splice(+x.dataset.bdx,1);renderBands();renderPrice();renderAll();});
+}
+$('#bd-q').oninput=e=>{BD.q=e.target.value;renderBands();};
+$('#bd-add').onclick=()=>{COMMON.bands.unshift({code:'',t:'Chức danh mới',lv:[0,0,0,0,0],lcbr:0.4,q2r:0.1,src:'Nhập tay'});BD.q='';$('#bd-q').value='';renderBands();};
+$('#bd-paste').onclick=()=>$('#bd-pastebox').classList.toggle('hidden');
+$('#bd-import').onclick=()=>{const num=v=>+String(v||'').replace(/[^\d]/g,'')||0,pc=v=>{const x=parseFloat(String(v||'').replace('%','').replace(',','.'));return isNaN(x)?0:(x>1?x/100:x);};
+  const rows=$('#bd-text').value.split(/\r?\n/).map(l=>l.split('\t')).filter(c=>c.length>=7&&num(c[4]));
+  if(!rows.length){$('#bd-imsg').textContent='Không đọc được dòng nào – kiểm tra thứ tự cột.';return;}
+  if($('#bd-replace').checked)COMMON.bands.splice(0);let add=0,upd=0;
+  rows.forEach(c=>{const o={code:c[0].trim(),t:c[1].trim(),lv:[2,3,4,5,6].map(k=>num(c[k])),lcbr:pc(c[7]),q2r:pc(c[8]),src:'Nhập từ Excel'};const ex=COMMON.bands.find(b=>(o.code&&b.code===o.code)||b.t.trim().toLowerCase()===o.t.toLowerCase());if(ex){Object.assign(ex,o);upd++;}else{COMMON.bands.push(o);add++;}});
+  $('#bd-imsg').textContent=`Đã thêm ${add}, cập nhật ${upd} chức danh.`;$('#bd-text').value='';renderBands();renderPrice();renderAll();};
+$('#bd-exp').onclick=()=>{const csv=['Mã,Chức danh,L1,L2,L3,L4,L5,LCB/Q1 (%),Q2 tháng/Q1 (%),Nguồn',...COMMON.bands.map(b=>[b.code||'',`"${b.t}"`,...b.lv,Math.round((b.lcbr||0)*1000)/10,Math.round((b.q2r||0)*1000)/10,`"${b.src||''}"`].join(','))].join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['﻿'+csv],{type:'text/csv'}));a.download='khung-thu-nhap.csv';a.click();};
+$('#bd-sug').onclick=()=>{const g={};JOBS.forEach(j=>j.people.forEach(p=>{const k=titleKey(j.name);(g[k]=g[k]||{t:j.name.split(' / ')[0].trim(),ps:[]}).ps.push(p);}));
+  const ks=Object.keys(g);if(!ks.length){alert('Chưa có dữ liệu lương người đang giữ để gợi ý.');return;}
+  if(!confirm(`Tính khung cho ${ks.length} chức danh từ lương người đang giữ (L3 = TB Q1, L1/L5 = ±20%)? Khung đã có của các chức danh này sẽ bị ghi đè.`))return;
+  ks.forEach(k=>{const ps=g[k].ps,q1=ps.reduce((s,p)=>s+(p.lcb||0)+(p.tdg||0),0)/ps.length;if(!q1)return;const lc=ps.reduce((s,p)=>s+(p.lcb||0),0)/ps.length,q2=ps.reduce((s,p)=>s+(p.q2m||0),0)/ps.length;
+    const o={code:'',t:g[k].t,lv:[.8,.9,1,1.1,1.2].map(r=>Math.max(r===.8?5310000:0,Math.round(q1*r/100000)*100000)),lcbr:Math.round(lc/q1*1000)/1000,q2r:Math.round(q2/q1*1000)/1000,n:ps.length,src:'Gợi ý từ dữ liệu'};
+    const ex=COMMON.bands.find(b=>b.t.trim().toLowerCase()===k);if(ex){o.code=ex.code;Object.assign(ex,o);}else COMMON.bands.push(o);});renderBands();renderPrice();renderAll();};
+$$('#cfgnav>button').forEach(b=>b.onclick=()=>{if(b.dataset.c==='c11')renderBands();$$('#cfgnav>button').forEach(x=>x.classList.toggle('on',x===b));$$('.cp').forEach(c=>c.classList.toggle('hidden',c.id!==b.dataset.c));});
 function renderIns(){const I=CFG().ins;
   $('#ins-rows').innerHTML=I.rows.map((r,i)=>`<tr><td class="l">${r.n}<span class="sub"> · trần ${r.cap==='ref'?'20 × tham chiếu':r.cap==='minw'?'20 × LTT vùng':'không'}</span></td><td><input class="num" data-i="${i}" data-s="dn" value="${r.dn}"> %</td><td><input class="num" data-i="${i}" data-s="nld" value="${r.nld}"> %</td></tr>`).join('')
     +`<tr class="tot"><td class="l">Cộng</td><td>${I.rows.reduce((s,r)=>s+(+r.dn||0),0)} %</td><td>${I.rows.reduce((s,r)=>s+(+r.nld||0),0)} %</td></tr>`;
