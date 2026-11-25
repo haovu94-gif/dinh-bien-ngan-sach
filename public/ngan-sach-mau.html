@@ -94,6 +94,7 @@ table.form td:nth-child(2){width:190px;white-space:nowrap}
 .of .units label{font-size:12.5px;display:flex;gap:5px;align-items:center;white-space:nowrap}
 tr.grp td{background:#f7f8fa;font-weight:600;font-size:12px}
 body.mgr [data-admin]{display:none!important}body.mgr [data-mgr]{display:block!important}body.mgr #price .mgr-hide{display:none}
+#ben tr.bsub td{background:#fafbfc;font-size:12px}#ben-funds label{font-weight:500}
 </style>
 </head>
 <body>
@@ -152,7 +153,7 @@ body.mgr [data-admin]{display:none!important}body.mgr [data-mgr]{display:block!i
           </tbody></table><div class="sub" id="q3-est"></div>
         </div>
         <div class="card cp hidden" id="c3"><div class="row between"><h3 style="margin:0">Phúc lợi <span class="scope g">Chung toàn công ty</span> <span class="i" title="Trên KOI các khoản Cưới / Sinh con / Nghỉ việc / BHSK mới là cờ Có–Không, chưa có mức tiền → khai mức, đối tượng, tháng chi ở đây.">ⓘ</span></h3><button class="btn" id="ben-add">+ Thêm</button></div>
-          <div class="wrap" style="max-height:none;margin-top:8px"><table><thead><tr><th></th><th class="l">Phúc lợi</th><th class="l">Loại</th><th>Mức / người / lần</th><th class="l">Đối tượng</th><th>Phát sinh</th><th class="l">Tháng chi</th><th>Ước tính năm</th><th></th></tr></thead><tbody id="ben"></tbody></table></div></div>
+          <div class="sub" style="margin-top:6px">Theo <b>Phụ lục V – Quy định chế độ phúc lợi đối với CBNV</b> (hiệu lực 01/06/2025). Mức tiền tách theo 3 quỹ; chỉ quỹ được tick mới tính vào ngân sách. Tỷ lệ phát sinh của các khoản theo sự kiện là ước tính – chỉnh theo thực tế.</div><div id="ben-funds" style="margin-top:6px;font-size:13px"></div><div class="wrap" style="max-height:none;margin-top:8px"><table><thead><tr><th></th><th class="l">Phúc lợi</th><th class="l">Loại</th><th>Quỹ phúc lợi</th><th>Quỹ công đoàn</th><th>Quỹ hạnh phúc</th><th title="Chỉ cộng các quỹ được tick">Tính vào NS / người / lần</th><th class="l">Đối tượng</th><th>Phát sinh</th><th class="l">Tháng chi</th><th>Ước tính năm</th><th></th></tr></thead><tbody id="ben"></tbody></table></div></div>
         <div class="card cp" id="c7"><h3>Bảo hiểm &amp; thuế TNCN <span class="scope g">Chung toàn công ty</span></h3>
           <table class="form"><tbody>
             <tr><th>Lương đóng BH</th><td colspan="2"><div class="msel insbase" data-ex="q2m,q2q,q2y,q3,q3_quarterly_bonus,q3_emulation_program_bonus,recognition_bonus,special_annual_planning_bonus,other_special_bonus,sti_phase_planning_bonus,lti_core_annual_bonus,lti_tb_bonus,ben"></div></td></tr>
@@ -293,10 +294,38 @@ const comp=p=>p.lcb+p.tdg+p.pc+p.q2m+(p.q2q||0)/3+p.q2y/12+p.q3;
 const ST={manual:{}};
 // ---- Kịch bản: mỗi kịch bản = định biên riêng + bộ biến số riêng ----
 const COLORS=['#0a6bc4','#12805c','#b42318','#6b3fc7','#b54708','#0e7490','#9d174d'];
+// ---- Phúc lợi theo Phụ lục V – Quy định chế độ phúc lợi đối với CBNV (hiệu lực 01/06/2025) ----
+const BEN_VER='PLV-2025-06b';
+const FUNDS=[['pl','Quỹ phúc lợi'],['cd','Quỹ công đoàn'],['hp','Quỹ hạnh phúc']];
+const BEN_V5=()=>JSON.parse(JSON.stringify([
+ {id:'sn',product:true,name:'Quà sinh nhật Công ty',grp:'I. Sinh nhật Công ty',type:'person',who:'all',rate:100,months:[],on:true,pl:4000000,cd:1000000,hp:0,
+  tiers:[{g:'NV, CV1, CV2',re:'^(NV|CV1|CV2|TTS)',pl:4000000,cd:1000000,hp:0},{g:'CV3 – CV5',re:'^CV[3-5]',pl:6000000,cd:1000000,hp:0},{g:'QL1',re:'^QL1',pl:6000000,cd:1000000,hp:0},{g:'QL2 – QL3',re:'^QL[23]',pl:9000000,cd:1000000,hp:0},{g:'QL4 – QL5',re:'^QL[45]',pl:14000000,cd:1000000,hp:0},{g:'Lãnh đạo (LĐ)',re:'^(LĐ|LD|QL6)',pl:19000000,cd:1000000,hp:0}],
+  note:'Quà sản phẩm công ty. HĐLĐ chính thức hưởng 100%. Chọn tháng sinh nhật Công ty.'},
+ {id:'tet',name:'Quà Tết Âm lịch',grp:'II. Lễ, Tết',type:'person',who:'all',rate:100,months:[0],on:true,pl:500000,cd:0,hp:200000,note:'Tiền mặt hoặc quà. HĐ chính thức và thử việc hưởng 100%.'},
+ {id:'n2010',name:'Quà ngày PNVN 20/10',grp:'II. Lễ, Tết',type:'person',who:'all',rate:100,months:[9],on:true,pl:100000,cd:0,hp:200000,note:'Áp dụng toàn thể CBNV. HĐ chính thức và thử việc hưởng 100%.'},
+ {id:'trip',name:'Nghỉ mát',grp:'III. Gắn kết',type:'person',who:'all',rate:100,months:[5],on:true,pl:3500000,cd:0,hp:0,note:'Theo thâm niên: ≥12 tháng 100%, 9–12 tháng 90%, 6–9 tháng 80%, <6 tháng 60%, thử việc 30%; GĐ chức năng trở lên 100%. Đồng phục 300.000đ/người ngoài định mức. Mức áp dụng theo tỷ lệ hoàn thành lợi nhuận.'},
+ {id:'tbql',name:'Teambuilding Cán bộ quản lý',grp:'III. Gắn kết',type:'person',who:'ql',rate:100,months:[7],on:true,pl:2200000,cd:0,hp:0,note:'CBQL chính thức và thử việc hưởng 100%.'},
+ {id:'bhsk',name:'Bảo hiểm sức khoẻ',grp:'IV. Chăm sóc CBNV',type:'person',who:'ql2',rate:100,months:[0],on:true,pl:0,cd:0,hp:0,note:'QL2 trở lên, HĐ chính thức. Mức theo chương trình BHSK từng thời điểm – nhập phí/người.'},
+ {id:'wed',product:true,name:'Quà tặng kết hôn',grp:'IV. Chăm sóc CBNV',type:'event',who:'all',rate:5,months:[],on:true,pl:4000000,cd:1000000,hp:0,note:'HĐ chính thức ≥6 tháng 100%; <6 tháng 50% quỹ PL + 100% quỹ CĐ. Không áp dụng thử việc. Tỷ lệ phát sinh là ước tính.'},
+ {id:'baby',name:'Quà sinh con',grp:'IV. Chăm sóc CBNV',type:'event',who:'all',rate:5,months:[],on:true,pl:1500000,cd:500000,hp:0,note:'CBNV nữ sinh con, vợ CBNV nam sinh con; tối đa 2 lần. HĐ chính thức.'},
+ {id:'sick',name:'Thăm hỏi ốm đau, tai nạn',grp:'IV. Chăm sóc CBNV',type:'event',who:'all',rate:5,months:[],on:true,pl:1000000,cd:500000,hp:0,
+  levels:[{g:'Nghỉ ≥7 ngày hoặc nhập viện phẫu thuật/điều trị dài hạn',pl:1000000,cd:500000,hp:0},{g:'Nghỉ ≥3 ngày hoặc nội trú',pl:500000,cd:500000,hp:0},{g:'Nghỉ <3 ngày',pl:0,cd:300000,hp:0}],note:'HĐ chính thức. Ước tính theo mức cao nhất.'},
+ {id:'disab',name:'Thăm hỏi thương tật, mất chức năng vĩnh viễn',grp:'IV. Chăm sóc CBNV',type:'event',who:'all',rate:0,months:[],on:true,pl:500000,cd:30000000,hp:0,note:'Áp dụng theo từng trường hợp.'},
+ {id:'death',name:'Phúng viếng tử tuất (bản thân CBNV)',grp:'IV. Chăm sóc CBNV',type:'event',who:'all',rate:0,months:[],on:true,pl:2000000,cd:10000000,hp:0,note:'Thử việc: quỹ CĐ 2.000.000. Kèm vòng hoa 1.000.000 (QL5–6) / 500.000.'},
+ {id:'fsick',name:'Thăm hỏi người thân ốm đau, tai nạn',grp:'V. Chăm sóc gia đình',type:'event',who:'all',rate:5,months:[],on:true,pl:500000,cd:300000,hp:0,note:'Tứ thân phụ mẫu, vợ/chồng/con nội trú ≥3 ngày; tối đa 3 lần/năm.'},
+ {id:'fdeath',name:'Phúng viếng tử tuất người thân',grp:'V. Chăm sóc gia đình',type:'event',who:'all',rate:3,months:[],on:true,pl:1000000,cd:1000000,hp:0,
+  levels:[{g:'Tứ thân phụ mẫu',pl:500000,cd:1000000,hp:0},{g:'Vợ/chồng/con',pl:1000000,cd:1000000,hp:0}],note:'Kèm vòng hoa 1.000.000 (QL5–6) / 500.000.'},
+ {id:'hard',name:'Hỗ trợ gia đình hoàn cảnh khó khăn',grp:'V. Chăm sóc gia đình',type:'event',who:'all',rate:0,months:[],on:true,pl:0,cd:0,hp:15000000,
+  levels:[{g:'CBNV trị bệnh hiểm nghèo ≥30 triệu',pl:0,cd:0,hp:15000000},{g:'CBNV thương tật mất chức năng vĩnh viễn',pl:0,cd:0,hp:30000000},{g:'Vợ/chồng/con trị bệnh hiểm nghèo ≥50 triệu',pl:0,cd:0,hp:10000000}],note:'Làm việc ≥3 tháng, gia đình khó khăn. Trường hợp đặc biệt ban điều hành quỹ xét riêng.'},
+ {id:'kid',name:'Ươm mầm hạnh phúc (con CBNV)',grp:'V. Chăm sóc gia đình',type:'event',who:'all',rate:2,months:[],on:true,pl:1000000,cd:1000000,hp:0,
+  levels:[{g:'Giải KK cấp tỉnh',pl:500000,cd:1000000,hp:0},{g:'Giải nhì, ba cấp tỉnh',pl:500000,cd:2000000,hp:0},{g:'Giải nhất cấp tỉnh',pl:500000,cd:3000000,hp:0},{g:'Giải KK quốc gia',pl:1000000,cd:3000000,hp:0},{g:'Giải nhì, ba quốc gia',pl:1000000,cd:5000000,hp:0},{g:'Giải nhất quốc gia trở lên',pl:1000000,cd:10000000,hp:0},{g:'Con đỗ Đại học',pl:1000000,cd:1000000,hp:0}],note:'Con CBNV HĐ chính thức. Ước tính theo mức con đỗ Đại học.'},
+ {id:'quit',product:true,name:'Quà tặng nghỉ việc (CBQL)',grp:'VI. Nghỉ việc',type:'event',who:'ql',rate:10,months:[],on:true,pl:0,cd:0,hp:5000000,
+  tiers:[{g:'QL1 – QL3 (TBP trở lên)',re:'^QL[1-3]',pl:0,cd:0,hp:5000000},{g:'QL4 trở lên (GĐ chức năng)',re:'^(QL[4-6]|LĐ|LD)',pl:0,cd:0,hp:5000000}],note:'CBQL thâm niên ≥3 năm. GĐ chức năng trở lên thêm tiệc chia tay 5.000.000. Cấp NV/CV không áp dụng.'},
+]));
 const SCN={
- A:{name:'A – Thuận lợi',color:COLORS[0],vars:{q3mode:'pct',q3pct:5,q3base:['lcb','tdg'],q3fund:0,incmin:6,incbasis:'fe',incrule:'reach',inc:8,incm:3,incon:['lcb','tdg'],q2base:['lcb','tdg','responsibility_allowance','q2m','q2q'],q2kpi:'m',q2n:1,kpi:100,kpiq:100,q3:90,ins:23.5},pay:{mode:'accrual',q2y:[11],q2q:[2,5,8,11],q3q:[2,5,8,11]},ben:[{id:'tet',name:'Quà Tết',type:'person',amount:1000000,who:'all',rate:100,months:[0],on:true,src:'KOI T01: 1.000.000'},{id:'n2010',name:'Quà 20/10',type:'person',amount:200000,who:'all',rate:100,months:[9],on:true,src:'KOI T01: 200.000'},{id:'trip',name:'Du lịch',type:'person',amount:7000000,who:'all',rate:100,months:[5],on:true,src:'KOI T01: 7.000.000'},{id:'tbql',name:'Teambuilding quản lý',type:'person',amount:2200000,who:'ql',rate:100,months:[7],on:true,src:'KOI T01: 2.200.000'},{id:'bhsk',name:'Bảo hiểm sức khoẻ',type:'person',amount:3000000,who:'all',rate:100,months:[0],on:true,src:'minh hoạ'},{id:'wed',name:'Quà cưới',type:'event',amount:2000000,who:'all',rate:5,months:[],on:true,src:'minh hoạ'},{id:'baby',name:'Quà sinh con',type:'event',amount:2000000,who:'all',rate:5,months:[],on:true,src:'minh hoạ'},{id:'quit',name:'Quà nghỉ việc',type:'event',amount:1000000,who:'all',rate:15,months:[],on:true,src:'minh hoạ'}],ovr:[{scope:'d:vh',v:'kpi',val:105},{scope:'j:807',v:'inc',val:12}],hc:{}},
- B:{name:'B – Cơ sở',color:COLORS[1],vars:{q3mode:'pct',q3pct:5,q3base:['lcb','tdg'],q3fund:0,incmin:6,incbasis:'fe',incrule:'reach',inc:5,incm:3,incon:['lcb','tdg'],q2base:['lcb','tdg','responsibility_allowance','q2m','q2q'],q2kpi:'m',q2n:1,kpi:90,kpiq:85,q3:80,ins:23.5},pay:{mode:'accrual',q2y:[11],q2q:[2,5,8,11],q3q:[2,5,8,11]},ben:[{id:'tet',name:'Quà Tết',type:'person',amount:1000000,who:'all',rate:100,months:[0],on:true,src:'KOI T01: 1.000.000'},{id:'n2010',name:'Quà 20/10',type:'person',amount:200000,who:'all',rate:100,months:[9],on:true,src:'KOI T01: 200.000'},{id:'trip',name:'Du lịch',type:'person',amount:7000000,who:'all',rate:100,months:[5],on:true,src:'KOI T01: 7.000.000'},{id:'tbql',name:'Teambuilding quản lý',type:'person',amount:2200000,who:'ql',rate:100,months:[7],on:true,src:'KOI T01: 2.200.000'},{id:'bhsk',name:'Bảo hiểm sức khoẻ',type:'person',amount:3000000,who:'all',rate:100,months:[0],on:true,src:'minh hoạ'},{id:'wed',name:'Quà cưới',type:'event',amount:2000000,who:'all',rate:5,months:[],on:true,src:'minh hoạ'},{id:'baby',name:'Quà sinh con',type:'event',amount:2000000,who:'all',rate:5,months:[],on:true,src:'minh hoạ'},{id:'quit',name:'Quà nghỉ việc',type:'event',amount:1000000,who:'all',rate:15,months:[],on:true,src:'minh hoạ'}],ovr:[],hc:{747:Array(12).fill(0)}},
- C:{name:'C – Bất lợi',color:COLORS[2],vars:{q3mode:'pct',q3pct:5,q3base:['lcb','tdg'],q3fund:0,incmin:6,incbasis:'fe',incrule:'reach',inc:3,incm:6,incon:['lcb'],q2base:['lcb','tdg','responsibility_allowance','q2m','q2q'],q2kpi:'m',q2n:1,kpi:75,kpiq:70,q3:60,ins:23.5},pay:{mode:'accrual',q2y:[11],q2q:[2,5,8,11],q3q:[2,5,8,11]},ben:[{id:'tet',name:'Quà Tết',type:'person',amount:1000000,who:'all',rate:100,months:[0],on:true,src:'KOI T01: 1.000.000'},{id:'n2010',name:'Quà 20/10',type:'person',amount:200000,who:'all',rate:100,months:[9],on:true,src:'KOI T01: 200.000'},{id:'trip',name:'Du lịch',type:'person',amount:7000000,who:'all',rate:100,months:[5],on:true,src:'KOI T01: 7.000.000'},{id:'tbql',name:'Teambuilding quản lý',type:'person',amount:2200000,who:'ql',rate:100,months:[7],on:true,src:'KOI T01: 2.200.000'},{id:'bhsk',name:'Bảo hiểm sức khoẻ',type:'person',amount:3000000,who:'all',rate:100,months:[0],on:true,src:'minh hoạ'},{id:'wed',name:'Quà cưới',type:'event',amount:2000000,who:'all',rate:5,months:[],on:true,src:'minh hoạ'},{id:'baby',name:'Quà sinh con',type:'event',amount:2000000,who:'all',rate:5,months:[],on:true,src:'minh hoạ'},{id:'quit',name:'Quà nghỉ việc',type:'event',amount:1000000,who:'all',rate:15,months:[],on:true,src:'minh hoạ'}],ovr:[{scope:'d:hrbp',v:'kpi',val:70}],hc:{3579:Array(12).fill(0),807:Array(12).fill(1),747:Array(12).fill(0),821:[1,1,1,1,1,1,0,0,0,0,0,0]}},
+ A:{name:'A – Thuận lợi',color:COLORS[0],vars:{q3mode:'pct',q3pct:5,q3base:['lcb','tdg'],q3fund:0,incmin:6,incbasis:'fe',incrule:'reach',inc:8,incm:3,incon:['lcb','tdg'],q2base:['lcb','tdg','responsibility_allowance','q2m','q2q'],q2kpi:'m',q2n:1,kpi:100,kpiq:100,q3:90,ins:23.5},pay:{mode:'accrual',q2y:[11],q2q:[2,5,8,11],q3q:[2,5,8,11]},ben:BEN_V5(),ovr:[{scope:'d:vh',v:'kpi',val:105},{scope:'j:807',v:'inc',val:12}],hc:{}},
+ B:{name:'B – Cơ sở',color:COLORS[1],vars:{q3mode:'pct',q3pct:5,q3base:['lcb','tdg'],q3fund:0,incmin:6,incbasis:'fe',incrule:'reach',inc:5,incm:3,incon:['lcb','tdg'],q2base:['lcb','tdg','responsibility_allowance','q2m','q2q'],q2kpi:'m',q2n:1,kpi:90,kpiq:85,q3:80,ins:23.5},pay:{mode:'accrual',q2y:[11],q2q:[2,5,8,11],q3q:[2,5,8,11]},ben:BEN_V5(),ovr:[],hc:{747:Array(12).fill(0)}},
+ C:{name:'C – Bất lợi',color:COLORS[2],vars:{q3mode:'pct',q3pct:5,q3base:['lcb','tdg'],q3fund:0,incmin:6,incbasis:'fe',incrule:'reach',inc:3,incm:6,incon:['lcb'],q2base:['lcb','tdg','responsibility_allowance','q2m','q2q'],q2kpi:'m',q2n:1,kpi:75,kpiq:70,q3:60,ins:23.5},pay:{mode:'accrual',q2y:[11],q2q:[2,5,8,11],q3q:[2,5,8,11]},ben:BEN_V5(),ovr:[{scope:'d:hrbp',v:'kpi',val:70}],hc:{3579:Array(12).fill(0),807:Array(12).fill(1),747:Array(12).fill(0),821:[1,1,1,1,1,1,0,0,0,0,0,0]}},
 };
 let CUR='A';const CFG=()=>SCN[CUR];
 const hcOf=(job,cfg=CFG())=>cfg.hc[job.id]||job.hc;
@@ -334,8 +363,12 @@ function pitTax(gross,nldIns,cfg){const P=cfg.ins.pit;if(!P.on)return 0;let x=gr
 function netOf(t,cfg){const g=sumT(t),bh=insAmt(t,cfg,'nld'),tx=pitTax(g,bh,cfg);return {g,bh,tx,net:g-bh-tx,dn:insAmt(t,cfg,'dn')};}
 // Lịch chi trả: dồn tích = chia đều; dòng tiền = dồn vào tháng chi
 function share(months,m,cfg){return cfg.pay.mode==='cash'&&months.length?(months.includes(m)?12/months.length:0):1;}
-function eligible(b,job,p){return b.who==='all'||(b.who==='ql'&&/^QL/.test(job.ng))||(b.who==='cv'&&/^(CV|QL)/.test(job.ng))||(b.who==='flag'&&p&&p.flags&&p.flags[b.id]);}
-function benMonth(b,job,p,m,cfg){if(!b.on||!eligible(b,job,p))return 0;const ov=vars(job,cfg)['ben:'+b.id],amt=ov!=null?ov:b.amount;const annual=b.type==='event'?amt*b.rate/100:amt;return annual/12*share(b.months,m,cfg);}
+function eligible(b,job,p){return b.who==='all'||(b.who==='ql'&&/^QL/.test(job.ng))||(b.who==='cv'&&/^(CV|QL)/.test(job.ng))||(b.who==='ql2'&&/^(QL[2-6]|LĐ|LD)/.test(job.ng||''))||(b.who==='ql4'&&/^(QL[4-6]|LĐ|LD)/.test(job.ng||''))||(b.who==='flag'&&p&&p.flags&&p.flags[b.id]);}
+function benFunds(){return (typeof COMMON!=='undefined'&&COMMON.benFunds)||['pl','hp'];}
+function benTier(b,job){if(!b.tiers||!job)return b;const g=job.ng||'';return b.tiers.find(t=>new RegExp(t.re).test(g))||b;}
+function giftRate(){const r=typeof COMMON!=='undefined'?COMMON.giftRate:null;return r==null?50:+r;}
+function benAmt(b,job){if(b.pl===undefined&&b.cd===undefined&&b.hp===undefined)return b.amount||0;const t=benTier(b,job);const v=benFunds().reduce((a,f)=>a+(+t[f]||0),0);return b.product?v*giftRate()/100:v;}
+function benMonth(b,job,p,m,cfg){if(!b.on||!eligible(b,job,p))return 0;const ov=vars(job,cfg)['ben:'+b.id],amt=ov!=null?ov:benAmt(b,job);const annual=b.type==='event'?amt*b.rate/100:amt;return annual/12*share(b.months,m,cfg);}
 function alloc(t,m,cfg=CFG(),job,p){const v=job?vars(job,cfg):{},pm=k=>v['pay:'+k]||cfg.pay[k];t.q2y=t.q2y*share(pm('q2y'),m,cfg);t.q3=t.q3*share(pm('q3q'),m,cfg);t.q2q=(t.q2q||0)*share(pm('q2q'),m,cfg);t.ben={};if(job)cfg.ben.forEach(b=>t.ben[b.id]=benMonth(b,job,p,m,cfg));return t;}
 function sumT(t){return t.q1+t.pc+t.q2+(t.q2q||0)+t.q2y+t.q3+Object.values(t.ben||{}).reduce((a,b)=>a+b,0);}
 const PK=[['lcb','Lương cơ bản'],['tdg','Thưởng đánh giá'],['q2m','Q2 tháng'],['q2q','Q2 quý']];
@@ -546,7 +579,7 @@ function mselLabel(el){
   el.querySelector('.mbtn').innerHTML=on.length?on.map(k=>`<span class="tag">${STRUCT_LBL[k]}</span>`).join(''):'<span class="sub">— chọn cấu phần —</span>';
 }
 document.addEventListener('click',()=>$$('.msel.open').forEach(o=>o.classList.remove('open')));
-const COMMON={ins:INS0(),ben:SCN.A.ben,pay:SCN.A.pay,ovr:[]};const shareCommon=c=>{c.ins=COMMON.ins;c.ben=COMMON.ben;c.pay=COMMON.pay;};Object.values(SCN).forEach(shareCommon);
+const COMMON={ins:INS0(),ben:SCN.A.ben,pay:SCN.A.pay,ovr:[],benVer:'PLV-2025-06',benFunds:['pl','hp'],giftRate:50};const shareCommon=c=>{c.ins=COMMON.ins;c.ben=COMMON.ben;c.pay=COMMON.pay;};Object.values(SCN).forEach(shareCommon);
 // ---- Lưu cấu hình (trình duyệt trên máy này) ----
 const SKEY='ngan-sach-cau-hinh-v1';
 function core(){return JSON.stringify({scn:SCN,common:COMMON,alw:ALW,manual:ST.manual});}
@@ -554,6 +587,7 @@ function snapshot(){return JSON.stringify({savedAt:new Date().toISOString(),cur:
 (function restore(){try{const raw=localStorage.getItem(SKEY);if(!raw)return;const d=JSON.parse(raw);
   Object.keys(SCN).forEach(k=>delete SCN[k]);Object.assign(SCN,d.scn);Object.assign(COMMON,d.common);ALW.splice(0,ALW.length,...d.alw);Object.assign(ST.manual,d.manual||{});
   Object.values(SCN).forEach(shareCommon);if(SCN[d.cur])CUR=d.cur;window.__saved=d.savedAt;}catch(e){console.warn('Không đọc được cấu hình đã lưu',e);}})();
+if(COMMON.benVer!==BEN_VER){COMMON.ben=BEN_V5();COMMON.benVer=BEN_VER;if(!COMMON.benFunds)COMMON.benFunds=['pl','hp'];Object.values(SCN).forEach(shareCommon);window.__benMigrated=true;}
 let DIRTY=false,SAVED_SNAP=null;
 function markSave(){const el=$('#save-st');if(!el)return;const now=core();DIRTY=SAVED_SNAP!==null&&now!==SAVED_SNAP;
   el.innerHTML=DIRTY?'<span style="color:#b54708">● Có thay đổi chưa lưu</span>':(window.__saved?'✓ Đã lưu '+new Date(window.__saved).toLocaleString('vi-VN',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit'}):'Chưa lưu lần nào');}
@@ -587,26 +621,40 @@ Object.values(VMAP).forEach(sel=>$(sel).addEventListener('input',()=>{saveInputs
 ['#v-q2kpi','#v-q3mode','#v-q3fund'].forEach(id=>$(id).addEventListener('change',()=>{saveInputs();renderAll();}));
 function q3Vis(){const f=$('#v-q3mode').value==='fixed';$('#q3-pct').style.display=f?'none':'';$('#q3-fixed').style.display=f?'':'none';}
 // ---- Khung 4: phúc lợi ----
-const WHO={all:'Tất cả',ql:'Ngạch quản lý',cv:'Từ chuyên viên',flag:'Theo cờ trên Comp'};
+const WHO={all:'Tất cả',ql:'Ngạch quản lý (QL)',ql2:'QL2 trở lên',ql4:'QL4 trở lên',cv:'Từ chuyên viên',flag:'Theo cờ trên Comp'};const BENOPEN=new Set();
 const chips=(arr,attr)=>`<span class="mchips">${M.map((t,i)=>`<button data-${attr}="${i}" title="${t}" class="${arr.includes(i)?'on':''}">${i+1}</button>`).join('')}</span>`;
 function headsFor(b){let n=0;JOBS.forEach(j=>j.people.forEach(p=>{if(eligible(b,j,p))n++;}));return n;}
 function renderBen(){
   const c=CFG();
-  $('#ben').innerHTML=c.ben.map((b,i)=>{const n=headsFor(b),est=b.on?n*(b.type==='event'?b.amount*b.rate/100:b.amount):0;return `<tr data-i="${i}" style="${b.on?'':'opacity:.5'}">
+  const F=benFunds(),fsum=t=>F.reduce((a,f)=>a+(+t[f]||0),0),mon=(o,f,ix,sub)=>`<input class="money" style="width:92px" data-fund="${f}" ${sub!=null?`data-${sub}="${ix}"`:''} value="${fmt(o[f]||0)}" ${F.includes(f)?'':'title="Không tính vào ngân sách"'} >`;
+  $('#ben-funds').innerHTML='Tính vào ngân sách: '+FUNDS.map(([k,l])=>`<label style="display:inline-flex;flex-direction:row;gap:4px;margin-right:10px;align-items:center"><input type="checkbox" data-bf="${k}" ${F.includes(k)?'checked':''}> ${l}</label>`).join('')+`<span style="margin-left:14px">· Quà bằng <b>sản phẩm công ty</b> <span class="tag">SP</span> quy đổi chi phí <input class="num" id="gift-rate" value="${giftRate()}" style="width:56px"> % giá niêm yết</span>`;
+  $('#gift-rate').onchange=e=>{COMMON.giftRate=Math.max(0,Math.min(100,+e.target.value||0));renderBen();renderAll();};
+  let lastG='';
+  $('#ben').innerHTML=c.ben.map((b,i)=>{let est=0;if(b.on)JOBS.forEach(j=>j.people.forEach(p=>{if(eligible(b,j,p))est+=b.type==='event'?benAmt(b,j)*b.rate/100:benAmt(b,j);}));
+    const legacy=b.pl===undefined&&b.cd===undefined&&b.hp===undefined;const sub=b.tiers||b.levels;const open=BENOPEN.has(b.id);
+    const head=b.grp&&b.grp!==lastG?`<tr class="grp"><td></td><td class="l" colspan="11">${b.grp}</td></tr>`:'';if(b.grp)lastG=b.grp;
+    const subRows=sub&&open?sub.map((t,ti)=>`<tr class="bsub"><td></td><td class="l sub" style="padding-left:22px">${b.tiers?'Cấp ':''}${t.g}</td><td></td>${FUNDS.map(([f])=>`<td>${mon(t,f,`${i}:${ti}`,b.tiers?'bt':'bl')}</td>`).join('')}<td class="sub">${fmt(fsum(t)*(b.product?giftRate()/100:1))}</td><td colspan="5"></td></tr>`).join(''):'';
+    return head+`<tr data-i="${i}" style="${b.on?'':'opacity:.5'}">
     <td><input type="checkbox" data-f="on" ${b.on?'checked':''}></td>
-    <td class="l"><input data-f="name" value="${b.name}" style="width:170px" title="${b.src||''}"></td>
+    <td class="l">${b.product?'<span class="tag" title="Quà sản phẩm công ty – định mức theo giá niêm yết, chi phí tính theo % quy đổi">SP</span> ':''}<input data-f="name" value="${b.name}" style="width:200px" title="${(b.note||b.src||'').replace(/"/g,'&quot;')}">${b.note?` <span class="i" title="${b.note.replace(/"/g,'&quot;')}">ⓘ</span>`:''}${sub?`<br><a class="link sub" data-bopen="${b.id}">${open?'▾ ẩn':'▸ '+sub.length+' mức '+(b.tiers?'theo cấp bậc':'theo trường hợp')}</a>`:''}</td>
     <td class="l"><select data-f="type"><option value="person" ${b.type==='person'?'selected':''}>Định kỳ / người</option><option value="event" ${b.type==='event'?'selected':''}>Theo sự kiện</option></select></td>
-    <td><input class="money" data-f="amount" value="${fmt(b.amount)}"></td>
+    ${legacy?`<td colspan="3"><input class="money" data-f="amount" value="${fmt(b.amount)}"></td>`:b.tiers?`<td colspan="3" class="sub">theo cấp bậc ↓</td>`:FUNDS.map(([f])=>`<td>${mon(b,f,i,null)}</td>`).join('')}
+    <td><b>${legacy?fmt(b.amount):b.tiers?'<span class="sub">theo cấp</span>':fmt(fsum(b)*(b.product?giftRate()/100:1))}</b></td>
     <td class="l"><select data-f="who">${Object.entries(WHO).map(([k,l])=>`<option value="${k}" ${b.who===k?'selected':''}>${l}</option>`).join('')}</select></td>
     <td>${b.type==='event'?`<input class="num" data-f="rate" value="${b.rate}"> %`:'<span class="sub">100%</span>'}</td>
-    <td class="l">${chips(b.months,'bm')}</td>
-    <td>${fmt(est)}</td><td><button class="btn" data-bdel="${i}">✕</button></td></tr>`;}).join('');
+    <td class="l">${b.type==='event'?'<span class="sub">khi phát sinh</span>':chips(b.months,'bm')}</td>
+    <td>${fmt(est)}</td><td><button class="btn" data-bdel="${i}">✕</button></td></tr>`+subRows;}).join('');
+  $$('#ben-funds [data-bf]').forEach(x=>x.onchange=()=>{const k=x.dataset.bf;let a=benFunds().filter(y=>y!==k);if(x.checked)a.push(k);COMMON.benFunds=a;renderBen();renderAll();markSave&&markSave();});
+  $$('#ben [data-bopen]').forEach(x=>x.onclick=()=>{const id=x.dataset.bopen;BENOPEN.has(id)?BENOPEN.delete(id):BENOPEN.add(id);renderBen();});
+  $$('#ben [data-fund]').forEach(x=>x.onchange=()=>{const v=+x.value.replace(/\D/g,'')||0,f=x.dataset.fund;let o;
+    if(x.dataset.bt){const [bi,ti]=x.dataset.bt.split(':').map(Number);o=c.ben[bi].tiers[ti];}else if(x.dataset.bl){const [bi,ti]=x.dataset.bl.split(':').map(Number);o=c.ben[bi].levels[ti];}else{o=c.ben[+x.closest('tr').dataset.i];}
+    o[f]=v;renderBen();renderAll();});
   $$('#ben tr[data-i]').forEach(tr=>{const b=c.ben[+tr.dataset.i];
     tr.querySelectorAll('[data-f]').forEach(x=>x.onchange=()=>{const f=x.dataset.f;b[f]=f==='on'?x.checked:f==='amount'?+x.value.replace(/\D/g,''):f==='rate'?+x.value:x.value;renderBen();renderAll();});
     tr.querySelectorAll('[data-bm]').forEach(x=>x.onclick=()=>{const m=+x.dataset.bm;b.months=b.months.includes(m)?b.months.filter(y=>y!==m):[...b.months,m].sort((a,b)=>a-b);renderBen();renderAll();});});
   $$('#ben [data-bdel]').forEach(x=>x.onclick=()=>{if(!confirm('Xoá phúc lợi này?'))return;c.ben.splice(+x.dataset.bdel,1);renderBen();renderAll();});
 }
-$('#ben-add').onclick=()=>{CFG().ben.push({id:'b'+Date.now(),name:'Phúc lợi mới',type:'person',amount:0,who:'all',rate:100,months:[],on:true,src:'nhập tay'});renderBen();renderAll();};
+$('#ben-add').onclick=()=>{CFG().ben.push({id:'b'+Date.now(),name:'Phúc lợi mới',type:'person',who:'all',rate:100,months:[],on:true,pl:0,cd:0,hp:0,src:'nhập tay'});renderBen();renderAll();};
 // ---- Khung 5: lịch chi trả ----
 function renderPay(){
   const P=CFG().pay;
