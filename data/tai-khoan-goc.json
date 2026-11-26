@@ -1,0 +1,65 @@
+[
+ {
+  "login": "hao",
+  "name": "Vũ Thị Hảo",
+  "role": "admin",
+  "owner": true,
+  "salt": "932affa4791358b0b04ed90c6d250dfa",
+  "hash": "1df8ded944079f746af3d980ab5e8eee5cbc01df45e58cdc054a21cec91b488a",
+  "must_change": true
+ },
+ {
+  "login": "phuong",
+  "name": "Phương",
+  "role": "admin",
+  "owner": false,
+  "salt": "88fafee1b0ceb8d3c3e27379c9469114",
+  "hash": "6f70ae38e7f75c8d45bab12588d659083ab3af8d2ba4cb8bfc7cc45cba2d1663",
+  "must_change": true
+ },
+ {
+  "login": "ngoc",
+  "name": "Ngọc",
+  "role": "admin",
+  "owner": false,
+  "salt": "f49a9e0b818c9aae4277eec3ae7c9783",
+  "hash": "502f27878ed06d0405c7353d7ece49622dd9e91af30c736e7a1865ca1b473953",
+  "must_change": true
+ },
+ {
+  "login": "giang",
+  "name": "Giang",
+  "role": "admin",
+  "owner": false,
+  "salt": "edd591d914ef77330ce837405068e68a",
+  "hash": "94f70951491a3c5e10f7a6885b69db40a022603bddf0453bca61b11c455eb2c5",
+  "must_change": true
+ },
+ {
+  "login": "tram",
+  "name": "Trâm",
+  "role": "admin",
+  "owner": false,
+  "salt": "1395e968a12eae34aa182da84aca9ecd",
+  "hash": "c67d4576386b38309d794c830f1f5a8b2ff8bde816a8a02d032a03bd265638d2",
+  "must_change": true
+ },
+ {
+  "login": "huyen",
+  "name": "Huyền",
+  "role": "admin",
+  "owner": false,
+  "salt": "a655b3a3bbcdce9ef1a0403abaa76a48",
+  "hash": "f88ac80ff2e667d8012396f38139cd614416cc08484a86b786bf7d40e63944d3",
+  "must_change": true
+ },
+ {
+  "login": "my",
+  "name": "Mỹ",
+  "role": "admin",
+  "owner": false,
+  "salt": "9ae5cc1b709b3fb3010f7534d6c7120e",
+  "hash": "08d9109ca18ddda962cb4a6fbf6ebf3cb97c065a5d0e4f6de364c82894998c67",
+  "must_change": true
+ }
+]

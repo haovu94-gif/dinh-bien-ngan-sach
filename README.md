@@ -12,3 +12,6 @@ Repo có sẵn `render.yaml`: vào Render → **New → Blueprint** → chọn r
 - `APP_PASSWORD`: mật khẩu chung để vào web (trình duyệt hỏi khi mở; tên đăng nhập gõ gì cũng được).
 - Mỗi người được hỏi tên một lần; tên này ghi vào nhật ký, người tạo/duyệt.
 - Kế hoạch định biên và cấu hình ngân sách lưu chung trên server; bắt đầu trắng.
+
+## Tài khoản
+Đăng nhập bằng tài khoản riêng (`data/tai-khoan-goc.json` chỉ chứa mã băm mật khẩu tạm). Lần đầu đăng nhập phải đổi mật khẩu. Vai trò: Admin HR, Quản lý đơn vị (theo phạm vi đơn vị), Người xem. Chủ hệ thống quản lý tài khoản ở mục **Người dùng**.

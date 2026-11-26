@@ -89,9 +89,9 @@ th.qs{border-left:2px solid #d0d5dd} td.qs{border-left:2px solid #eef0f3}
 <header>
   <h1>Định biên & Ngân sách</h1>
   <span class="sub">bản local độc lập · không kết nối KOI</span>
-  <nav class="top" id="topnav"><button data-v="plan" class="on">Tạo và xem Kế hoạch định biên</button><button data-v="dash">Dashboard hoạch định nhân sự</button><button data-v="org">Cơ cấu tổ chức</button><button data-v="budget">Ngân sách</button></nav>
+  <nav class="top" id="topnav"><button data-v="plan" class="on">Tạo và xem Kế hoạch định biên</button><button data-v="dash">Dashboard hoạch định nhân sự</button><button data-v="org">Cơ cấu tổ chức</button><button data-v="users" class="hidden" id="nav-users">Người dùng</button><button data-v="budget">Ngân sách</button></nav>
   <div class="me" id="me">Đang tải…</div>
-  <button class="btn" id="d-backup" title="Tải toàn bộ dữ liệu về máy">Sao lưu</button>
+  <button class="btn hidden" id="u-pw">Đổi mật khẩu</button><button class="btn hidden" id="u-out">Đăng xuất</button><button class="btn" id="d-backup" title="Tải toàn bộ dữ liệu về máy">Sao lưu</button>
   <label class="btn" style="flex-direction:row;color:var(--text);font-size:13.5px" title="Nạp lại từ file sao lưu">Khôi phục<input type="file" id="d-restore" accept=".json" hidden></label>
 </header>
 <main>
@@ -110,6 +110,7 @@ th.qs{border-left:2px solid #d0d5dd} td.qs{border-left:2px solid #eef0f3}
     <div id="pending"></div>
     <div id="dash" class="hidden"></div>
     <div id="org" class="hidden"></div>
+    <div id="users" class="hidden"></div>
     <div id="budget" class="hidden"><iframe id="budget-frame" title="Ngân sách" style="width:100%;height:calc(100vh - 110px);border:0;display:block"></iframe></div>
     <div id="planbar" class="card hidden"></div>
     <div id="kpis" class="kpis hidden" style="margin-bottom:12px"></div>
@@ -147,8 +148,9 @@ const ST={draft:'Nháp',confirm:'Chờ phê duyệt',validate:'Đã phê duyệt
 const ACT={resize:'Tăng/giảm',add:'Thêm',remove:'Xoá',change_period:'Đổi kỳ',transfer:'Điều chuyển đơn vị'};
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const nm=v=>Array.isArray(v)?v[1]:(v||'');
-function who(force){let n='';try{n=localStorage.getItem('ten-nguoi-dung')||''}catch(e){}if(!n||force){n=(prompt('Tên của bạn (ghi vào nhật ký, người tạo/duyệt):',n)||n||'').trim();try{localStorage.setItem('ten-nguoi-dung',n)}catch(e){}}return n;}
-async function api(p,b){if(b&&!/\/api\/budget/.test(p))window.__hcChanged=true;const hd={'x-user':encodeURIComponent(who())};const r=await fetch(p,b?{method:'POST',headers:{...hd,'Content-Type':'application/json'},body:JSON.stringify(b)}:{headers:hd});const d=await r.json();if(d&&d.error)throw new Error(d.error);return d;}
+let ME=null;function who(force){if(ME&&ME.user)return ME.user.name;let n='';try{n=localStorage.getItem('ten-nguoi-dung')||''}catch(e){}if(!n||force){n=(prompt('Tên của bạn (ghi vào nhật ký, người tạo/duyệt):',n)||n||'').trim();try{localStorage.setItem('ten-nguoi-dung',n)}catch(e){}}return n;}
+async function api(p,b){const _r=await api0(p,b);return _r;}
+async function api0(p,b){if(b&&!/\/api\/budget/.test(p))window.__hcChanged=true;const hd={'x-user':encodeURIComponent(who())};const r=await fetch(p,b?{method:'POST',headers:{...hd,'Content-Type':'application/json'},body:JSON.stringify(b)}:{headers:hd});if(r.status===401&&ME&&ME.auth){location.href='/login.html?next='+encodeURIComponent(location.pathname+location.hash);throw new Error('Hết phiên đăng nhập');}const d=await r.json();if(d&&d.error)throw new Error(d.error);return d;}
 function msg(t,k='err'){$('#msg').innerHTML=t?`<div class="msg ${k}">${t}</div>`:'';if(t)window.scrollTo({top:0,behavior:'smooth'});}
 async function busy(btn,fn){const t=btn.textContent;btn.disabled=true;btn.textContent='Đang xử lý…';try{return await fn();}finally{btn.disabled=false;btn.textContent=t;}}
 function modal(html,onMount){$('#modal').innerHTML=`<div class="modal-bg"><div class="modal">${html}</div></div>`;const bg=$('#modal .modal-bg');bg.onclick=e=>{if(e.target===bg)closeModal();};onMount&&onMount($('#modal .modal'));}
@@ -161,7 +163,7 @@ const S={data:null,edit:{},checked:new Set(),proposal:false};
 // ---------- Khởi động ----------
 (async function init(){
   try{
-    const me=await api('/api/me'); $('#me').textContent=me.source==='DEMO'?`${me.name} · dữ liệu demo Phòng KD GT`:`${me.name} · dữ liệu gốc chụp từ KOI ngày ${me.snapshot||'?'}`;
+    const me=await api('/api/me');ME=me;if(me.user){try{localStorage.setItem('ten-nguoi-dung',me.user.name)}catch(e){};setupAccount(me);} $('#me').textContent=me.user?`${me.user.name} · ${me.user.role_name}`:me.source==='DEMO'?`${me.name} · dữ liệu demo Phòng KD GT`:`${me.name} · dữ liệu gốc chụp từ KOI ngày ${me.snapshot||'?'}`;
     $('#app').classList.remove('hidden');
     const [comps,scs]=await Promise.all([api('/api/companies'),api('/api/scenarios')]);
     $('#f-company').innerHTML=comps.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');
@@ -440,6 +442,37 @@ function renderReport(){
   $$('#rep [data-rm]').forEach(b=>b.onclick=()=>{REP_MODE=b.dataset.rm;renderReport();});
 }
 
+
+// ---------- Tài khoản ----------
+function setupAccount(me){const u=me.user;$('#u-pw').classList.remove('hidden');$('#u-out').classList.remove('hidden');
+  if(u.role==='admin')$('#nav-users').classList.remove('hidden');
+  if(u.role!=='admin'){['#d-restore'].forEach(s=>{const x=$(s);if(x)x.closest('label').classList.add('hidden');});const o=document.querySelector('#topnav [data-v="org"]');if(o&&u.role==='viewer')o.classList.add('hidden');}
+  $('#u-out').onclick=async()=>{await fetch('/api/logout',{method:'POST'});location.href='/login.html';};
+  $('#u-pw').onclick=()=>modal(`<h3>Đổi mật khẩu</h3><div class="msg err hidden"></div><label>Mật khẩu hiện tại<input type="password" id="m-o"></label><label>Mật khẩu mới (tối thiểu 8 ký tự)<input type="password" id="m-n"></label><label>Nhập lại<input type="password" id="m-n2"></label><div class="row" style="justify-content:flex-end;margin-top:12px"><button class="btn" onclick="closeModal()">Huỷ</button><button class="btn primary" id="m-ok">Lưu</button></div>`,m=>{
+    m.querySelector('#m-ok').onclick=async()=>{const e=m.querySelector('.msg');try{if(m.querySelector('#m-n').value!==m.querySelector('#m-n2').value)throw new Error('Hai lần nhập không khớp');await api('/api/me/password',{old:m.querySelector('#m-o').value,password:m.querySelector('#m-n').value});closeModal();msg('Đã đổi mật khẩu.','ok');}catch(x){e.textContent=x.message;e.classList.remove('hidden');}};});
+}
+async function loadUsers(){const el=$('#users');el.innerHTML='<div class="card muted">Đang tải…</div>';
+  try{const d=await api('/api/users'),own=ME&&ME.user&&ME.user.owner,dn=id=>{const o=[...$('#f-dept').options].find(o=>o.value==id);return o?o.text:id;};
+    el.innerHTML=`<div class="card"><div class="row between"><div><h3 style="margin:0">Người dùng &amp; phân quyền</h3><div class="muted" style="margin-top:4px">Mỗi người đăng nhập bằng tài khoản riêng – nhật ký ghi đúng người làm. ${own?'':'Chỉ chủ hệ thống được thêm / sửa tài khoản.'}</div></div>${own?'<button class="btn primary" id="u-add">+ Thêm tài khoản</button>':''}</div></div>
+    <div class="card wrap"><table><tr><th class="l">Tên đăng nhập</th><th class="l">Họ tên</th><th class="l">Vai trò</th><th class="l">Phạm vi đơn vị</th><th class="l">Đăng nhập gần nhất</th><th class="l">Trạng thái</th>${own?'<th class="l">Thao tác</th>':''}</tr>
+    ${d.users.map(u=>`<tr style="${u.locked?'opacity:.5':''}"><td class="l"><b>${esc(u.login)}</b>${u.owner?' <span class="tag new">chủ hệ thống</span>':''}</td><td class="l">${esc(u.name)}</td><td class="l">${esc(u.role_name)}</td><td class="l">${u.role==='admin'?'<span class="muted">Toàn công ty</span>':u.scope.length?u.scope.map(dn).map(esc).join('<br>'):'<span class="muted">chưa gán</span>'}</td><td class="l">${esc(u.last_login||'—')}</td><td class="l">${u.locked?'Đã khoá':u.must_change?'Chưa đổi mật khẩu tạm':'Hoạt động'}</td>
+      ${own?`<td class="l" style="white-space:nowrap"><button class="btn" data-ued="${u.login}">Sửa</button> <button class="btn" data-urs="${u.login}">Đặt lại MK</button> ${u.owner?'':`<button class="btn ${u.locked?'':'danger'}" data-ulk="${u.login}">${u.locked?'Mở khoá':'Khoá'}</button>`}</td>`:''}</tr>`).join('')}</table></div>
+    <div class="card muted">Quyền: <b>Admin HR</b> – toàn quyền (cấu hình ngân sách, cơ cấu, duyệt kế hoạch, xuất file). <b>Quản lý đơn vị</b> – lập / sửa / gửi duyệt định biên trong phạm vi đơn vị được gán, xem ngân sách dự kiến; không duyệt, không sửa cấu hình. <b>Người xem</b> – chỉ xem.</div>`;
+    const genPw=()=>{const a='abcdefghjkmnpqrstuvwxyz23456789';return [...crypto.getRandomValues(new Uint8Array(10))].map(b=>a[b%a.length]).join('');};
+    const form=u=>{const isNew=!u;const pw=genPw();modal(`<h3>${isNew?'Thêm tài khoản':'Sửa tài khoản '+esc(u.login)}</h3><div class="msg err hidden"></div>
+      ${isNew?`<label>Tên đăng nhập<input id="m-l" placeholder="vd: nguyenvana"></label>`:''}<label>Họ tên<input id="m-nm" value="${esc(u?u.name:'')}"></label>
+      <label>Vai trò<select id="m-r">${Object.entries(d.roles).map(([k,l])=>`<option value="${k}" ${(u?u.role:'manager')===k?'selected':''}>${l}</option>`).join('')}</select></label>
+      <label>Phạm vi đơn vị (Quản lý đơn vị) <span class="muted">– giữ Ctrl để chọn nhiều</span><select id="m-sc" multiple size="6">${[...$('#f-dept').options].filter(o=>o.value).map(o=>`<option value="${o.value}" ${u&&u.scope.map(String).includes(o.value)?'selected':''}>${esc(o.text)}</option>`).join('')}</select></label>
+      ${isNew?`<label>Mật khẩu tạm<input id="m-pw" value="${pw}"></label><div class="muted">Gửi mật khẩu tạm cho người dùng – lần đầu đăng nhập sẽ phải đổi.</div>`:''}
+      <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="btn" onclick="closeModal()">Huỷ</button><button class="btn primary" id="m-ok">${isNew?'Tạo':'Lưu'}</button></div>`,m=>{
+        m.querySelector('#m-ok').onclick=async()=>{const e=m.querySelector('.msg');try{const scope=[...m.querySelector('#m-sc').selectedOptions].map(o=>+o.value);
+          await api('/api/users',isNew?{action:'create',login:m.querySelector('#m-l').value,name:m.querySelector('#m-nm').value,role:m.querySelector('#m-r').value,scope,password:m.querySelector('#m-pw').value}:{action:'update',login:u.login,name:m.querySelector('#m-nm').value,role:m.querySelector('#m-r').value,scope});
+          closeModal();msg(isNew?`Đã tạo tài khoản. Mật khẩu tạm: <b>${esc(m.querySelector('#m-pw').value)}</b>`:'Đã lưu.','ok');loadUsers();}catch(x){e.textContent=x.message;e.classList.remove('hidden');}};});};
+    const add=$('#u-add');if(add)add.onclick=()=>form(null);
+    $$('#users [data-ued]').forEach(b=>b.onclick=()=>form(d.users.find(u=>u.login===b.dataset.ued)));
+    $$('#users [data-urs]').forEach(b=>b.onclick=async()=>{const pw=genPw();if(!confirm(`Đặt lại mật khẩu cho ${b.dataset.urs}?\nMật khẩu tạm mới: ${pw}`))return;try{await api('/api/users',{action:'reset',login:b.dataset.urs,password:pw});msg(`Đã đặt lại. Mật khẩu tạm của <b>${esc(b.dataset.urs)}</b>: <b>${pw}</b>`,'ok');loadUsers();}catch(x){msg(esc(x.message));}});
+    $$('#users [data-ulk]').forEach(b=>b.onclick=async()=>{const u=d.users.find(x=>x.login===b.dataset.ulk);if(!confirm(`${u.locked?'Mở khoá':'Khoá'} tài khoản ${u.login}?`))return;try{await api('/api/users',{action:u.locked?'unlock':'lock',login:u.login});loadUsers();}catch(x){msg(esc(x.message));}});
+  }catch(e){el.innerHTML=`<div class="card msg err">${esc(e.message)}</div>`;}}
 // ---------- Cơ cấu tổ chức ----------
 const ORG={open:new Set(),q:'',inactive:false,data:null,log:false};
 async function loadOrg(){
@@ -504,13 +537,14 @@ function showView(v){
   $$('#topnav button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
   $('#dash').classList.toggle('hidden',v!=='dash');
   $('#budget').classList.toggle('hidden',v!=='budget');
-  $('#org').classList.toggle('hidden',v!=='org');
+  $('#org').classList.toggle('hidden',v!=='org');$('#users').classList.toggle('hidden',v!=='users');
   if(v==='budget'&&(!$('#budget-frame').src||window.__hcChanged)){$('#budget-frame').src='/ngan-sach-mau.html?embed=1&t='+Date.now();window.__hcChanged=false;}
   ['#planbar','#kpis','#work'].forEach(x=>$(x).classList.toggle('hidden',v!=='plan'||!S.data));
-  $('#filters').classList.toggle('hidden',v==='budget'||v==='org');$('#pending').classList.toggle('hidden',v==='budget'||v==='org');
+  $('#filters').classList.toggle('hidden',['budget','org','users'].includes(v));$('#pending').classList.toggle('hidden',['budget','org','users'].includes(v));
   try{history.replaceState(null,'',v==='plan'?location.pathname:'#'+v)}catch(e){}
   if(v==='dash')loadDash();
   if(v==='org')loadOrg();
+  if(v==='users')loadUsers();
 }
 $$('#topnav button').forEach(b=>b.onclick=()=>showView(b.dataset.v));
 async function loadDash(){

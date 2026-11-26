@@ -135,6 +135,37 @@ function budgetHc(year, q = {}) {
     KEYS.forEach(k => { const p = (R.plansk[k] || []).filter(p => anc.includes(p.scope_id)).sort((a, b) => RANK[a.st] - RANK[b.st])[0]; row[k] = p ? { code: p.code, status: p.status, st: p.st } : null; }); return row; });
   return R;
 }
+
+// ---------- Tài khoản & phân quyền ----------
+const crypto = require('crypto');
+const SEED_USERS = (() => { try { return JSON.parse(fs.readFileSync(path.join(__dirname, 'data', 'tai-khoan-goc.json'), 'utf8')); } catch (e) { return []; } })();
+const AUTH_ON = SEED_USERS.length > 0;
+const SESS = new Map(); // sid -> {login, at}
+const ROLES = { admin: 'Admin HR', manager: 'Quản lý đơn vị', viewer: 'Người xem' };
+function usersAll() { DB.users = DB.users || []; for (const u of SEED_USERS) if (!DB.users.find(x => x.login === u.login)) DB.users.push({ ...u }); return DB.users; }
+function findUser(login) { return usersAll().find(u => u.login === String(login || '').trim().toLowerCase()); }
+function hashPw(pw, salt) { return crypto.scryptSync(String(pw), salt, 32).toString('hex'); }
+function checkPw(u, pw) { try { return crypto.timingSafeEqual(Buffer.from(hashPw(pw, u.salt), 'hex'), Buffer.from(u.hash, 'hex')); } catch (e) { return false; } }
+function setPw(u, pw) { if (String(pw).length < 8) fail('Mật khẩu tối thiểu 8 ký tự'); u.salt = crypto.randomBytes(16).toString('hex'); u.hash = hashPw(pw, u.salt); }
+function cookies(req) { return Object.fromEntries((req.headers.cookie || '').split(';').map(x => x.trim().split('=')).filter(x => x[0]).map(([k, ...v]) => [k, decodeURIComponent(v.join('='))])); }
+let ME = null; // tài khoản của request hiện tại
+const pubUser = u => ({ login: u.login, name: u.name, role: u.role, role_name: ROLES[u.role], owner: !!u.owner, scope: u.scope || [], locked: !!u.locked, must_change: !!u.must_change, last_login: u.last_login || '' });
+function needAdmin() { if (AUTH_ON && (!ME || ME.role !== 'admin')) fail('Chỉ Admin HR được làm thao tác này'); }
+function needOwner() { if (AUTH_ON && (!ME || !ME.owner)) fail('Chỉ chủ hệ thống được quản lý tài khoản'); }
+function inScope(deptId) { if (!AUTH_ON || !ME || ME.role === 'admin') return true; if (ME.role !== 'manager') return false; return (ME.scope || []).some(r => childIds(Number(r)).includes(Number(deptId))); }
+function needScope(deptId) { if (!inScope(deptId)) fail('Bạn không có quyền với đơn vị này'); }
+function userAction(b) {
+  needOwner(); const L = String(b.login || '').trim().toLowerCase();
+  if (b.action === 'create') { if (!/^[a-z0-9._@-]{2,60}$/.test(L)) fail('Tên đăng nhập chỉ gồm chữ thường không dấu, số, . _ - @'); if (findUser(L)) fail('Tên đăng nhập đã tồn tại');
+    if (!ROLES[b.role]) fail('Vai trò không hợp lệ'); const u = { login: L, name: (b.name || L).trim(), role: b.role, scope: (b.scope || []).map(Number), must_change: true, created: now(), created_by: ME && ME.login };
+    setPw(u, b.password); usersAll().push(u); orgLog(`Tạo tài khoản ${L} (${ROLES[u.role]})`); save(); return { ok: true }; }
+  const u = findUser(L) || fail('Không tìm thấy tài khoản');
+  if (b.action === 'update') { if (u.owner && b.role && b.role !== 'admin') fail('Không đổi vai trò chủ hệ thống'); if (b.name) u.name = b.name.trim(); if (b.role) { if (!ROLES[b.role]) fail('Vai trò không hợp lệ'); u.role = b.role; } if (b.scope) u.scope = b.scope.map(Number); orgLog(`Sửa tài khoản ${L}`); save(); return { ok: true }; }
+  if (b.action === 'reset') { setPw(u, b.password); u.must_change = true; for (const [k, v] of SESS) if (v.login === L) SESS.delete(k); orgLog(`Đặt lại mật khẩu ${L}`); save(); return { ok: true }; }
+  if (b.action === 'lock' || b.action === 'unlock') { if (u.owner) fail('Không khoá chủ hệ thống'); u.locked = b.action === 'lock'; if (u.locked) for (const [k, v] of SESS) if (v.login === L) SESS.delete(k); orgLog(`${u.locked ? 'Khoá' : 'Mở khoá'} tài khoản ${L}`); save(); return { ok: true }; }
+  fail('Thao tác không hợp lệ');
+}
+
 // ---------- Lưới ----------
 function grid(deptId, scenarioId, year, planId) {
   const root = dept(deptId) || fail('Không tìm thấy đơn vị');
@@ -409,33 +440,37 @@ function history(planId) {
 }
 
 // ---------- HTTP ----------
+const planScope = id => { const p = DB.plans.find(x => x.id === Number(id)); if (p) needScope(p.scope_id); };
 const routes = {
   'GET /api/version': () => { const f = path.join(__dirname, 'public', 'index.html'); return { boot: BOOT, page: fs.existsSync(f) ? fs.statSync(f).mtimeMs : 0 }; },
-  'GET /api/me': () => ({ name: USER, mode: 'local', snapshot: DB.meta && DB.meta.snapshot, source: DB.meta && DB.meta.source }),
+  'GET /api/me': () => ({ name: USER, mode: 'local', snapshot: DB.meta && DB.meta.snapshot, source: DB.meta && DB.meta.source, auth: AUTH_ON, user: ME ? pubUser(ME) : null }),
+  'POST /api/me/password': (q, b) => { if (!ME) fail('Chưa đăng nhập'); if (!checkPw(ME, b.old)) fail('Mật khẩu hiện tại không đúng'); setPw(ME, b.password); ME.must_change = false; save(); return { ok: true }; },
+  'GET /api/users': () => { needAdmin(); return { roles: ROLES, users: usersAll().map(pubUser) }; },
+  'POST /api/users': (q, b) => userAction(b),
   'GET /api/companies': () => DB.companies,
   'GET /api/departments': q => DB.departments.filter(d => d.company_id === Number(q.company_id) && d.id !== 0 && d.active !== false).sort((a, b) => a.full.localeCompare(b.full)).map(d => ({ id: d.id, complete_name: d.full })),
   'GET /api/scenarios': () => DB.scenarios,
   'GET /api/grid': q => grid(Number(q.dept_id), Number(q.scenario_id), Number(q.year), q.plan_id ? Number(q.plan_id) : null),
-  'POST /api/plan/create': (q, b) => createPlan(b),
-  'POST /api/plan/save': (q, b) => saveGrid(b),
-  'POST /api/plan/action': (q, b) => planAction(b),
+  'POST /api/plan/create': (q, b) => { needScope(b.dept_id); return createPlan(b); },
+  'POST /api/plan/save': (q, b) => { planScope(b.plan_id); return saveGrid(b); },
+  'POST /api/plan/action': (q, b) => { planScope(b.plan_id); if (/approve|refuse|reject|validate|cancel/.test(b.method || '')) needAdmin(); return planAction(b); },
   'POST /api/plan/transfer': (q, b) => transfer(b),
-  'POST /api/position': (q, b) => newPosition(b),
+  'POST /api/position': (q, b) => { needScope(b.dept_id); return newPosition(b); },
   'POST /api/adjustments': (q, b) => createAdjustments(b),
-  'POST /api/adjustment/action': (q, b) => adjustmentAction(b),
+  'POST /api/adjustment/action': (q, b) => { if (/approve|refuse|reject/.test(b.method || '')) needAdmin(); return adjustmentAction(b); },
   'GET /api/history': q => history(Number(q.plan_id)),
   'POST /api/plan/note': (q, b) => setNote(b),
-  'POST /api/position/move': (q, b) => movePosition(b),
+  'POST /api/position/move': (q, b) => { needScope(b.dept_id); return movePosition(b); },
   'POST /api/plan/comment': (q, b) => addComment(b),
   'GET /api/dashboard': q => dashboard(Number(q.company_id), Number(q.scenario_id), Number(q.year)),
   'GET /api/pending': () => pending(),
   'GET /api/org': q => ({ levels: LEVELS, depts: orgList(Number(q.company_id)), log: (DB.orglog || []).slice(-100).reverse() }),
-  'POST /api/org': (q, b) => orgAction(b),
+  'POST /api/org': (q, b) => { needAdmin(); return orgAction(b); },
   'GET /api/budget-hc': q => budgetHc(Number(q.year) || 2027, q),
   'GET /api/budget': () => (fs.existsSync(BUDGET) ? JSON.parse(fs.readFileSync(BUDGET, 'utf8')) : null),
-  'POST /api/budget': (q, b) => { if (!b || typeof b !== 'object') fail('Cấu hình không hợp lệ'); if (fs.existsSync(BUDGET)) fs.copyFileSync(BUDGET, path.join(BAK, `ngan-sach-${new Date().toISOString().slice(0, 10)}.json`)); fs.writeFileSync(BUDGET, JSON.stringify(b)); return { ok: true }; },
+  'POST /api/budget': (q, b) => { needAdmin(); if (!b || typeof b !== 'object') fail('Cấu hình không hợp lệ'); if (fs.existsSync(BUDGET)) fs.copyFileSync(BUDGET, path.join(BAK, `ngan-sach-${new Date().toISOString().slice(0, 10)}.json`)); fs.writeFileSync(BUDGET, JSON.stringify(b)); return { ok: true }; },
   'GET /api/data': () => DB,
-  'POST /api/data': (q, b) => {
+  'POST /api/data': (q, b) => { needAdmin();
     if (!b || !Array.isArray(b.departments) || !Array.isArray(b.jobs) || !Array.isArray(b.plans)) fail('File không đúng định dạng dữ liệu của app');
     save(); fs.copyFileSync(FILE, path.join(BAK, `truoc-khoi-phuc-${Date.now()}.json`));
     DB = b; save(); return { ok: true };
@@ -446,10 +481,22 @@ function send(res, code, obj) { res.writeHead(code, { 'Content-Type': 'applicati
 function body(req) { return new Promise((ok, no) => { let s = ''; req.on('data', c => (s += c)); req.on('end', () => { try { ok(s ? JSON.parse(s) : {}); } catch (e) { no(e); } }); }); }
 
 http.createServer(async (req, res) => {
-  if (PASS) { const h = req.headers.authorization || ''; const pw = h.startsWith('Basic ') ? Buffer.from(h.slice(6), 'base64').toString().split(':').slice(1).join(':') : ''; if (pw !== PASS) { res.writeHead(401, { 'WWW-Authenticate': 'Basic realm="Dinh bien", charset="UTF-8"' }); return res.end('Can mat khau'); } }
+  const url0 = new URL(req.url, 'http://x');
+  ME = null;
+  if (AUTH_ON) {
+    const sid = cookies(req).sid, ss = sid && SESS.get(sid); if (ss) { const u = findUser(ss.login); if (u && !u.locked) ME = u; else SESS.delete(sid); }
+    if (req.method === 'POST' && url0.pathname === '/api/login') { const b = await body(req); const u = findUser(b.login);
+      if (!u || u.locked || !checkPw(u, b.password)) { await new Promise(r => setTimeout(r, 600)); return send(res, 401, { error: 'Sai tên đăng nhập hoặc mật khẩu' }); }
+      const t = crypto.randomBytes(24).toString('hex'); SESS.set(t, { login: u.login, at: Date.now() }); u.last_login = now(); save();
+      res.setHeader('Set-Cookie', `sid=${t}; HttpOnly; Path=/; SameSite=Lax; Max-Age=${12 * 3600}${req.headers['x-forwarded-proto'] === 'https' ? '; Secure' : ''}`); return send(res, 200, { ok: true, must_change: !!u.must_change }); }
+    if (url0.pathname === '/api/logout') { if (cookies(req).sid) SESS.delete(cookies(req).sid); res.setHeader('Set-Cookie', 'sid=; Path=/; Max-Age=0'); return send(res, 200, { ok: true }); }
+    const open = url0.pathname === '/login.html' || url0.pathname === '/favicon.ico';
+    if (!ME && !open) { if (url0.pathname.startsWith('/api/')) return send(res, 401, { error: 'Phiên đăng nhập đã hết – đăng nhập lại' }); res.writeHead(302, { Location: '/login.html?next=' + encodeURIComponent(url0.pathname + url0.search) }); return res.end(); }
+  } else if (PASS) { const h = req.headers.authorization || ''; const pw = h.startsWith('Basic ') ? Buffer.from(h.slice(6), 'base64').toString().split(':').slice(1).join(':') : ''; if (pw !== PASS) { res.writeHead(401, { 'WWW-Authenticate': 'Basic realm="Dinh bien", charset="UTF-8"' }); return res.end('Can mat khau'); } }
   const url = new URL(req.url, 'http://x');
-  try { USER = req.headers['x-user'] ? decodeURIComponent(req.headers['x-user']).slice(0, 60) : (process.env.DEFAULT_USER || 'Người dùng'); } catch (e) { USER = 'Người dùng'; }
+  if (ME) USER = ME.name; else try { USER = req.headers['x-user'] ? decodeURIComponent(req.headers['x-user']).slice(0, 60) : (process.env.DEFAULT_USER || 'Người dùng'); } catch (e) { USER = 'Người dùng'; }
   const key = `${req.method} ${url.pathname}`;
+  if (AUTH_ON && ME && ME.role === 'viewer' && req.method === 'POST' && key !== 'POST /api/me/password') return send(res, 403, { error: 'Tài khoản Người xem không được sửa dữ liệu' });
   if (routes[key]) {
     try { send(res, 200, await routes[key](Object.fromEntries(url.searchParams), req.method === 'POST' ? await body(req) : {})); }
     catch (e) { if (!(e instanceof UserError)) console.error('[API]', key, e.stack || e.message); send(res, 500, { error: e.message }); }

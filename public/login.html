@@ -1,0 +1,18 @@
+<!DOCTYPE html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Đăng nhập – Định biên & Ngân sách</title>
+<style>body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:#f4f6f9;color:#1c2430;display:grid;place-items:center;min-height:100vh}
+.box{background:#fff;border:1px solid #e3e8ef;border-radius:14px;padding:28px 30px;width:340px;box-shadow:0 8px 30px rgba(16,24,40,.06)}h1{font-size:19px;margin:0 0 4px}.sub{color:#667085;font-size:13px;margin:0 0 18px}
+label{display:block;font-size:13px;color:#475467;margin:12px 0 4px}input{width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid #d0d5dd;border-radius:8px;font-size:15px}
+button{margin-top:18px;width:100%;padding:11px;border:0;border-radius:8px;background:#0a6bc4;color:#fff;font-size:15px;font-weight:600;cursor:pointer}.err{color:#b42318;font-size:13px;margin-top:10px;min-height:18px}.hidden{display:none}</style></head><body>
+<div class="box"><div id="f1"><h1>Định biên &amp; Ngân sách</h1><p class="sub">Đăng nhập bằng tài khoản được cấp</p>
+<label>Tên đăng nhập</label><input id="u" autocomplete="username" autofocus><label>Mật khẩu</label><input id="p" type="password" autocomplete="current-password">
+<button id="go">Đăng nhập</button><div class="err" id="e"></div></div>
+<div id="f2" class="hidden"><h1>Đặt mật khẩu mới</h1><p class="sub">Lần đầu đăng nhập – vui lòng đổi mật khẩu tạm (tối thiểu 8 ký tự).</p>
+<label>Mật khẩu mới</label><input id="n1" type="password" autocomplete="new-password"><label>Nhập lại</label><input id="n2" type="password" autocomplete="new-password">
+<button id="ch">Lưu mật khẩu</button><div class="err" id="e2"></div></div></div>
+<script>
+const $=s=>document.querySelector(s),nx=new URLSearchParams(location.search).get('next')||'/';let old='';
+async function post(u,b){const r=await fetch(u,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});const j=await r.json().catch(()=>({}));if(!r.ok||j.error)throw new Error(j.error||'Lỗi');return j;}
+async function login(){$('#e').textContent='';try{old=$('#p').value;const r=await post('/api/login',{login:$('#u').value,password:old});if(r.must_change){$('#f1').classList.add('hidden');$('#f2').classList.remove('hidden');$('#n1').focus();}else location.href=nx;}catch(e){$('#e').textContent=e.message;}}
+async function change(){$('#e2').textContent='';if($('#n1').value!==$('#n2').value)return $('#e2').textContent='Hai lần nhập không khớp';try{await post('/api/me/password',{old,password:$('#n1').value});location.href=nx;}catch(e){$('#e2').textContent=e.message;}}
+$('#go').onclick=login;$('#p').onkeydown=e=>{if(e.key==='Enter')login();};$('#u').onkeydown=e=>{if(e.key==='Enter')$('#p').focus();};$('#ch').onclick=change;$('#n2').onkeydown=e=>{if(e.key==='Enter')change();};
+</script></body></html>

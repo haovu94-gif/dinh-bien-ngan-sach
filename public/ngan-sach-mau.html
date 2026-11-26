@@ -759,6 +759,7 @@ function setRole(r){document.body.classList.toggle('mgr',r==='mgr');$$('#role bu
   const target=r==='mgr'?'c10':'c7';$$('#cfgnav>button').forEach(x=>x.classList.toggle('on',x.dataset.c===target));$$('.cp').forEach(c=>c.classList.toggle('hidden',c.id!==target));
   const n=$('#cfgnav [data-c="c6"] b');n.textContent=r==='mgr'?'2':'5';mgrSum();}
 $$('#role button').forEach(b=>b.onclick=()=>setRole(b.dataset.r));
+try{if(/^https?:/.test(location.protocol)){const x=new XMLHttpRequest();x.open('GET','/api/me',false);x.send();const me=x.status===200?JSON.parse(x.responseText):{};if(me.user){window.NS_USER=me.user;try{localStorage.setItem('ten-nguoi-dung',me.user.name)}catch(e){}if(me.user.role!=='admin'){setRole('mgr');$('#role').style.display='none';$('#save-btn').style.display='none';}}}}catch(e){}
 $('#save-btn').onclick=doSave;$('#exp-btn').onclick=doExport;$('#imp-file').onchange=e=>e.target.files[0]&&doImport(e.target.files[0]);
 document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='s'){e.preventDefault();doSave();}});
 document.addEventListener('input',()=>setTimeout(markSave,0));document.addEventListener('change',()=>setTimeout(markSave,0));
