@@ -147,7 +147,7 @@ details.gsel{display:inline-block;position:relative}details.gsel summary{cursor:
             <tr><th>KPI tháng</th><td><input class="num" id="v-kpi" value="90"> %</td><td class="sub">→ Thưởng Q2 tháng</td></tr>
             <tr><th>KPI quý</th><td><input class="num" id="v-kpiq" value="90"> %</td><td class="sub">→ Thưởng Q2 quý</td></tr>
             <tr><th title="Tỷ lệ định biên thực sự có người làm (Full FTE) – phần trống do nghỉ việc, chờ tuyển… không phát sinh chi phí">Tỷ lệ full FTE</th><td><input class="num" id="v-fte" value="100"> %</td><td><select id="v-ftemode"><option value="new">áp cho định biên mới</option><option value="all">áp cho toàn bộ định biên</option></select> <span class="sub">VD 90% = bình quân chỉ 90% suất có người</span></td></tr>
-            <tr><th>Q2 cơ bản năm</th><td><input class="num" id="v-q2n" value="1" step="0.1"> tháng</td><td><span class="sub">×</span> <div class="msel q2base" data-ex="q2y,q3,q3_quarterly_bonus,q3_emulation_program_bonus,recognition_bonus,special_annual_planning_bonus,other_special_bonus,sti_phase_planning_bonus,lti_core_annual_bonus,lti_tb_bonus,ben"></div> <span class="sub">×</span> <select id="v-q2kpi" style="width:105px"><option value="m">KPI tháng</option><option value="q">KPI quý</option><option value="none">không nhân KPI</option></select> <span class="i" title="Mặc định theo KOI: LCB + thưởng đánh giá + PC trách nhiệm + Q2 tháng + Q2 quý/3, hệ số 1 tháng. Ngạch không hưởng: ghi đè hệ số = 0 ở mục 8.">ⓘ</span></td></tr>
+            <tr><th>Q2 cơ bản năm</th><td><input class="num" id="v-q2n" value="1" step="0.1"> tháng</td><td><span class="sub">×</span> <div class="msel q2base" data-ex="q2y,q3,q3_quarterly_bonus,q3_emulation_program_bonus,recognition_bonus,special_annual_planning_bonus,other_special_bonus,sti_phase_planning_bonus,lti_core_annual_bonus,lti_tb_bonus,ben"></div> <span class="sub">× số tháng làm việc từ ngày ký HĐ chính thức trong năm / 12</span> <select id="v-q2kpi" style="display:none"><option value="none">không nhân KPI</option><option value="m">KPI tháng</option><option value="q">KPI quý</option></select> <span class="i" title="Q2 năm = Số tháng × (tổng các khoản được chọn THỰC NHẬN hàng tháng – Q2 tháng/quý đã nhân % KPI) / 12 × (số tháng làm việc tính từ ngày ký HĐ chính thức trong năm) / 12. Ký HĐ chính thức sau ngày 15 thì tính từ tháng sau. CTV, TTS không hưởng.">ⓘ</span></td></tr>
             <tr><th style="color:#b54708">⚠ Chưa tính</th><td colspan="2"><div style="background:#fffaeb;border:1px solid #fedf89;border-radius:8px;padding:8px 10px;font-size:13px;color:#7a2e0e"><b>Thưởng dài hạn của một số người (Comp4 – Comp5)</b>: LTI-CORE năm, LTI-TB và các khoản thưởng dài hạn / theo giai đoạn gắn với từng cá nhân chưa có trong ngân sách. <span class="sub">Cần bổ sung: danh sách người hưởng, mức thưởng, tháng chi – sẽ làm sau.</span></div></td></tr>
           </tbody></table>
         </div>
@@ -370,15 +370,18 @@ function vars(job,cfg=CFG()){
   return g;
 }
 // thu nhập 1 người tháng m: plan (hoạch định) / exp (dự kiến)
+// tháng bắt đầu tính Q2 năm theo ngày ký HĐ chính thức (ký sau ngày 15 → tính từ tháng sau)
+function ocFrom(p){const d=DATES[p.name];if(!d||!d[1])return 0;const [y,mo,da]=d[1].split('-').map(Number);if(y<YEAR)return 0;if(y>YEAR)return 12;return (mo-1)+(da>15?1:0);}
 function personMonth(p,m,job,mode,cfg=CFG()){
   if(mode==='plan'){const t={q1:p.lcb+p.tdg,pc:p.pc,q2:p.q2m,q2q:(p.q2q||0)/3,q2y:p.q2y/12,q3:p.q3,lcb:p.lcb,tdg:p.tdg};return t;}
   const v=vars(job,cfg),on=new Set(v.incon),f=m>=incFrom(p,v)?1+v.inc/100:1;
   const up=k=>on.has(k)?f:1;
   const lcb=p.lcb*up('lcb'),tdg=p.tdg*up('tdg'),pc=p.pc*up('pc'),q2m=p.q2m*up('q2m'),q2q=(p.q2q||0)*up('q2q'),k=v.kpi/100,kq=(v.kpiq??v.kpi)/100;
   const B=new Set(v.q2base||[]);
-  const q2yBase=(B.has('lcb')?lcb:0)+(B.has('tdg')?tdg:0)+(B.has('pc')?pc:0)+(B.has('q2m')?q2m:0)+(B.has('q2q')?q2q/3:0); // mặc định = KOI: Q1 + PC trách nhiệm + Q2 tháng + Q2 quý/3
-  const kk=v.q2kpi==='none'||v.q2kpi===false?1:v.q2kpi==='q'?kq:k;
-  return {q1:lcb+tdg,pc,q2:q2m*k,q2q:q2q*kq/3,q2y:q2yBase*v.q2n*kk/12,q3:q3Person(lcb,tdg,pc,q2m,m,v,cfg),lcb,tdg};
+  // Q2 năm: các khoản THỰC NHẬN hàng tháng (Q2 tháng/quý đã nhân % KPI) × số tháng Q2 / 12 – chỉ cộng các tháng đã ký HĐ chính thức; CTV/TTS không hưởng
+  const q2yBase=(B.has('lcb')?lcb:0)+(B.has('tdg')?tdg:0)+(B.has('pc')?pc:0)+(B.has('q2m')?q2m*k:0)+(B.has('q2q')?q2q*kq/3:0);
+  const noQ2y=/^(TTS|CTV)/i.test(job.ng||'')||m<ocFrom(p);
+  return {q1:lcb+tdg,pc,q2:q2m*k,q2q:q2q*kq/3,q2y:noQ2y?0:q2yBase*v.q2n/12,q3:q3Person(lcb,tdg,pc,q2m,m,v,cfg),lcb,tdg};
 }
 // Quỹ Q3: % trên các cấu phần chọn, hoặc số tiền cố định chia theo đầu định biên
 function headsAt(m,cfg){return JOBS.reduce((s,j)=>s+hcOf(j,cfg)[m],0);}
@@ -439,7 +442,7 @@ function priceOf(job){
   const mm={...(ST.manual[job.id]||{})};delete mm.pcx;delete mm.lvl;delete mm.loc;delete mm.bl;if(Object.keys(mm).length){r={...r,src:'man',label:'Nhập tay',auto:r.p,p:{...r.p,...mm}};}
   const q=r.p,B=new Set(CFG().vars.q2base||[]);
   const npc=newPC(job);r.pc=npc;
-  r.p={...q,pc:npc.v,q3:0,q2y:((B.has('lcb')?q.lcb:0)+(B.has('tdg')?q.tdg:0)+(B.has('pc')?npc.v:0)+(B.has('q2m')?q.q2m:0)+(B.has('q2q')?(q.q2q||0)/3:0))*(CFG().vars.q2n||0)};
+  {const V=CFG().vars,k=(V.kpi??100)/100,kq=(V.kpiq??V.kpi??100)/100;r.p={...q,pc:npc.v,q3:0,q2y:/^(TTS|CTV)/i.test(job.ng||'')?0:((B.has('lcb')?q.lcb:0)+(B.has('tdg')?q.tdg:0)+(B.has('pc')?npc.v:0)+(B.has('q2m')?q.q2m*k:0)+(B.has('q2q')?(q.q2q||0)*kq/3:0))*(V.q2n||0)};}
   r.val=comp(r.p);return r;
 }
 
@@ -758,7 +761,7 @@ $$('#pay-mode button').forEach(b=>b.onclick=()=>{CFG().pay.mode=b.dataset.v;rend
 // ---- Vai trò: Admin HR / Quản lý đơn vị ----
 function mgrSum(){const c=CFG(),v=c.vars,I=c.ins,row=(k,x)=>`<tr><th>${k}</th><td>${x}</td></tr>`;
   $('#mgr-sum').innerHTML=`<p class="hint">Các mục dưới đây do Admin HR thiết lập cho cả công ty; quản lý chỉ cần nhập <b>định biên</b> và <b>Q1, Q2 cho vị trí mới</b> (mục 2).</p><table class="form"><tbody>
-    ${row('Kịch bản',c.name)}${row('Tăng lương',`${v.inc}% từ ${M[v.incm]} · thâm niên ≥ ${v.incmin} tháng`)}${row('KPI tháng / quý',`${v.kpi}% / ${v.kpiq??v.kpi}%`)}${row('Q2 cơ bản năm',`${v.q2n} tháng`)}
+    ${row('Kịch bản',c.name)}${row('Tăng lương',`${v.inc}% từ ${M[v.incm]} · thâm niên ≥ ${v.incmin} tháng`)}${row('KPI tháng / quý',`${v.kpi}% / ${v.kpiq??v.kpi}%`)}${row('Q2 cơ bản năm',`${v.q2n} tháng × khoản thực nhận/tháng × số tháng chính thức/12`)}
     ${row('Bảo hiểm DN / NLĐ',`${I.rows.reduce((s,r)=>s+(+r.dn||0),0)}% / ${I.rows.reduce((s,r)=>s+(+r.nld||0),0)}%`)}${row('Phúc lợi',c.ben.filter(b=>b.on).map(b=>b.name).join(', '))}${row('Phụ cấp',ALW.filter(a=>a.mode!=='none').map(a=>a.n).join(', ')+' – tự tính theo vị trí / địa điểm')}</tbody></table>`;}
 function setRole(r){document.body.classList.toggle('mgr',r==='mgr');$$('#role button').forEach(b=>b.classList.toggle('on',b.dataset.r===r));
   const u=$('#unit-sel');if(r==='mgr'){[...u.options].forEach((o,i)=>{if(/HOẠCH ĐỊNH VÀ PHÁT TRIỂN/.test(o.text))u.selectedIndex=i;});u.disabled=true;}else{u.disabled=false;u.selectedIndex=0;}
