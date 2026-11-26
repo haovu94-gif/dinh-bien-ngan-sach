@@ -115,7 +115,7 @@ details.gsel{display:inline-block;position:relative}details.gsel summary{cursor:
     <div class="row"><button class="btn primary" id="save-btn" title="Lưu toàn bộ cấu hình (Ctrl+S)">💾 Lưu cấu hình</button><span class="sub" id="save-st" style="min-width:150px"></span><button class="btn" id="bm-xlsx" title="Xuất Excel đúng mẫu BM Ngân sách nhân sự: Tổng hợp SS Biên, Định biên, Ngân sách chi tiết, Tổng hợp Ngân sách, TH_Phòng Ban, BM.07 gửi KT, TH Q2, Chính sách">⤓ Xuất theo BM</button><span class="sub" id="bm-msg"></span><button class="btn" id="lk-xlsx" title="Xuất file Excel: Tổng hợp, Theo khoản, Chi tiết vị trí, Định biên đã dùng, Giả định – có đóng dấu người lập và kế hoạch nguồn">⤓ Xuất file ngân sách</button><span class="sub" id="lk-msg"></span><button class="btn" data-admin id="exp-btn" title="Tải file cấu hình để gửi / sao lưu">⤓ Xuất file</button><label class="btn" data-admin style="cursor:pointer" title="Nạp lại từ file đã xuất">⤒ Nạp file<input type="file" accept=".json" id="imp-file" style="display:none"></label><span class="sub">Xem với vai trò:</span><div class="seg" id="role"><button data-r="hr" class="on">Admin HR</button><button data-r="mgr">Quản lý đơn vị</button></div><span class="sub">Đơn vị:</span> <select id="unit-sel" autocomplete="off"></select></div>
   </div>
 
-  <div class="tabs" id="tabs"><button data-t="cfg" class="on">① Cấu hình biến số</button><button data-t="bud">② Ngân sách theo kế hoạch</button><button data-t="sum">③ Tổng hợp</button><button data-t="cmp">④ So sánh kịch bản</button></div>
+  <div class="tabs" id="tabs"><button data-t="cfg" class="on">① Cấu hình biến số</button><button data-t="bud">② Ngân sách theo kế hoạch</button><button data-t="sum">③ Tổng hợp</button><button data-t="cmp">④ So sánh kịch bản</button><button data-t="emp">⑤ Nhân viên &amp; 5 Comp</button></div>
 
   <!-- ① CẤU HÌNH -->
   <section data-p="cfg">
@@ -259,6 +259,14 @@ details.gsel{display:inline-block;position:relative}details.gsel summary{cursor:
     <div class="card"><h3>Ngân sách dự kiến theo tháng</h3><div class="legend" id="cmp-lg"></div><div id="cmp-ch"></div></div>
     <div class="card"><h3>Định biên theo kịch bản <span class="sub">– sửa trực tiếp ô để thử (định biên mỗi kịch bản sẽ lấy từ kế hoạch định biên cùng kịch bản trên app)</span></h3><div class="wrap"><table id="cmp-hc"></table></div></div>
   </section>
+  <section data-p="emp" class="hidden">
+    <div class="card"><div class="row between" style="flex-wrap:wrap;gap:8px"><h3 style="margin:0">Nhân viên &amp; chi phí theo 5 Comp <span class="scope g" id="ec-scn"></span> <span class="i" title="Lấy từ dữ liệu nhân viên (cấu trúc lương KOI/Odoo) và cấu hình ngân sách. Comp1 = LCB + Thưởng đánh giá · Comp2 = Comp1 + Phụ cấp · Comp3 = Comp2 + Thưởng ngắn hạn (Q2 tháng/quý/năm, Q3 & các quỹ) · Comp4 = Comp3 + LTI · Comp5 = Comp4 + Phúc lợi năm. Chi phí DN = Comp5 + Bảo hiểm DN đóng + OT.">ⓘ</span></h3>
+      <div class="row" style="gap:8px;flex-wrap:wrap"><select id="ec-unit"></select><input id="ec-q" placeholder="Tìm tên / vị trí…" style="width:180px"><div class="seg" id="ec-per"><button data-v="m" class="on">Bình quân tháng</button><button data-v="y">Cả năm</button></div><label style="white-space:nowrap"><input type="checkbox" id="ec-det"> Chi tiết khoản</label><label style="white-space:nowrap"><input type="checkbox" id="ec-vac" checked> Gồm định biên mới</label><button class="btn" id="ec-xlsx">⤓ Excel</button></div></div>
+      <div id="ec-kpi" class="row" style="gap:10px;flex-wrap:wrap;margin:10px 0"></div>
+      <div style="overflow:auto;max-height:640px"><table class="pjt" id="ec-tbl"></table></div>
+      <div class="sub" style="margin-top:6px">LTI (Comp4) chưa có dữ liệu – đang để 0. Số theo kịch bản đang chọn, đã gồm tăng lương, KPI, rule LCB, giải ngân quỹ.</div></div>
+  </section>
+
 </main>
 <script>
 // Dùng chung cấu hình ngân sách qua server (bản web nhiều người dùng)
@@ -1030,8 +1038,8 @@ $('#go-link').onclick=()=>{const b=$('#cfgnav>button[data-c="c12"]');$('#tabs bu
 window.nsEstimate=(scId,rows)=>{const k=(SRV&&Object.keys(SRV.map||{}).find(k=>SRV.map[k]===scId))||'A';const cfg=SCN[k]||CFG();const had=Object.prototype.hasOwnProperty.call(HC_SRV,k),save=HC_SRV[k];HC_SRV[k]={...(save||{})};let tot=0,n=0;
   try{rows.forEach(r=>{const j=JOBS.find(x=>x.id===r.job_id);if(!j)return;n++;HC_SRV[k][j.id]=r.hc.map(x=>+x||0);tot+=jobBudget(j,'exp',true,cfg).months.reduce((a,b)=>a+b,0);});}finally{if(had)HC_SRV[k]=save;else delete HC_SRV[k];}
   return {total:tot,key:k,name:cfg.name,jobs:n};};
-function renderAll(){setTimeout(markSave,0);{const c=$('#c15');if(c&&!c.classList.contains('hidden'))setTimeout(renderLcbr,0);}FPOOL.clear();{if(['#c2','#c14'].some(id=>{const c=$(id);return c&&!c.classList.contains('hidden');}))setTimeout(renderFunds,0);}if($('#lk-form'))renderLink();if(document.body.classList.contains('mgr'))mgrSum();renderElig();renderGrid();renderKpis();renderSum();renderBk();renderCmp();}
-$$('#tabs button').forEach(b=>b.onclick=()=>{$$('#tabs button').forEach(x=>x.classList.toggle('on',x===b));$$('[data-p]').forEach(p=>p.classList.toggle('hidden',p.dataset.p!==b.dataset.t));});
+function renderAll(){setTimeout(markSave,0);{const c=document.querySelector('[data-p="emp"]');if(c&&!c.classList.contains('hidden'))setTimeout(renderEmp,0);}{const c=$('#c15');if(c&&!c.classList.contains('hidden'))setTimeout(renderLcbr,0);}FPOOL.clear();{if(['#c2','#c14'].some(id=>{const c=$(id);return c&&!c.classList.contains('hidden');}))setTimeout(renderFunds,0);}if($('#lk-form'))renderLink();if(document.body.classList.contains('mgr'))mgrSum();renderElig();renderGrid();renderKpis();renderSum();renderBk();renderCmp();}
+$$('#tabs button').forEach(b=>b.onclick=()=>{if(b.dataset.t==='emp')setTimeout(renderEmp,0);$$('#tabs button').forEach(x=>x.classList.toggle('on',x===b));$$('[data-p]').forEach(p=>p.classList.toggle('hidden',p.dataset.p!==b.dataset.t));});
 loadInputs();renderChips();renderOvr();renderAlw();renderPrice();renderBen();renderPay();renderAll();SAVED_SNAP=core();markSave();
 // ---- Màn hình Quỹ thưởng & chi phí khác ----
 const FOPEN=new Set();
@@ -1238,6 +1246,40 @@ document.addEventListener('change',e=>{const x=e.target;if(LRB||!x.isConnected)r
 document.addEventListener('click',e=>{const x=e.target.closest('#lcbr a');if(!x)return;const R=lcbr();e.preventDefault();
   if(x.id==='lr-gadd')R.groups.push({n:'Nhóm mới',gs:[],mode:'thang',pct:0});else if(x.id==='lr-sadd')(R.special=R.special||[]).push({n:'Vị trí đặc thù',kw:'',amt:0});
   else if(x.dataset.lgdel!=null)R.groups.splice(+x.dataset.lgdel,1);else if(x.dataset.lsdel!=null)R.special.splice(+x.dataset.lsdel,1);else return;lcbrChanged();});
+
+// ---- Màn Nhân viên & 5 Comp ----
+const EC={per:'m',det:false,vac:true,unit:'',q:''};
+function ecRows(){const cfg=CFG(),D=bmData(cfg),{rows,g,K}=D,sum=a=>a.reduce((x,y)=>x+y,0),Y=fn=>r=>sum(M.map((_,m)=>g(r,m,fn)));
+  return rows.map(r=>{const p=r.vac?r.price.p:r.p,al=r.vac?Object.fromEntries(Object.entries(r.price.pc.det||{}).map(([k,v])=>[k,v.v])):(alOf(r.p)||{}),ben={};
+    cfg.ben.filter(b=>b.on).forEach(b=>ben[b.name]=sum(M.map((_,m)=>g(r,m,t=>(t.ben||{})[b.id]||0))));
+    const lcb=Y(t=>t.lcb)(r),tdg=Y(t=>t.tdg)(r),pc=Y(K.pc)(r),q2m=Y(K.q2)(r),q2q=Y(K.q2q)(r),q2y=Y(K.q2y)(r),q3=Y(K.q3)(r),q3f=Y(K.q3f)(r),bn=Y(K.ben)(r),ins=Y(K.ins)(r),ot=Y(K.ot)(r),lti=0;
+    const c1=lcb+tdg,c2=c1+pc,c3=c2+q2m+q2q+q2y+q3+q3f,c4=c3+lti,c5=c4+bn,mo=r.ms.filter(Boolean).length||0;
+    return {r,name:r.vac?'(Định biên mới ×'+r.n+')':r.p.name,job:r.j.name,unit:bmUnits(r.j).filter(Boolean).join(' / '),d:r.j.d,ng:r.j.ng,vac:r.vac,mo,heads:r.vac?sum(r.hc)/12:sum(r.hc)/12,
+      v:{lcb,tdg,c1,pc,c2,q2m,q2q,q2y,q3:q3+q3f,c3,lti,c4,ben:bn,c5,ins,ot,cost:c5+ins+ot},al,bend:ben};});}
+function renderEmp(){const box=$('#ec-tbl');if(!box)return;const cfg=CFG();$('#ec-scn').textContent=cfg.name;
+  const us=$('#ec-unit');if(!us.dataset.ok){us.innerHTML='<option value="">Tất cả đơn vị</option>'+DEPTS.map(d=>`<option value="${d.id}">${d.name}</option>`).join('');us.dataset.ok=1;}
+  let R=ecRows().filter(x=>(EC.vac||!x.vac)&&(!EC.unit||x.d===EC.unit)&&(!EC.q||(x.name+' '+x.job).toLowerCase().includes(EC.q.toLowerCase())));
+  const dv=x=>EC.per==='m'?x/12:x,F=x=>fmt(Math.round(dv(x)));
+  const C=[['Comp1',['lcb','LCB'],['tdg','Thưởng ĐG'],['c1','Comp1','b']],['Comp2',['pc','Phụ cấp'],['c2','Comp2','b']],['Comp3',['q2m','Q2 tháng'],['q2q','Q2 quý'],['q2y','Q2 năm'],['q3','Q3 & quỹ'],['c3','Comp3','b']],['Comp4',['lti','LTI'],['c4','Comp4','b']],['Comp5',['ben','Phúc lợi'],['c5','Comp5','b']],['Chi phí DN',['ins','BH DN'],['ot','OT'],['cost','Tổng chi phí','b']]];
+  const cols=C.map(([gname,...cs])=>[gname,cs.filter(c=>EC.det||c[2]==='b'||gname==='Chi phí DN')]);
+  const tot={};R.forEach(x=>Object.entries(x.v).forEach(([k,v])=>tot[k]=(tot[k]||0)+v));
+  const COL=['#0a6bc4','#7aa7e8','#12805c','#6b3fc7','#9d174d','#b54708'];
+  box.innerHTML=`<thead><tr><th class="l" rowspan="2">Họ và tên</th><th class="l" rowspan="2">Vị trí</th><th class="l" rowspan="2">Đơn vị</th><th rowspan="2">Ngạch</th>${cols.map(([g,cs],i)=>`<th colspan="${cs.length}" style="border-bottom:2px solid ${COL[i]};color:${COL[i]}">${g}</th>`).join('')}</tr><tr>${cols.flatMap(([,cs])=>cs.map(c=>`<th>${c[1]}</th>`)).join('')}</tr></thead>
+   <tbody>${R.map((x,i)=>`<tr class="ec-r" data-i="${i}" style="cursor:pointer${x.vac?';font-style:italic':''}"><td class="l">${x.name}</td><td class="l">${x.job}</td><td class="l sub" title="${x.unit}" style="max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${x.unit.split(' / ').pop()}</td><td>${x.ng}</td>${cols.flatMap(([,cs])=>cs.map(c=>`<td style="${c[2]?'font-weight:600':''}">${F(x.v[c[0]])}</td>`)).join('')}</tr>`).join('')}
+   <tr class="tot"><td class="l" colspan="4">Tổng (${R.filter(x=>!x.vac).length} người${R.some(x=>x.vac)?' + định biên mới':''})</td>${cols.flatMap(([,cs])=>cs.map(c=>`<td>${F(tot[c[0]]||0)}</td>`)).join('')}</tr></tbody>`;
+  const k=[['Comp1 · Lương Q1',tot.c1],['Comp2 · + Phụ cấp',tot.c2],['Comp3 · + Thưởng ngắn hạn',tot.c3],['Comp5 · + Phúc lợi',tot.c5],['Tổng chi phí DN',tot.cost]];
+  $('#ec-kpi').innerHTML=k.map(([l,v])=>`<div class="kpi" style="min-width:170px"><div class="l">${l} · ${EC.per==='m'?'bình quân tháng':'cả năm'}</div><div class="v">${F(v||0)}</div></div>`).join('');
+  box.querySelectorAll('.ec-r').forEach(tr=>tr.onclick=()=>{const nx=tr.nextElementSibling;if(nx&&nx.classList.contains('ec-x')){nx.remove();return;}const x=R[+tr.dataset.i];
+    const al=Object.entries(x.al).filter(([,v])=>v).map(([k,v])=>`${(ALW.find(a=>a.k===k)||{n:k}).n}: ${fmt(Math.round(v))}/tháng`).join(' · ')||'–';
+    const bn=Object.entries(x.bend).filter(([,v])=>v).map(([k,v])=>`${k}: ${F(v)}`).join(' · ')||'–';
+    const d=document.createElement('tr');d.className='ec-x';d.innerHTML=`<td colspan="99" class="l" style="background:#fafbfc;font-size:12px;white-space:normal"><b>Phụ cấp:</b> ${al}<br><b>Phúc lợi (${EC.per==='m'?'/tháng':'/năm'}):</b> ${bn}<br><span class="sub">Số tháng tính trong năm: ${x.mo}</span></td>`;tr.after(d);});
+  window.__EC=R;}
+$('#ec-unit').onchange=e=>{EC.unit=e.target.value;renderEmp();};$('#ec-q').oninput=e=>{EC.q=e.target.value;renderEmp();};
+$('#ec-det').onchange=e=>{EC.det=e.target.checked;renderEmp();};$('#ec-vac').onchange=e=>{EC.vac=e.target.checked;renderEmp();};
+$$('#ec-per button').forEach(b=>b.onclick=()=>{EC.per=b.dataset.v;$$('#ec-per button').forEach(x=>x.classList.toggle('on',x===b));renderEmp();});
+$('#ec-xlsx').onclick=async()=>{try{const X=await bmLoad(),R=window.__EC||[],h=['Họ và tên','Vị trí','Đơn vị','Ngạch','LCB','Thưởng ĐG','Comp1','Phụ cấp','Comp2','Q2 tháng','Q2 quý','Q2 năm','Q3 & quỹ','Comp3','LTI','Comp4','Phúc lợi','Comp5','BH DN','OT','Tổng chi phí DN'],ks=['lcb','tdg','c1','pc','c2','q2m','q2q','q2y','q3','c3','lti','c4','ben','c5','ins','ot','cost'];
+  const a=[['NHÂN VIÊN & CHI PHÍ THEO 5 COMP · '+CFG().name+' · '+(EC.per==='m'?'bình quân tháng':'cả năm')],h,...R.map(x=>[x.name,x.job,x.unit,x.ng,...ks.map(k=>Math.round(EC.per==='m'?x.v[k]/12:x.v[k]))])];
+  const ws=X.utils.aoa_to_sheet(a);ws['!cols']=[26,32,34,7,...ks.map(()=>13)].map(w=>({wch:w}));const wb=X.utils.book_new();X.utils.book_append_sheet(wb,ws,'5 Comp');X.writeFile(wb,'Nhan-vien-5-Comp.xlsx');}catch(e){alert(e.message);}};
 </script>
 </body>
 </html>
