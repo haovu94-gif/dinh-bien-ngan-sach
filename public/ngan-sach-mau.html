@@ -435,7 +435,7 @@ function fScopeHit(sc,job){const t=sc[0],k=sc.slice(2);if(t==='j')return +k===jo
 const fScopeRank=sc=>sc[0]==='j'?99:ancOf(+sc.slice(2)).length;
 function fundPar(f,job){let best=null,rk=-1;(f.rows||[]).forEach(r=>{if(!r.scope)return;const k=fScopeRank(r.scope);if(k>rk&&fScopeHit(r.scope,job)){best=r;rk=k;}});
   const pick=fl=>best&&best[fl]!=null&&best[fl]!==''?+best[fl]:(+f[fl]||0);
-  return {key:best?best.scope:'*',off:best?!!best.off:!!f.q2rep,pct:pick('pct'),hrs:pick('hrs'),rate:pick('rate'),rev:best?(+best.rev||0):(+f.rev||0),amt:best?(+best.amt||0):(+f.amt||0)};}
+  return {row:best,key:best?best.scope:'*',off:best?!!best.off:!!f.q2rep,pct:pick('pct'),hrs:pick('hrs'),rate:pick('rate'),rev:best?(+best.rev||0):(+f.rev||0),amt:best?(+best.amt||0):(+f.amt||0)};}
 const fWho=(w,job)=>!w||w==='all'||(w==='ql'&&/^QL/.test(job.ng||''))||(w==='nql'&&!/^QL/.test(job.ng||''))||(w==='cv'&&/^(CV|QL)/.test(job.ng||''));
 const isOT=f=>f.kind?f.kind==='ot':f.mode==='ot';
 // OT: bật/tắt hoạch định + nhóm ngạch mặc định không OT
@@ -449,11 +449,14 @@ function fundHeads(f,key,m,cfg){const ck=scnKey(cfg)+'|'+f.id+'|'+key+'|'+m;if(F
 // số trích quỹ của 1 người (hoặc 1 đầu định biên) trong tháng m, chưa phân bổ tháng chi
 function fundAcc(f,job,t,m,cfg){if(!f.on||!job||!fElig(f,job))return 0;const P=fundPar(f,job);if(P.off)return 0;const dis=(+((f.dis||{})[scnKey(cfg)]??100))/100;let v=0;
   if(f.mode==='pay'){const B=new Set(f.base||['lcb','tdg']);v=((B.has('lcb')?t.lcb||0:0)+(B.has('tdg')?t.tdg||0:0)+(B.has('pc')?t.pc||0:0)+(B.has('q2m')?t.q2||0:0))*P.pct/100;}
-  else if(f.mode==='ot'){v=P.hrs*(t.lcb||0)/26/8*P.rate/100;}
+  else if(f.mode==='ot'){v=otHrs(f,P.row,m)*(t.lcb||0)/26/8*P.rate/100;}
   else{const pool=f.mode==='rev'?P.rev*P.pct/100:P.amt,h=fundHeads(f,P.key,m,cfg);v=h?pool/12/h:0;}
   return v*dis;}
 // quỹ “thay Q2 tháng”: nhóm hưởng incentive / hoa hồng theo doanh thu → bỏ Q2 tháng cố định, chỉ áp cho đơn vị cấu hình riêng
 function q2Rep(job){return !!job&&funds().some(f=>f.on&&f.q2rep&&fElig(f,job)&&!fundPar(f,job).off);}
+// số giờ OT/người của tháng m: dòng đơn vị theo tháng › dòng đơn vị (cũ) › chung theo tháng › mức chung
+const hv=x=>x!=null&&x!=='';
+function otHrs(f,r,m){if(r&&r.hm&&hv(r.hm[m]))return +r.hm[m];if(r&&hv(r.hrs))return +r.hrs;if(f.hm&&hv(f.hm[m]))return +f.hm[m];return +f.hrs||0;}
 function fundAlloc(t,m,cfg,job){t.fd={};if(!job)return;funds().forEach(f=>{const v=fundAcc(f,job,t,m,cfg)*share(f.pm||[],m,cfg);if(v)t.fd[f.id]=v;});}
 function sumT(t){return t.q1+t.pc+t.q2+(t.q2q||0)+t.q2y+t.q3+Object.values(t.ben||{}).reduce((a,b)=>a+b,0)+Object.values(t.fd||{}).reduce((a,b)=>a+b,0);}
 const PK=[['lcb','Lương cơ bản'],['tdg','Thưởng đánh giá'],['q2m','Q2 tháng'],['q2q','Q2 quý']];
@@ -1011,16 +1014,18 @@ function fUnitOpts(sel){const ids=new Set();JOBS.forEach(j=>{if(j.kd!=null)ancOf
 function fParams(f,fi,r,ri){const R=r!=null,at=(fl)=>R?`data-fi="${fi}" data-ri="${ri}" data-rf="${fl}"`:`data-fi="${fi}" data-ff="${fl}"`,val=(fl,mny)=>{const x=R?r[fl]:f[fl];return x==null||x===''?'':(mny?fmt(x):x);},ph=(fl,mny)=>R?`placeholder="${f[fl]!=null?(mny?fmt(f[fl]):f[fl]):''}"`:'placeholder="0"';
   if(f.mode==='rev')return `<input class="num" style="width:60px" ${at('pct')} value="${val('pct')}" ${ph('pct')}> % × DT KH/năm <input class="money" style="width:140px" ${at('rev')} value="${val('rev',1)}" placeholder="0"> đ`;
   if(f.mode==='fixed')return `<input class="money" style="width:130px" ${at('amt')} value="${val('amt',1)}" placeholder="0"> đ / năm <span class="sub">chia đều đầu người hưởng</span>`;
+  if(f.mode==='ot'&&R)return `× <input class="num" style="width:52px" ${at('rate')} value="${val('rate')}" ${ph('rate')}> % · giờ/tháng: `+M.map((t,m)=>`<input class="num" title="${t}" style="width:38px;padding:3px 4px" data-fi="${fi}" data-ri="${ri}" data-rm="${m}" value="${r.hm&&hv(r.hm[m])?r.hm[m]:''}" placeholder="${otHrs(f,null,m)}">`).join('');
   if(f.mode==='ot')return `<input class="num" style="width:50px" ${at('hrs')} value="${val('hrs')}" ${ph('hrs')}> giờ/người/tháng × lương giờ (LCB/26/8) × <input class="num" style="width:56px" ${at('rate')} value="${val('rate')}" ${ph('rate')}> %`;
   const B=f.base||['lcb','tdg'];return `<input class="num" style="width:60px" ${at('pct')} value="${val('pct')}" ${ph('pct')}> % × `+(R?'<span class="sub">cơ sở như mức chung</span>':[['lcb','LCB'],['tdg','Thưởng ĐG'],['pc','Phụ cấp'],['q2m','Q2 tháng']].map(([k,l])=>`<label style="white-space:nowrap"><input type="checkbox" data-fi="${fi}" data-fb="${k}" ${B.includes(k)?'checked':''}> ${l}</label>`).join(' '));}
-function renderFunds(){const box=$('#funds');if(!box)return;const cfg=CFG(),sk=scnKey(cfg);$('#fd-scn').textContent=cfg.name;{const o=$('#ot-scn');if(o)o.textContent=cfg.name;}const R={};funds().forEach(f=>R['f_'+f.id]=[0]);FPOOL.clear();JOBS.forEach(j=>{const hc=hcOf(j,cfg),pr=priceOf(j);for(let m=0;m<12;m++){const add=t=>{for(const [id,x] of Object.entries(t.fd||{}))if(R['f_'+id])R['f_'+id][0]+=x;};j.people.forEach((p,i)=>{if(i<hc[m])add(alloc(personMonth(p,m,j,'exp',cfg),m,cfg,j,p));});const ex=Math.max(0,hc[m]-j.people.length);if(ex){const t=alloc(personMonth(pr.p,m,j,'exp',cfg),m,cfg,j,null);for(const [id,x] of Object.entries(t.fd||{}))if(R['f_'+id])R['f_'+id][0]+=x*ex;}}});
+let FRB=false;function renderFunds(){if(FRB)return;FRB=true;try{_renderFunds();}finally{FRB=false;}}
+function _renderFunds(){const box=$('#funds');if(!box)return;const cfg=CFG(),sk=scnKey(cfg);$('#fd-scn').textContent=cfg.name;{const o=$('#ot-scn');if(o)o.textContent=cfg.name;}const R={};funds().forEach(f=>R['f_'+f.id]=[0]);FPOOL.clear();JOBS.forEach(j=>{const hc=hcOf(j,cfg),pr=priceOf(j);for(let m=0;m<12;m++){const add=t=>{for(const [id,x] of Object.entries(t.fd||{}))if(R['f_'+id])R['f_'+id][0]+=x;};j.people.forEach((p,i)=>{if(i<hc[m])add(alloc(personMonth(p,m,j,'exp',cfg),m,cfg,j,p));});const ex=Math.max(0,hc[m]-j.people.length);if(ex){const t=alloc(personMonth(pr.p,m,j,'exp',cfg),m,cfg,j,null);for(const [id,x] of Object.entries(t.fd||{}))if(R['f_'+id])R['f_'+id][0]+=x*ex;}}});
   const hd=(f,key)=>{let h=0;JOBS.forEach(j=>{if(!fElig(f,j))return;const P=fundPar(f,j);if(P.key===key&&!P.off)h+=hcOf(j,cfg)[11];});return h;};
   const card=(f,fi)=>{const yr=(R['f_'+f.id]||[]).reduce((a,b)=>a+b,0),pmk=(FPM.find(x=>JSON.stringify(x[2])===JSON.stringify(f.pm||[]))||FPM[0])[0],open=FOPEN.has(fi);
     const rows=(f.rows||[]).map((r,ri)=>`<tr style="${r.off?'opacity:.5':''}"><td class="l"><select data-fi="${fi}" data-ri="${ri}" data-rf="scope" style="max-width:260px">${fUnitOpts(r.scope||'')}</select></td><td><input type="checkbox" data-fi="${fi}" data-ri="${ri}" data-roff ${r.off?'':'checked'}></td><td class="l" style="white-space:nowrap">${fParams(f,fi,r,ri)}</td><td>${r.scope?hd(f,r.scope):''}</td><td><a href="#" class="sub" data-fi="${fi}" data-rdel="${ri}">✕</a></td></tr>`).join('');
     return `<div style="border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:8px 0;${f.on?'':'opacity:.55'}">
       <div class="row" style="gap:10px;flex-wrap:wrap;align-items:center"><input type="checkbox" data-fi="${fi}" data-fon ${f.on?'checked':''} title="Bật / tắt quỹ"><input data-fi="${fi}" data-ff="n" value="${(f.n||'').replace(/"/g,'&quot;')}" style="width:190px;font-weight:600">
         <select data-fi="${fi}" data-ff="mode">${FMODES.filter(([k])=>isOT(f)||k!=='ot').map(([k,l])=>`<option value="${k}" ${f.mode===k?'selected':''}>${l}</option>`).join('')}</select>
-        <span style="white-space:nowrap">${fParams(f,fi)}</span></div>
+        <span style="white-space:nowrap">${fParams(f,fi)}</span></div>${f.mode==='ot'?`<div class="row" style="gap:4px;flex-wrap:wrap;align-items:center;margin-top:6px"><span class="sub" style="margin-right:4px">Giờ OT/người theo tháng</span>${M.map((t,m)=>`<span style="display:inline-flex;flex-direction:column;align-items:center"><span class="sub" style="font-size:10px">${t}</span><input class="num" style="width:44px;padding:3px 4px" data-fi="${fi}" data-fm="${m}" value="${f.hm&&hv(f.hm[m])?f.hm[m]:''}" placeholder="${+f.hrs||0}"></span>`).join('')}<span class="sub" style="margin-left:6px">để trống = theo mức chung · cả năm <b>${M.reduce((a,_,m)=>a+otHrs(f,null,m),0)}</b> giờ/người</span></div>`:''}
       <div class="row" style="gap:14px;flex-wrap:wrap;margin-top:6px;align-items:center"><span class="sub">Đối tượng</span><select data-fi="${fi}" data-ff="who">${Object.entries(FWHO).map(([k,l])=>`<option value="${k}" ${(f.who||'all')===k?'selected':''}>${l}</option>`).join('')}</select>
         <span class="sub">Tháng chi</span><select data-fi="${fi}" data-fpm>${FPM.map(([k,l])=>`<option value="${k}" ${pmk===k?'selected':''}>${l}</option>`).join('')}</select>
         <span class="sub">Giải ngân (${cfg.name})</span><span><input class="num" style="width:56px" data-fi="${fi}" data-fdis value="${(f.dis||{})[sk]??100}"> %</span>
@@ -1033,8 +1038,10 @@ function renderFunds(){const box=$('#funds');if(!box)return;const cfg=CFG(),sk=s
 }
 function fundsChanged(){FPOOL.clear();renderFunds();renderAll();}
 (function(){const box=$('#funds');if(!box)return;const num=x=>{const t=String(x).trim();if(t==='')return '';return parseFloat(t.replace(/\./g,'').replace(',','.'))||0;},dec=x=>{const t=String(x).trim();return t===''?'':(parseFloat(t.replace(',','.'))||0);};
-  document.addEventListener('change',e=>{if(!e.target.closest('#funds,#funds-ot'))return;const x=e.target,fi=x.dataset.fi;if(fi==null)return;const f=funds()[+fi];
+  document.addEventListener('change',e=>{if(FRB||!e.target.isConnected||!e.target.closest('#funds,#funds-ot'))return;const x=e.target,fi=x.dataset.fi;if(fi==null)return;const f=funds()[+fi];
     if(x.dataset.ri!=null&&x.dataset.rf){const r=f.rows[+x.dataset.ri],fl=x.dataset.rf;r[fl]=fl==='scope'?x.value:(fl==='rev'||fl==='amt')?num(x.value):dec(x.value);}
+    else if(x.dataset.fm!=null){f.hm=f.hm||Array(12).fill('');f.hm[+x.dataset.fm]=dec(x.value);}
+    else if(x.dataset.rm!=null){const r=f.rows[+x.dataset.ri];r.hm=r.hm||Array(12).fill('');r.hm[+x.dataset.rm]=dec(x.value);}
     else if(x.dataset.ri!=null&&x.hasAttribute('data-roff')){f.rows[+x.dataset.ri].off=!x.checked;}
     else if(x.hasAttribute('data-fon'))f.on=x.checked;
     else if(x.hasAttribute('data-fq2')){f.q2rep=x.checked;if(f.q2rep)FOPEN.add(+fi);}
