@@ -134,8 +134,7 @@ details.gsel{display:inline-block;position:relative}details.gsel summary{cursor:
         <button data-c="c6"><b data-n="6">6</b> Đơn giá vị trí mới</button>
         <div class="ng" data-admin style="margin-top:8px"><span class="dot" id="ng-dot"></span>Biến số kịch bản<div class="sub" id="ng-scn"></div></div>
         <button data-admin data-c="c1"><b>7</b> Lương &amp; KPI</button>
-        <button data-admin data-c="c2"><b>8</b> Quỹ Q3</button>
-        <button data-admin data-c="c13"><b>+</b> Quỹ thưởng &amp; OT</button>
+        <button data-admin data-c="c2"><b>8</b> Quỹ Q3 &amp; các quỹ</button>
         <div class="ng" data-admin style="margin-top:8px"><span class="dot" style="background:#b54708"></span>Tuỳ chỉnh riêng<div class="sub">theo phòng / vị trí / ngạch</div></div>
         <button data-admin data-c="c5"><b>9</b> Tuỳ chỉnh riêng</button>
       </nav>
@@ -159,6 +158,9 @@ details.gsel{display:inline-block;position:relative}details.gsel summary{cursor:
             <tr id="q3-fixed" style="display:none"><th>Mức quỹ</th><td colspan="2"><input class="money" id="v-q3fund" style="width:140px"> đ / năm <span class="sub">chia theo đầu định biên</span></td></tr>
             <tr><th>Tỷ lệ giải ngân</th><td><input class="num" id="v-q3" value="80"> %</td><td class="sub">tháng chi: mục 4</td></tr>
           </tbody></table><div class="sub" id="q3-est"></div>
+        <div id="c13" style="margin-top:16px;border-top:1px solid var(--line);padding-top:12px"><div class="row between"><h3 style="margin:0">Các quỹ Q3 khác <span class="sub" style="font-weight:400">(Cờ Hải Đăng, thi đua, hoa hồng, OT…)</span> <span class="scope g">Chung · giải ngân theo kịch bản</span> <span class="i" title="Tạo tự do các quỹ: Cờ Hải Đăng, thi đua tháng/năm, OT… Mỗi quỹ chọn cách lập, đối tượng, tháng chi. Có thể cấu hình riêng cho từng phòng / bộ phận / tổ nhóm / vị trí: quỹ của đơn vị nào chia cho người của đơn vị đó. Không tính vào nền BH, Q2 năm, Q3.">ⓘ</span></h3><button class="btn primary" id="fd-add">+ Thêm quỹ</button></div>
+          <div class="sub" style="margin:6px 0 4px">Quỹ Q3 mặc định ở bảng trên; các quỹ dưới đây cộng thêm vào Q3. Giải ngân % là của kịch bản đang chọn <b id="fd-scn"></b>.</div>
+          <div id="funds"></div></div>
         </div>
         <div class="card cp hidden" id="c3"><div class="row between"><h3 style="margin:0">Phúc lợi <span class="scope g">Chung toàn công ty</span> <span class="i" title="Trên KOI các khoản Cưới / Sinh con / Nghỉ việc / BHSK mới là cờ Có–Không, chưa có mức tiền → khai mức, đối tượng, tháng chi ở đây.">ⓘ</span></h3><button class="btn" id="ben-add">+ Thêm</button></div>
           <div class="sub" style="margin-top:6px">Theo <b>Phụ lục V – Quy định chế độ phúc lợi đối với CBNV</b> (hiệu lực 01/06/2025). Mức tiền tách theo 3 quỹ; chỉ quỹ được tick mới tính vào ngân sách. Tỷ lệ phát sinh của các khoản theo sự kiện là ước tính – chỉnh theo thực tế.</div><div id="ben-funds" style="margin-top:6px;font-size:13px"></div><div class="wrap" style="max-height:none;margin-top:8px"><table><thead><tr><th></th><th class="l">Phúc lợi</th><th class="l">Loại</th><th style="width:104px">Quỹ phúc lợi</th><th style="width:104px">Quỹ công đoàn</th><th style="width:104px">Quỹ hạnh phúc</th><th style="width:120px" title="Chỉ cộng các quỹ được tick">Tính vào NS / người / lần</th><th class="l">Đối tượng</th><th>Phát sinh</th><th class="l">Tháng chi</th><th>Ước tính năm</th><th></th></tr></thead><tbody id="ben"></tbody></table></div></div>
@@ -189,9 +191,6 @@ details.gsel{display:inline-block;position:relative}details.gsel summary{cursor:
             <tr><th>Quỹ Q3</th><td colspan="2" id="pm-q3q"></td></tr>
             <tr><th>Phúc lợi</th><td colspan="2" class="sub">theo từng khoản ở mục 2</td></tr>
           </tbody></table></div>
-        <div class="card cp hidden" id="c13"><div class="row between"><h3 style="margin:0">Quỹ thưởng &amp; chi phí khác <span class="scope g">Chung · giải ngân theo kịch bản</span> <span class="i" title="Tạo tự do các quỹ: Cờ Hải Đăng, thi đua tháng/năm, OT… Mỗi quỹ chọn cách lập, đối tượng, tháng chi. Có thể cấu hình riêng cho từng phòng / bộ phận / tổ nhóm / vị trí: quỹ của đơn vị nào chia cho người của đơn vị đó. Không tính vào nền BH, Q2 năm, Q3.">ⓘ</span></h3><button class="btn primary" id="fd-add">+ Thêm quỹ</button></div>
-          <div class="sub" style="margin:6px 0 4px">Quỹ Q3 (thi đua) mặc định vẫn cấu hình ở <a href="#" id="fd-q3">mục 8 · Quỹ Q3</a>. Giải ngân % là của kịch bản đang chọn <b id="fd-scn"></b>.</div>
-          <div id="funds"></div></div>
         <div class="card cp hidden" id="c5"><div class="row between"><h3 style="margin:0">Tuỳ chỉnh theo phòng / vị trí / ngạch <span class="i" title="Khi một nơi khác mức chung. Phúc lợi, bảo hiểm và Q1 luôn theo mức chung. Ưu tiên: Vị trí › Bộ phận › Phòng › Ngạch › Chung.">ⓘ</span></h3>
             <div class="row"><span class="sub">Xem theo</span><div class="seg" id="ovr-view"><button data-v="item" class="on">Mục tuỳ chỉnh</button><button data-v="unit">Đơn vị</button></div><button class="btn primary" id="ovr-add">+ Thêm tuỳ chỉnh</button></div></div>
           <div id="ovr-form"></div>
@@ -727,7 +726,7 @@ $('#bd-sug').onclick=()=>{const g={};JOBS.forEach(j=>j.people.forEach(p=>{const 
   ks.forEach(k=>{const ps=g[k].ps,q1=ps.reduce((s,p)=>s+(p.lcb||0)+(p.tdg||0),0)/ps.length;if(!q1)return;const lc=ps.reduce((s,p)=>s+(p.lcb||0),0)/ps.length,q2=ps.reduce((s,p)=>s+(p.q2m||0),0)/ps.length;
     const o={code:'',t:g[k].t,lv:[.8,.9,1,1.1,1.2].map(r=>Math.max(r===.8?5310000:0,Math.round(q1*r/100000)*100000)),lcbr:Math.round(lc/q1*1000)/1000,q2r:Math.round(q2/q1*1000)/1000,n:ps.length,src:'Gợi ý từ dữ liệu'};
     const ex=COMMON.bands.find(b=>b.t.trim().toLowerCase()===k);if(ex){o.code=ex.code;Object.assign(ex,o);}else COMMON.bands.push(o);});renderBands();renderPrice();renderAll();};
-$$('#cfgnav>button').forEach(b=>b.onclick=()=>{if(b.dataset.c==='c11')renderBands();if(b.dataset.c==='c13')setTimeout(renderFunds,0);$$('#cfgnav>button').forEach(x=>x.classList.toggle('on',x===b));$$('.cp').forEach(c=>c.classList.toggle('hidden',c.id!==b.dataset.c));});
+$$('#cfgnav>button').forEach(b=>b.onclick=()=>{if(b.dataset.c==='c11')renderBands();if(b.dataset.c==='c2')setTimeout(renderFunds,0);$$('#cfgnav>button').forEach(x=>x.classList.toggle('on',x===b));$$('.cp').forEach(c=>c.classList.toggle('hidden',c.id!==b.dataset.c));});
 function renderIns(){const I=CFG().ins;
   $('#ins-rows').innerHTML=I.rows.map((r,i)=>`<tr><td class="l">${r.n}<span class="sub"> · trần ${r.cap==='ref'?'20 × tham chiếu':r.cap==='minw'?'20 × LTT vùng':'không'}</span></td><td><input class="num" data-i="${i}" data-s="dn" value="${r.dn}"> %</td><td><input class="num" data-i="${i}" data-s="nld" value="${r.nld}"> %</td></tr>`).join('')
     +`<tr class="tot"><td class="l">Cộng</td><td>${I.rows.reduce((s,r)=>s+(+r.dn||0),0)} %</td><td>${I.rows.reduce((s,r)=>s+(+r.nld||0),0)} %</td></tr>`;
@@ -801,7 +800,7 @@ $$('#pay-mode button').forEach(b=>b.onclick=()=>{CFG().pay.mode=b.dataset.v;rend
 function mgrSum(){const c=CFG(),v=c.vars,I=c.ins,row=(k,x)=>`<tr><th>${k}</th><td>${x}</td></tr>`;
   $('#mgr-sum').innerHTML=`<p class="hint">Các mục dưới đây do Admin HR thiết lập cho cả công ty; quản lý chỉ cần nhập <b>định biên</b> và <b>Q1, Q2 cho vị trí mới</b> (mục 2).</p><table class="form"><tbody>
     ${row('Kịch bản',c.name)}${row('Tăng lương',`${v.inc}% từ ${M[v.incm]} · thâm niên ≥ ${v.incmin} tháng`)}${row('KPI tháng / quý',`${v.kpi}% / ${v.kpiq??v.kpi}%`)}${row('Q2 cơ bản năm',`${v.q2n} tháng × khoản thực nhận/tháng × số tháng chính thức/12`)}
-    ${row('Bảo hiểm DN / NLĐ',`${I.rows.reduce((s,r)=>s+(+r.dn||0),0)}% / ${I.rows.reduce((s,r)=>s+(+r.nld||0),0)}%`)}${row('Phúc lợi',c.ben.filter(b=>b.on).map(b=>b.name).join(', '))}${row('Phụ cấp',ALW.filter(a=>a.mode!=='none').map(a=>a.n).join(', ')+' – tự tính theo vị trí / địa điểm')}${row('Quỹ thưởng & OT',funds().filter(f=>f.on).map(f=>f.n+' ('+(FMODES.find(x=>x[0]===f.mode)||['',''])[1]+')').join(', ')||'–')}</tbody></table>`;}
+    ${row('Bảo hiểm DN / NLĐ',`${I.rows.reduce((s,r)=>s+(+r.dn||0),0)}% / ${I.rows.reduce((s,r)=>s+(+r.nld||0),0)}%`)}${row('Phúc lợi',c.ben.filter(b=>b.on).map(b=>b.name).join(', '))}${row('Phụ cấp',ALW.filter(a=>a.mode!=='none').map(a=>a.n).join(', ')+' – tự tính theo vị trí / địa điểm')}${row('Các quỹ Q3 khác',funds().filter(f=>f.on).map(f=>f.n+' ('+(FMODES.find(x=>x[0]===f.mode)||['',''])[1]+')').join(', ')||'–')}</tbody></table>`;}
 function setRole(r){document.body.classList.toggle('mgr',r==='mgr');$$('#role button').forEach(b=>b.classList.toggle('on',b.dataset.r===r));
   const u=$('#unit-sel');if(r==='mgr'){[...u.options].forEach((o,i)=>{if(/HOẠCH ĐỊNH VÀ PHÁT TRIỂN/.test(o.text))u.selectedIndex=i;});u.disabled=true;}else{u.disabled=false;u.selectedIndex=0;}
   const target=r==='mgr'?'c10':'c7';$$('#cfgnav>button').forEach(x=>x.classList.toggle('on',x.dataset.c===target));$$('.cp').forEach(c=>c.classList.toggle('hidden',c.id!==target));
@@ -875,12 +874,12 @@ function renderKpis(){
   $('#kpis').innerHTML=html;$('#kpis2').innerHTML=html;
 }
 // ---- Tổng hợp ----
-const COMPS=[['q1','Q1 (LCB + thưởng đánh giá)','#0a6bc4'],['pc','Phụ cấp','#7aa7e8'],['q2','Q2 tháng','#12805c'],['q2q','Q2 quý','#3fa37a'],['q2y','Q2 cơ bản năm','#7cc4a0'],['q3','Q3','#b54708'],['ben','Phúc lợi','#9d174d'],['fund','Quỹ thưởng & OT','#a15c07'],['vac','Định biên mới','#6b3fc7']];
+const COMPS=[['q1','Q1 (LCB + thưởng đánh giá)','#0a6bc4'],['pc','Phụ cấp','#7aa7e8'],['q2','Q2 tháng','#12805c'],['q2q','Q2 quý','#3fa37a'],['q2y','Q2 cơ bản năm','#7cc4a0'],['q3','Q3 & các quỹ','#b54708'],['ben','Phúc lợi','#9d174d'],['vac','Định biên mới','#6b3fc7']];
 function renderSum(){
   const q={};DEPTS.forEach(d=>q[d.id]=[0,0,0,0]);
   const cs={q1:0,pc:0,q2:0,q2q:0,q2y:0,q3:0,ben:0,fund:0,vac:0};
   JOBS.forEach(j=>{const b=jobBudget(j,'exp',false);b.months.forEach((x,i)=>q[j.d][Math.floor(i/3)]+=x);
-    for(let m=0;m<12;m++){j.people.forEach(p=>{const t=alloc(personMonth(p,m,j,'exp'),m,CFG(),j,p);['q1','pc','q2','q2q','q2y','q3'].forEach(k=>cs[k]+=t[k]||0);cs.ben+=Object.values(t.ben).reduce((a,b)=>a+b,0);cs.fund+=Object.values(t.fd||{}).reduce((a,b)=>a+b,0);});cs.vac+=b.vac.v[m];}});
+    for(let m=0;m<12;m++){j.people.forEach(p=>{const t=alloc(personMonth(p,m,j,'exp'),m,CFG(),j,p);['q1','pc','q2','q2q','q2y','q3'].forEach(k=>cs[k]+=t[k]||0);cs.ben+=Object.values(t.ben).reduce((a,b)=>a+b,0);cs.q3+=Object.values(t.fd||{}).reduce((a,b)=>a+b,0);});cs.vac+=b.vac.v[m];}});
   $('#byq').innerHTML=`<thead><tr><th class="l">Bộ phận</th><th>Quý 1</th><th>Quý 2</th><th>Quý 3</th><th>Quý 4</th><th>Năm</th></tr></thead><tbody>${DEPTS.map(d=>`<tr><td class="l">${d.name}</td>${q[d.id].map(x=>`<td>${(x/1e6).toLocaleString('vi-VN',{maximumFractionDigits:1})}</td>`).join('')}<td><b>${(q[d.id].reduce((a,b)=>a+b,0)/1e6).toLocaleString('vi-VN',{maximumFractionDigits:1})}</b></td></tr>`).join('')}</tbody>`;
   const tot=Object.values(cs).reduce((a,b)=>a+b,0);
   $('#lg').innerHTML=COMPS.map(([k,l,c])=>`<span><i style="background:${c}"></i>${l}</span>`).join('');
@@ -891,7 +890,7 @@ function renderSum(){
 }
 // ---- Ngân sách theo tháng × khoản ----
 const KHOAN0=[['lcb','Lương cơ bản'],['tdg','Thưởng đánh giá tháng'],['pc','Phụ cấp'],['q2','Thưởng Q2 tháng'],['q2q','Thưởng Q2 quý'],['q2y','Thưởng Q2 cơ bản năm'],['q3','Thưởng Q3 (thi đua)']];
-const KH=(cfg=CFG())=>[...KHOAN0,...cfg.ben.filter(b=>b.on).map(b=>['b_'+b.id,'Phúc lợi – '+b.name]),...funds().filter(f=>f.on).map(f=>['f_'+f.id,'Quỹ – '+f.n]),['ins','Bảo hiểm & KPCĐ (DN đóng)'],['vac','Định biên mới (đơn giá + phúc lợi)']];
+const KH=(cfg=CFG())=>[...KHOAN0,...funds().filter(f=>f.on).map(f=>['f_'+f.id,'Q3 – '+f.n]),...cfg.ben.filter(b=>b.on).map(b=>['b_'+b.id,'Phúc lợi – '+b.name]),['ins','Bảo hiểm & KPCĐ (DN đóng)'],['vac','Định biên mới (đơn giá + phúc lợi)']];
 let BK={mode:'exp',cost:false,per:'m',dept:''};
 function breakdown(cfg,mode,cost,dept){
   const R=Object.fromEntries([...KH(cfg).map(([k])=>k),'nld','pit'].map(k=>[k,Array(12).fill(0)]));
@@ -988,7 +987,7 @@ $('#go-link').onclick=()=>{const b=$('#cfgnav>button[data-c="c12"]');$('#tabs bu
 window.nsEstimate=(scId,rows)=>{const k=(SRV&&Object.keys(SRV.map||{}).find(k=>SRV.map[k]===scId))||'A';const cfg=SCN[k]||CFG();const had=Object.prototype.hasOwnProperty.call(HC_SRV,k),save=HC_SRV[k];HC_SRV[k]={...(save||{})};let tot=0,n=0;
   try{rows.forEach(r=>{const j=JOBS.find(x=>x.id===r.job_id);if(!j)return;n++;HC_SRV[k][j.id]=r.hc.map(x=>+x||0);tot+=jobBudget(j,'exp',true,cfg).months.reduce((a,b)=>a+b,0);});}finally{if(had)HC_SRV[k]=save;else delete HC_SRV[k];}
   return {total:tot,key:k,name:cfg.name,jobs:n};};
-function renderAll(){setTimeout(markSave,0);FPOOL.clear();{const c=$('#c13');if(c&&!c.classList.contains('hidden'))setTimeout(renderFunds,0);}if($('#lk-form'))renderLink();if(document.body.classList.contains('mgr'))mgrSum();renderElig();renderGrid();renderKpis();renderSum();renderBk();renderCmp();}
+function renderAll(){setTimeout(markSave,0);FPOOL.clear();{const c=$('#c2');if(c&&!c.classList.contains('hidden'))setTimeout(renderFunds,0);}if($('#lk-form'))renderLink();if(document.body.classList.contains('mgr'))mgrSum();renderElig();renderGrid();renderKpis();renderSum();renderBk();renderCmp();}
 $$('#tabs button').forEach(b=>b.onclick=()=>{$$('#tabs button').forEach(x=>x.classList.toggle('on',x===b));$$('[data-p]').forEach(p=>p.classList.toggle('hidden',p.dataset.p!==b.dataset.t));});
 loadInputs();renderChips();renderOvr();renderAlw();renderPrice();renderBen();renderPay();renderAll();SAVED_SNAP=core();markSave();
 // ---- Màn hình Quỹ thưởng & chi phí khác ----
@@ -1037,7 +1036,6 @@ function fundsChanged(){FPOOL.clear();renderFunds();renderAll();}
     else if(x.hasAttribute('data-radd')){e.preventDefault();const f=F[+x.dataset.fi];(f.rows=f.rows||[]).push({scope:''});FOPEN.add(+x.dataset.fi);renderFunds();}
     else if(x.dataset.rdel!=null){e.preventDefault();F[+x.dataset.fi].rows.splice(+x.dataset.rdel,1);fundsChanged();}});
   $('#fd-add').onclick=()=>{const F=funds();F.push({id:'f'+Date.now().toString(36),n:'Quỹ mới',on:true,mode:'rev',pct:0,rev:0,who:'all',pm:[],dis:{},rows:[]});FOPEN.add(F.length-1);fundsChanged();};
-  $('#fd-q3').onclick=e=>{e.preventDefault();const b=$('#cfgnav>button[data-c="c2"]');if(b)b.click();};
 })();
 </script>
 </body>
