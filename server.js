@@ -141,6 +141,11 @@ const crypto = require('crypto');
 const SEED_USERS = (() => { try { return JSON.parse(fs.readFileSync(path.join(__dirname, 'data', 'tai-khoan-goc.json'), 'utf8')); } catch (e) { return []; } })();
 const AUTH_ON = SEED_USERS.length > 0;
 const SESS = new Map(); // sid -> {login, at}
+// Phiên ký số (HMAC) khi có SESSION_SECRET: giữ đăng nhập qua các lần khởi động lại / deploy
+const SECRET = process.env.SESSION_SECRET || '';
+const REVOKED = new Map(), DEAD = new Set(); // login -> thời điểm thu hồi; token đã đăng xuất
+function signTok(login) { const iat = Date.now(), p = Buffer.from(JSON.stringify({ l: login, i: iat, e: iat + 12 * 3600e3 })).toString('base64url'); return p + '.' + crypto.createHmac('sha256', SECRET).update(p).digest('base64url'); }
+function readTok(t) { try { const [p, s] = String(t).split('.'); if (!p || !s) return null; const x = crypto.createHmac('sha256', SECRET).update(p).digest('base64url'); if (x.length !== s.length || !crypto.timingSafeEqual(Buffer.from(x), Buffer.from(s))) return null; const o = JSON.parse(Buffer.from(p, 'base64url').toString()); if (o.e < Date.now() || DEAD.has(t) || (REVOKED.get(o.l) || 0) > o.i) return null; return { login: o.l }; } catch (e) { return null; } }
 const ROLES = { admin: 'Admin HR', manager: 'Quản lý đơn vị', viewer: 'Người xem' };
 function usersAll() { DB.users = DB.users || []; for (const u of SEED_USERS) if (!DB.users.find(x => x.login === u.login)) DB.users.push({ ...u }); return DB.users; }
 function findUser(login) { return usersAll().find(u => u.login === String(login || '').trim().toLowerCase()); }
@@ -161,8 +166,8 @@ function userAction(b) {
     setPw(u, b.password); usersAll().push(u); orgLog(`Tạo tài khoản ${L} (${ROLES[u.role]})`); save(); return { ok: true }; }
   const u = findUser(L) || fail('Không tìm thấy tài khoản');
   if (b.action === 'update') { if (u.owner && b.role && b.role !== 'admin') fail('Không đổi vai trò chủ hệ thống'); if (b.name) u.name = b.name.trim(); if (b.role) { if (!ROLES[b.role]) fail('Vai trò không hợp lệ'); u.role = b.role; } if (b.scope) u.scope = b.scope.map(Number); orgLog(`Sửa tài khoản ${L}`); save(); return { ok: true }; }
-  if (b.action === 'reset') { setPw(u, b.password); u.must_change = true; for (const [k, v] of SESS) if (v.login === L) SESS.delete(k); orgLog(`Đặt lại mật khẩu ${L}`); save(); return { ok: true }; }
-  if (b.action === 'lock' || b.action === 'unlock') { if (u.owner) fail('Không khoá chủ hệ thống'); u.locked = b.action === 'lock'; if (u.locked) for (const [k, v] of SESS) if (v.login === L) SESS.delete(k); orgLog(`${u.locked ? 'Khoá' : 'Mở khoá'} tài khoản ${L}`); save(); return { ok: true }; }
+  if (b.action === 'reset') { setPw(u, b.password); u.must_change = true; REVOKED.set(L, Date.now()); for (const [k, v] of SESS) if (v.login === L) SESS.delete(k); orgLog(`Đặt lại mật khẩu ${L}`); save(); return { ok: true }; }
+  if (b.action === 'lock' || b.action === 'unlock') { if (u.owner) fail('Không khoá chủ hệ thống'); u.locked = b.action === 'lock'; if (u.locked) REVOKED.set(L, Date.now()); if (u.locked) for (const [k, v] of SESS) if (v.login === L) SESS.delete(k); orgLog(`${u.locked ? 'Khoá' : 'Mở khoá'} tài khoản ${L}`); save(); return { ok: true }; }
   fail('Thao tác không hợp lệ');
 }
 
@@ -484,12 +489,12 @@ http.createServer(async (req, res) => {
   const url0 = new URL(req.url, 'http://x');
   ME = null;
   if (AUTH_ON) {
-    const sid = cookies(req).sid, ss = sid && SESS.get(sid); if (ss) { const u = findUser(ss.login); if (u && !u.locked) ME = u; else SESS.delete(sid); }
+    const sid = cookies(req).sid, ss = sid && (SECRET ? readTok(sid) : SESS.get(sid)); if (ss) { const u = findUser(ss.login); if (u && !u.locked) ME = u; else SESS.delete(sid); }
     if (req.method === 'POST' && url0.pathname === '/api/login') { const b = await body(req); const u = findUser(b.login);
       if (!u || u.locked || !checkPw(u, b.password)) { await new Promise(r => setTimeout(r, 600)); return send(res, 401, { error: 'Sai tên đăng nhập hoặc mật khẩu' }); }
-      const t = crypto.randomBytes(24).toString('hex'); SESS.set(t, { login: u.login, at: Date.now() }); u.last_login = now(); save();
+      const t = SECRET ? signTok(u.login) : crypto.randomBytes(24).toString('hex'); if (!SECRET) SESS.set(t, { login: u.login, at: Date.now() }); u.last_login = now(); save();
       res.setHeader('Set-Cookie', `sid=${t}; HttpOnly; Path=/; SameSite=Lax; Max-Age=${12 * 3600}${req.headers['x-forwarded-proto'] === 'https' ? '; Secure' : ''}`); return send(res, 200, { ok: true, must_change: !!u.must_change }); }
-    if (url0.pathname === '/api/logout') { if (cookies(req).sid) SESS.delete(cookies(req).sid); res.setHeader('Set-Cookie', 'sid=; Path=/; Max-Age=0'); return send(res, 200, { ok: true }); }
+    if (url0.pathname === '/api/logout') { if (cookies(req).sid) { SESS.delete(cookies(req).sid); if (SECRET) DEAD.add(cookies(req).sid); } res.setHeader('Set-Cookie', 'sid=; Path=/; Max-Age=0'); return send(res, 200, { ok: true }); }
     const open = url0.pathname === '/login.html' || url0.pathname === '/favicon.ico';
     if (!ME && !open) { if (url0.pathname.startsWith('/api/')) return send(res, 401, { error: 'Phiên đăng nhập đã hết – đăng nhập lại' }); res.writeHead(302, { Location: '/login.html?next=' + encodeURIComponent(url0.pathname + url0.search) }); return res.end(); }
   } else if (PASS) { const h = req.headers.authorization || ''; const pw = h.startsWith('Basic ') ? Buffer.from(h.slice(6), 'base64').toString().split(':').slice(1).join(':') : ''; if (pw !== PASS) { res.writeHead(401, { 'WWW-Authenticate': 'Basic realm="Dinh bien", charset="UTF-8"' }); return res.end('Can mat khau'); } }
