@@ -115,7 +115,7 @@ details.gsel{display:inline-block;position:relative}details.gsel summary{cursor:
     <div class="row"><button class="btn primary" id="save-btn" title="Lưu toàn bộ cấu hình (Ctrl+S)">💾 Lưu cấu hình</button><span class="sub" id="save-st" style="min-width:150px"></span><button class="btn" id="bm-xlsx" title="Xuất Excel đúng mẫu BM Ngân sách nhân sự: Tổng hợp SS Biên, Định biên, Ngân sách chi tiết, Tổng hợp Ngân sách, TH_Phòng Ban, BM.07 gửi KT, TH Q2, Chính sách">⤓ Xuất theo BM</button><span class="sub" id="bm-msg"></span><button class="btn" id="lk-xlsx" title="Xuất file Excel: Tổng hợp, Theo khoản, Chi tiết vị trí, Định biên đã dùng, Giả định – có đóng dấu người lập và kế hoạch nguồn">⤓ Xuất file ngân sách</button><span class="sub" id="lk-msg"></span><button class="btn" data-admin id="exp-btn" title="Tải file cấu hình để gửi / sao lưu">⤓ Xuất file</button><label class="btn" data-admin style="cursor:pointer" title="Nạp lại từ file đã xuất">⤒ Nạp file<input type="file" accept=".json" id="imp-file" style="display:none"></label><span class="sub">Xem với vai trò:</span><div class="seg" id="role"><button data-r="hr" class="on">Admin HR</button><button data-r="mgr">Quản lý đơn vị</button></div><span class="sub">Đơn vị:</span> <select id="unit-sel" autocomplete="off"></select></div>
   </div>
 
-  <div class="tabs" id="tabs"><button data-t="cfg" class="on">① Cấu hình biến số</button><button data-t="bud">② Ngân sách theo kế hoạch</button><button data-t="sum">③ Tổng hợp</button><button data-t="cmp">④ So sánh kịch bản</button><button data-t="emp">⑤ Nhân viên &amp; 5 Comp</button><button data-t="sim">⑥ Thử vị trí mới</button></div>
+  <div class="tabs" id="tabs"><button data-t="cfg" class="on">① Cấu hình biến số</button><button data-t="bud">② Ngân sách theo kế hoạch</button><button data-t="sum">③ Tổng hợp</button><button data-t="cmp">④ So sánh kịch bản</button><button data-t="emp">⑤ Nhân viên &amp; 5 Comp</button><button data-t="sim">⑥ Thu nhập chuẩn theo vị trí</button></div>
 
   <!-- ① CẤU HÌNH -->
   <section data-p="cfg">
@@ -267,7 +267,12 @@ details.gsel{display:inline-block;position:relative}details.gsel summary{cursor:
       <div class="sub" style="margin-top:6px">LTI (Comp4) chưa có dữ liệu – đang để 0. Số theo kịch bản đang chọn, đã gồm tăng lương, KPI, rule LCB, giải ngân quỹ.</div></div>
   </section>
   <section data-p="sim" class="hidden">
-    <div class="card"><h3 style="margin:0 0 6px">Thử một vị trí mới – thu nhập &amp; phụ cấp được gán thế nào <span class="scope g" id="sm-scn"></span></h3>
+    <div class="card"><div class="row between" style="flex-wrap:wrap;gap:8px"><h3 style="margin:0">Bảng thu nhập chuẩn theo vị trí <span class="scope g" id="sm-scn"></span> <span class="i" title="Đơn giá chuẩn cho 1 người của mỗi vị trí = khung thu nhập (bậc) + rule LCB + phụ cấp + KPI + quỹ Q3 + phúc lợi + bảo hiểm. Ngân sách định biên mới = bảng này × số định biên mới; người đang giữ vị trí vẫn tính theo lương thực tế.">ⓘ</span></h3>
+      <div class="row" style="gap:8px"><select id="std-unit"></select><input id="std-q" placeholder="Tìm vị trí…" style="width:180px"><button class="btn" id="std-xlsx">⤓ Excel</button></div></div>
+      <div class="sub" style="margin:6px 0">Mỗi dòng = thu nhập chuẩn 1 người/tháng của vị trí. Chọn <b>khung + bậc</b> hoặc nhập tay Q1 / Q2 → Comp1–5 tính lại ngay và dùng làm đơn giá định biên mới. Vị trí tạo mới bên Định biên tự hiện ở đây. <b>Bấm vào dòng</b> để xem từng khoản lấy từ cấu hình nào.</div>
+      <div style="overflow:auto;max-height:520px"><table class="pjt" id="std-tbl"></table></div>
+      <div id="std-det" style="margin-top:12px"></div></div>
+    <div class="card"><h3 style="margin:0 0 6px">Thử nhanh một vị trí chưa tạo</h3>
       <div class="sub">Nhập thông tin vị trí → web áp toàn bộ cấu hình đang có (khung thu nhập, rule LCB, phụ cấp, KPI, quỹ Q3, OT, phúc lợi, bảo hiểm) và cho biết <b>từng khoản lấy từ cấu hình nào</b>. Bấm vào căn cứ để mở đúng mục cấu hình đó. Không lưu vào định biên.</div>
       <div class="row" style="gap:12px;flex-wrap:wrap;align-items:flex-end;margin:12px 0">
         <label class="sub">Tên vị trí<br><input id="sm-name" value="Vị trí thử" style="width:220px"></label>
@@ -371,7 +376,7 @@ const BEN_V5=()=>JSON.parse(JSON.stringify([
 // ---- Khung thu nhập theo chức danh ----
 const BANDS0=()=>JSON.parse(JSON.stringify([{"code":"SMP.M.007","t":"Giám đốc Phát triển Kinh doanh Nội địa","lv":[48000000,54000000,60000000,66000000,72000000],"lcbr":0.42,"q2r":0.2,"n":1,"src":"Demo"},{"code":"SMP.M.008","t":"Giám đốc Kinh doanh GT Miền","lv":[35000000,37000000,42000000,48000000,55000000],"lvd":[{"ng":"QL3","lcb":16325000,"q2":20000000},{"ng":"QL3","lcb":16325000,"q2":22000000},{"ng":"QL3","lcb":16325000,"q2":25000000},{"ng":"QL3","lcb":16325000,"q2":28000000},{"ng":"QL3","lcb":16325000,"q2":32000000}],"lcbr":null,"q2r":null,"src":"PL01A CSTN Giám đốc KD Miền (RSM) 04/2024","note":"PL01A CSTN Giám đốc KD Miền (RSM) 04/2024 – phụ cấp: ăn trưa 780.000, điện thoại 500.000.","n":1},{"code":"SMP.M.009","t":"Trưởng Kinh doanh Khu vực","lv":[15000000,17000000,19000000,21000000,23000000],"lvd":[{"ng":"QL1","lcb":9100000,"q2":18000000},{"ng":"QL1","lcb":9100000,"q2":20000000},{"ng":"QL2","lcb":11830000,"q2":23000000},{"ng":"QL2","lcb":11830000,"q2":25000000},{"ng":"QL2","lcb":11830000,"q2":28000000}],"lcbr":null,"q2r":null,"src":"PL01A CSTN Trưởng KD khu vực (ASM) 04/2024","note":"PL01A CSTN Trưởng KD khu vực (ASM) 04/2024 – phụ cấp: ăn trưa 780.000, điện thoại 500.000.","n":1},{"code":"SMP.S.009","t":"Đại diện Bán hàng","lv":[5800000,6300000,6800000,7400000,8000000],"lvd":[{"ng":"NV2","lcb":5010000,"q2":8200000},{"ng":"NV2","lcb":5010000,"q2":8200000},{"ng":"NV2","lcb":5010000,"q2":9000000},{"ng":"NV2","lcb":5010000,"q2":10500000},{"ng":"NV2","lcb":5010000,"q2":12500000}],"lcbr":null,"q2r":null,"src":"PL01A CSTN Đại diện bán hàng 05/2024","note":"PL01A CSTN Đại diện bán hàng 05/2024 – phụ cấp: ăn trưa 780.000, điện thoại 300.000, đi lại 1.300.000.","n":5},{"code":"SMP.P.018","t":"Trưởng nhóm Tư vấn Sản phẩm","lv":[14400000,16200000,18000000,19800000,21600000],"lcbr":0.5,"q2r":0.17,"n":1,"src":"Demo"},{"code":"SMP.S.001","t":"Nhân viên Tư vấn Sản phẩm","lv":[5600000,6300000,7000000,7700000,8400000],"lcbr":0.79,"q2r":0.2,"n":1,"src":"Demo"},{"code":"SMP.P.017","t":"Chuyên viên Task Force","lv":[12000000,13000000,14000000,15000000,16000000],"lvd":[{"ng":"CV1","lcb":5592000,"q2":12000000},{"ng":"CV1","lcb":5592000,"q2":13000000},{"ng":"CV1","lcb":5592000,"q2":14000000},{"ng":"CV2","lcb":6067000,"q2":15000000},{"ng":"CV2","lcb":6067000,"q2":16000000}],"lcbr":null,"q2r":null,"src":"PL01D CSTN Chuyên viên Taskforce","note":"PL01D CSTN Chuyên viên Taskforce – phụ cấp: ăn trưa 780.000 (30.000/ngày), điện thoại 500.000 (sim công ty)."}]));
 const titleKey=n=>String(n||'').split(' / ')[0].trim().toLowerCase();
-function bandOf(job){const B=(typeof COMMON!=='undefined'&&COMMON.bands)||[];const k=titleKey(job.title||job.name);return B.find(b=>b.t.trim().toLowerCase()===k)||null;}
+function bandOf(job){const B=(typeof COMMON!=='undefined'&&COMMON.bands)||[];{const ov=(typeof ST!=='undefined'&&ST.manual[job.id]||{}).band;if(ov!=null)return ov?B.find(b=>b.t===ov)||null:null;}const k=titleKey(job.title||job.name);return B.find(b=>b.t.trim().toLowerCase()===k)||null;}
 function bandPrice(b,lv){const i=(lv||3)-1,q1=+b.lv[i]||0,d=(b.lvd||[])[i]||{};const lcb=d.lcb!=null&&d.lcb!==''?+d.lcb:Math.round(q1*(+b.lcbr||0));const q2m=d.q2!=null&&d.q2!==''?+d.q2:Math.round(q1*(+b.q2r||0));return {lcb,tdg:q1-lcb,q2m,q2q:0};}
 function bandNg(b,lv){const d=(b.lvd||[])[(lv||3)-1];return d&&d.ng||'';}
 // ---- Align với màn hình Định biên (cùng web): cơ cấu, vị trí, định biên theo tháng lấy từ server ----
@@ -548,7 +553,7 @@ function priceOf(job){
   else if(job.people.length)r={src:'pos',label:`TB vị trí (${job.people.length})`,p:avgP(job.people,'(TB vị trí)')};
   else if(TITLE_AVG[job.id])r={src:'tit',label:TITLE_AVG[job.id].label,p:TITLE_AVG[job.id].p};
   else{const ps=JOBS.filter(j=>j.ng===job.ng).flatMap(j=>j.people);r=ps.length?{src:'ng',label:`TB ngạch (${ps.length})`,p:avgP(ps,'(TB ngạch)')}:{src:'none',label:'Cần nhập',p:avgP([{}],'(trống)')};}
-  const mm={...(ST.manual[job.id]||{})};delete mm.pcx;delete mm.lvl;delete mm.loc;delete mm.bl;if(Object.keys(mm).length){r={...r,src:'man',label:'Nhập tay',auto:r.p,p:{...r.p,...mm}};}
+  const mm={...(ST.manual[job.id]||{})};delete mm.pcx;delete mm.lvl;delete mm.loc;delete mm.bl;delete mm.band;if(Object.keys(mm).length){r={...r,src:'man',label:'Nhập tay',auto:r.p,p:{...r.p,...mm}};}
   const q=r.p,B=new Set(CFG().vars.q2base||[]);
   const npc=newPC(job);{const nv=nightPC(job,q.lcb);if(nv){npc.det.night={v:nv,src:'giờ đêm × lương giờ',n:'Ca đêm'};npc.v+=nv;npc.vt+=nv;}}r.pc=npc;
   {const V=CFG().vars,k=(V.kpi??100)/100,kq=(V.kpiq??V.kpi??100)/100;r.p={...q,pc:npc.v-npc.vt,q3:0,q2y:/^(TTS|CTV)/i.test(job.ng||'')?0:((B.has('lcb')?q.lcb:0)+(B.has('tdg')?q.tdg:0)+(B.has('pc')?npc.v-npc.vt:0)+(B.has('q2m')?q.q2m*k:0)+(B.has('q2q')?(q.q2q||0)*kq/3:0))*(V.q2n||0)};}
@@ -1060,8 +1065,8 @@ $('#go-link').onclick=()=>{const b=$('#cfgnav>button[data-c="c12"]');$('#tabs bu
 window.nsEstimate=(scId,rows)=>{const k=(SRV&&Object.keys(SRV.map||{}).find(k=>SRV.map[k]===scId))||'A';const cfg=SCN[k]||CFG();const had=Object.prototype.hasOwnProperty.call(HC_SRV,k),save=HC_SRV[k];HC_SRV[k]={...(save||{})};let tot=0,n=0;
   try{rows.forEach(r=>{const j=JOBS.find(x=>x.id===r.job_id);if(!j)return;n++;HC_SRV[k][j.id]=r.hc.map(x=>+x||0);tot+=jobBudget(j,'exp',true,cfg).months.reduce((a,b)=>a+b,0);});}finally{if(had)HC_SRV[k]=save;else delete HC_SRV[k];}
   return {total:tot,key:k,name:cfg.name,jobs:n};};
-function renderAll(){setTimeout(markSave,0);{const c=document.querySelector('[data-p="emp"]');if(c&&!c.classList.contains('hidden'))setTimeout(renderEmp,0);}{const c=$('#c15');if(c&&!c.classList.contains('hidden'))setTimeout(renderLcbr,0);}FPOOL.clear();{if(['#c2','#c14'].some(id=>{const c=$(id);return c&&!c.classList.contains('hidden');}))setTimeout(renderFunds,0);}if($('#lk-form'))renderLink();if(document.body.classList.contains('mgr'))mgrSum();renderElig();renderGrid();renderKpis();renderSum();renderBk();renderCmp();}
-$$('#tabs button').forEach(b=>b.onclick=()=>{if(b.dataset.t==='emp')setTimeout(renderEmp,0);if(b.dataset.t==='sim')setTimeout(renderSim,0);$$('#tabs button').forEach(x=>x.classList.toggle('on',x===b));$$('[data-p]').forEach(p=>p.classList.toggle('hidden',p.dataset.p!==b.dataset.t));});
+function renderAll(){setTimeout(markSave,0);{const c=document.querySelector('[data-p="sim"]');if(c&&!c.classList.contains('hidden'))setTimeout(()=>{renderStd();renderSim();},0);}{const c=document.querySelector('[data-p="emp"]');if(c&&!c.classList.contains('hidden'))setTimeout(renderEmp,0);}{const c=$('#c15');if(c&&!c.classList.contains('hidden'))setTimeout(renderLcbr,0);}FPOOL.clear();{if(['#c2','#c14'].some(id=>{const c=$(id);return c&&!c.classList.contains('hidden');}))setTimeout(renderFunds,0);}if($('#lk-form'))renderLink();if(document.body.classList.contains('mgr'))mgrSum();renderElig();renderGrid();renderKpis();renderSum();renderBk();renderCmp();}
+$$('#tabs button').forEach(b=>b.onclick=()=>{if(b.dataset.t==='emp')setTimeout(renderEmp,0);if(b.dataset.t==='sim')setTimeout(()=>{renderStd();renderSim();},0);$$('#tabs button').forEach(x=>x.classList.toggle('on',x===b));$$('[data-p]').forEach(p=>p.classList.toggle('hidden',p.dataset.p!==b.dataset.t));});
 loadInputs();renderChips();renderOvr();renderAlw();renderPrice();renderBen();renderPay();renderAll();SAVED_SNAP=core();markSave();
 // ---- Màn hình Quỹ thưởng & chi phí khác ----
 const FOPEN=new Set();
@@ -1338,44 +1343,77 @@ $('#ec-xlsx').onclick=async()=>{try{const X=await bmLoad(),R=window.__EC||[],h=[
 // ---- Thử vị trí mới: thu nhập & phụ cấp gán thế nào ----
 const SMID=-999;
 function goCfg(c){$('#tabs button[data-t="cfg"]').click();const b=$('#cfgnav>button[data-c="'+c+'"]');b&&b.click();}
-function renderSim(){const out=$('#sm-out');if(!out)return;const cfg=CFG();$('#sm-scn').textContent=cfg.name;
+const CGRP=['Comp1','Comp2','Comp3','Comp4','Comp5','Chi phí khác'],CCOL={Comp1:'#0a6bc4',Comp2:'#7aa7e8',Comp3:'#12805c',Comp4:'#6b3fc7',Comp5:'#9d174d','Chi phí khác':'#b54708'};
+// Tính Comp1–5 chuẩn cho 1 đầu người của vị trí (đơn giá định biên mới) từ tháng st, kèm căn cứ từng khoản
+function compCalc(J,st=0,cfg=CFG()){FPOOL.clear();const pr=priceOf(J),base=pr.p,lr=lcbTarget(base,J),man=ST.manual[J.id]||{};
+  const ms=M.map((_,m)=>m>=st?alloc(personMonth(base,m,J,'exp',cfg),m,cfg,J,null):null),n=ms.filter(Boolean).length||1;
+  const S=fn=>ms.reduce((s,t)=>s+(t?fn(t):0),0),I=cfg.ins,ins=t=>{const b=insBase(t,I);return I.rows.reduce((s,r)=>{const cap=r.cap==='ref'?20*I.ref:r.cap==='minw'?20*I.minw:Infinity;return s+Math.min(b,cap)*(+r.dn||0)/100;},0);};
+  const lk=(c,txt)=>`<a href="#" data-go="${c}">${txt}</a>`,v=vars(J,cfg),bd=bandOf(J);
+  const rows=[],add=(grp,l,y,why)=>rows.push({grp,l,y,why});
+  const srcQ1=pr.src==='man'?'Nhập tay':pr.src==='band'?`${lk('c11','Khung thu nhập')} “${bd?bd.t:''}” bậc L${man.bl||3}`:pr.src==='none'?'Chưa có khung – chọn khung hoặc nhập tay Q1':'Bình quân '+pr.label+' (chưa chọn khung)';
+  add('Comp1','Lương cơ bản (LCB)',S(t=>t.lcb),lr?`${lk('c15','Rule LCB')}: ${lr.why} → ${fmt(lr.v)}`:`Tách từ Q1 · ${srcQ1}`);
+  add('Comp1','Thưởng đánh giá tháng',S(t=>t.tdg),`= Q1 − LCB · Q1 ${fmt((base.lcb||0)+(base.tdg||0))} · ${srcQ1}`);
+  const det=Object.entries(pr.pc.det||{});det.forEach(([k,d])=>add('Comp2','PC '+d.n,d.v*n,`${lk('c9','Phụ cấp')}: ${d.src}`));
+  if(!det.length)add('Comp2','Phụ cấp',0,`${lk('c9','Phụ cấp')}: không có khoản nào áp cho ngạch / địa điểm này`);
+  add('Comp3','Thưởng Q2 tháng',S(t=>t.q2),`Q2 tháng ${fmt(base.q2m||0)} × KPI tháng ${v.kpi}% (${lk('c1','Lương & KPI')})${q2Rep(J)?' · thuộc nhóm incentive nên = 0':''}`);
+  if(S(t=>t.q2q||0))add('Comp3','Thưởng Q2 quý',S(t=>t.q2q||0),`× KPI quý ${v.kpiq??v.kpi}%`);
+  add('Comp3','Thưởng Q2 cơ bản năm',S(t=>t.q2y),`${v.q2n} tháng × khoản thực nhận/tháng × số tháng chính thức/12 (${lk('c1','Lương & KPI')})`);
+  add('Comp3','Thưởng Q3 (thi đua)',S(t=>t.q3),`${lk('c2','Quỹ Q3')}: ${v.q3mode==='fixed'?'quỹ cố định chia đầu người':v.q3pct+'% × cơ sở'} × giải ngân ${v.q3}%`);
+  funds().filter(f=>f.on).forEach(f=>{const y=S(t=>(t.fd||{})[f.id]||0),P=fundPar(f,J);add(isOT(f)?'Chi phí khác':'Comp3',(isOT(f)?'':'Quỹ ')+f.n,y,`${lk(isOT(f)?'c14':'c2',isOT(f)?'Làm thêm giờ':'Các quỹ Q3')}: ${(FMODES.find(x=>x[0]===f.mode)||['',''])[1]}${P.key!=='*'?' · mức riêng đơn vị':''}${y?'':' · không áp cho vị trí này'}`);});
+  add('Comp4','LTI',0,'Chưa có dữ liệu');
+  cfg.ben.filter(b=>b.on).forEach(b=>{const y=S(t=>(t.ben||{})[b.id]||0);if(y)add('Comp5','Phúc lợi – '+b.name,y,`${lk('c3','Phúc lợi')}: ${b.type==='event'?'tỷ lệ phát sinh '+(b.rate||0)+'%':'theo ngạch'}`);});
+  add('Chi phí khác','Bảo hiểm DN đóng (BHXH, BHYT, BHTN, KPCĐ)',S(ins),`${lk('c7','Bảo hiểm')}: trên ${(I.base||[]).join(' + ')} · trần 20 × ${fmt(I.ref)}`);
+  const tot=g=>rows.filter(r=>r.grp===g).reduce((s,r)=>s+r.y,0),cum={};let acc=0;CGRP.forEach(g=>{acc+=tot(g);cum[g]=acc;});
+  return {rows,cum,n,pr,src:srcQ1};}
+function compHTML(R,title){const {rows,cum,n}=R;
+  return `${title?`<h4 style="margin:4px 0 8px">${title}</h4>`:''}<div class="row" style="gap:10px;flex-wrap:wrap;margin-bottom:10px">${CGRP.map(g=>`<div class="kpi" style="min-width:150px;border-top:3px solid ${CCOL[g]}"><div class="l">${g==='Chi phí khác'?'Tổng chi phí DN':g} · /tháng</div><div class="v">${fmt(Math.round(cum[g]/n))}</div></div>`).join('')}</div>
+    <table class="pjt"><thead><tr><th class="l">Nhóm</th><th class="l">Khoản</th><th>Bình quân / tháng</th><th>Cả năm (${n} tháng)</th><th class="l">Lấy từ cấu hình nào</th></tr></thead><tbody>
+    ${CGRP.map(g=>rows.filter(r=>r.grp===g).map((r,i)=>`<tr><td class="l" style="color:${CCOL[g]};font-weight:600">${i===0?g:''}</td><td class="l">${r.l}</td><td>${fmt(Math.round(r.y/n))}</td><td>${fmt(Math.round(r.y))}</td><td class="l sub">${r.why}</td></tr>`).join('')+`<tr style="background:#f8fafc"><td></td><td class="l"><b>${g==='Chi phí khác'?'TỔNG CHI PHÍ DN':'= '+g}</b></td><td><b>${fmt(Math.round(cum[g]/n))}</b></td><td><b>${fmt(Math.round(cum[g]))}</b></td><td></td></tr>`).join('')}</tbody></table>`;}
+// ---- Bảng thu nhập chuẩn theo vị trí ----
+const STD={q:'',unit:'',sel:null};
+function renderStd(){const box=$('#std-tbl');if(!box)return;const cfg=CFG(),B=COMMON.bands||[];$('#sm-scn').textContent=cfg.name;
+  const us=$('#std-unit');if(!us.dataset.ok){us.innerHTML='<option value="">Tất cả đơn vị</option>'+DEPTS.map(d=>`<option value="${d.id}">${d.name}</option>`).join('');us.dataset.ok=1;}
+  const list=JOBS.filter(j=>(!STD.unit||j.d===STD.unit)&&(!STD.q||j.name.toLowerCase().includes(STD.q.toLowerCase())));
+  const esc=x=>String(x??'').replace(/"/g,'&quot;');
+  const rows=list.map(j=>{const R=compCalc(j),m=ST.manual[j.id]||{},bd=bandOf(j),n=R.n,c=g=>fmt(Math.round(R.cum[g]/n)),hc=hcOf(j,cfg),newp=Math.max(0,Math.max(...hc)-j.people.length);
+    return `<tr class="std-r${STD.sel===j.id?' on':''}" data-j="${j.id}" style="cursor:pointer;${STD.sel===j.id?'background:#eef4ff':''}"><td class="l"><b>${j.name}</b><div class="sub">${(DEPTS.find(d=>d.id===j.d)||{}).name||''}</div></td><td>${j.ng}</td><td>${j.people.length}${newp?` <span class="tag t-pos" title="Định biên mới">+${newp}</span>`:''}</td>
+      <td class="l" onclick="event.stopPropagation()"><select data-jb="${j.id}" style="max-width:200px"><option value="">${bd&&m.band==null?'(tự khớp) '+bd.t:'— chọn khung —'}</option>${B.map(b=>`<option value="${esc(b.t)}" ${m.band===b.t?'selected':''}>${b.t}</option>`).join('')}</select> <select data-jl="${j.id}">${[1,2,3,4,5].map(l=>`<option value="${l}" ${(m.bl||3)===l?'selected':''}>L${l}</option>`).join('')}</select></td>
+      <td onclick="event.stopPropagation()"><input class="money" style="width:105px" data-jq1="${j.id}" value="${m.lcb!=null?fmt((m.lcb||0)+(m.tdg||0)):''}" placeholder="${fmt(Math.round((R.pr.auto||R.pr.p).lcb+(R.pr.auto||R.pr.p).tdg||0))}"></td>
+      <td onclick="event.stopPropagation()"><input class="money" style="width:95px" data-jq2="${j.id}" value="${m.q2m!=null?fmt(m.q2m):''}" placeholder="${fmt(Math.round((R.pr.auto||R.pr.p).q2m||0))}"></td>
+      ${CGRP.map(g=>`<td style="${g==='Chi phí khác'?'font-weight:600':''}">${c(g)}</td>`).join('')}<td class="l sub" style="max-width:180px">${R.pr.label}</td></tr>`;}).join('');
+  box.innerHTML=`<thead><tr><th class="l">Vị trí</th><th>Ngạch</th><th>Người / +mới</th><th class="l">Khung thu nhập · bậc</th><th>Q1 tay</th><th>Q2 tháng tay</th>${CGRP.map(g=>`<th style="color:${CCOL[g]}">${g==='Chi phí khác'?'Chi phí DN':g}</th>`).join('')}<th class="l">Nguồn đơn giá</th></tr></thead><tbody>${rows||'<tr><td colspan="13" class="sub">Không có vị trí</td></tr>'}</tbody>`;
+  const sj=JOBS.find(j=>j.id===STD.sel);$('#std-det').innerHTML=sj?compHTML(compCalc(sj),'Chi tiết Comp1 → Comp5 · '+sj.name+' ('+sj.ng+') – chuẩn cho 1 người / tháng, đủ 12 tháng')+stdPeople(sj):'<div class="sub" style="padding:8px 0">Bấm vào một vị trí để xem chi tiết từng khoản và lấy từ cấu hình nào.</div>';
+}
+function stdPeople(j){if(!j.people.length)return '';const R=ecRows().filter(x=>x.r.j.id===j.id&&!x.vac),std=compCalc(j),sc={Comp1:'c1',Comp2:'c2',Comp3:'c3',Comp4:'c4',Comp5:'c5','Chi phí khác':'cost'};
+  const row=(name,vals,bold)=>`<tr${bold?' style="background:#f8fafc;font-weight:600"':''}><td class="l">${name}</td>${CGRP.map(g=>`<td>${fmt(Math.round(vals[g]))}</td>`).join('')}</tr>`;
+  return `<h4 style="margin:16px 0 6px">Người đang giữ vị trí – thu nhập thực tế (bình quân tháng trong năm) so với chuẩn</h4><table class="pjt"><thead><tr><th class="l">Họ và tên</th>${CGRP.map(g=>`<th style="color:${CCOL[g]}">${g==='Chi phí khác'?'Chi phí DN':g}</th>`).join('')}</tr></thead><tbody>
+  ${R.map(x=>{const n=x.mo||12;return row(x.name,Object.fromEntries(CGRP.map(g=>[g,x.v[sc[g]]/n])));}).join('')}${row('Chuẩn của vị trí',Object.fromEntries(CGRP.map(g=>[g,std.cum[g]/std.n])),true)}</tbody></table><div class="sub">Người đang giữ vị trí tính theo lương thực tế của họ (cấu trúc lương KOI). Bấm tab ⑤ để xem chi tiết từng khoản của từng người.</div>`;}
+function stdChanged(){renderStd();if(typeof renderPrice==='function')renderPrice();renderAll();}
+document.addEventListener('click',e=>{const tr=e.target.closest('#std-tbl tr.std-r');if(!tr)return;STD.sel=+tr.dataset.j;renderStd();$('#std-det').scrollIntoView({behavior:'smooth',block:'nearest'});});
+document.addEventListener('change',e=>{const x=e.target;if(!x.closest||!x.closest('#std-tbl'))return;const id=+(x.dataset.jb||x.dataset.jl||x.dataset.jq1||x.dataset.jq2);const m=ST.manual[id]=ST.manual[id]||{};const num=v=>+String(v).replace(/\D/g,'')||0;
+  if(x.dataset.jb!=null){if(x.value)m.band=x.value;else delete m.band;}
+  else if(x.dataset.jl!=null)m.bl=+x.value;
+  else if(x.dataset.jq1!=null){if(x.value.trim()===''){delete m.lcb;delete m.tdg;}else{const j=JOBS.find(z=>z.id===id),a=(priceOf(j).auto||priceOf(j).p),r=(a.lcb+a.tdg)?a.lcb/(a.lcb+a.tdg):0.4,q=num(x.value);m.lcb=Math.round(q*r);m.tdg=q-m.lcb;}}
+  else if(x.dataset.jq2!=null){if(x.value.trim()==='')delete m.q2m;else m.q2m=num(x.value);}
+  if(!Object.keys(m).length)delete ST.manual[id];stdChanged();});
+{const u=$('#std-unit'),q=$('#std-q');if(u)u.onchange=()=>{STD.unit=u.value;renderStd();};if(q)q.oninput=()=>{STD.q=q.value;renderStd();};}
+$('#std-xlsx')&&($('#std-xlsx').onclick=async()=>{try{const X=await bmLoad(),h=['Vị trí','Đơn vị','Ngạch','Người hiện có','Khung','Bậc','Nguồn đơn giá',...CGRP.map(g=>(g==='Chi phí khác'?'Chi phí DN':g)+' /tháng')],a=[['BẢNG THU NHẬP CHUẨN THEO VỊ TRÍ · '+CFG().name],h];
+  JOBS.forEach(j=>{const R=compCalc(j),bd=bandOf(j);a.push([j.name,(DEPTS.find(d=>d.id===j.d)||{}).name||'',j.ng,j.people.length,bd?bd.t:'',(ST.manual[j.id]||{}).bl||3,R.pr.label,...CGRP.map(g=>Math.round(R.cum[g]/R.n))]);});
+  const ws=X.utils.aoa_to_sheet(a);ws['!cols']=[34,30,7,10,30,6,22,...CGRP.map(()=>14)].map(w=>({wch:w}));const wb=X.utils.book_new();X.utils.book_append_sheet(wb,ws,'Thu nhập chuẩn');X.writeFile(wb,'Bang-thu-nhap-chuan-theo-vi-tri.xlsx');}catch(e){alert(e.message);}});
+function renderSim(){const out=$('#sm-out');if(!out)return;const cfg=CFG();
   const fill=(id,html)=>{const el=$(id);if(!el.dataset.ok){el.innerHTML=html;el.dataset.ok=1;}};
   fill('#sm-ng',GRADES.map(g=>`<option ${g==='CV2'?'selected':''}>${g}</option>`).join(''));
   fill('#sm-unit',DEPTS.map(d=>`<option value="${d.id}">${d.name}</option>`).join(''));
   fill('#sm-loc',CO_LOCS.map(([n])=>`<option ${/Văn phòng HN/.test(n)?'selected':''}>${n}</option>`).join(''));
   fill('#sm-band','<option value="">(không dùng khung)</option>'+((COMMON.bands||[]).map(b=>`<option value="${b.t.replace(/"/g,'&quot;')}">${b.t}${b.code?' · '+b.code:''}</option>`).join('')));
   fill('#sm-start',M.map((t,i)=>`<option value="${i}">${t}/${YEAR}</option>`).join(''));
-  const num=id=>+($(id).value||'').replace(/\D/g,'')||0,st=+$('#sm-start').value||0,ng=$('#sm-ng').value,band=$('#sm-band').value;
-  const J={id:SMID,name:$('#sm-name').value||'Vị trí thử',title:band||$('#sm-name').value,ng,d:$('#sm-unit').value,kd:null,people:[],hc:M.map((_,m)=>m>=st?1:0)};
-  const man={bl:+$('#sm-bl').value,loc:$('#sm-loc').value},q1=num('#sm-q1'),q2=num('#sm-q2');
-  if(q1){man.lcb=q1;man.tdg=0;} if(q2)man.q2m=q2; if(q1&&!q2&&!band)man.q2m=0;
-  ST.manual[SMID]=man;
-  let pr;try{pr=priceOf(J);}finally{}
-  const base=pr.p,lr=lcbTarget(base,J),ms=M.map((_,m)=>m>=st?alloc(personMonth(base,m,J,'exp',cfg),m,cfg,J,null):null),act=ms.filter(Boolean),n=act.length||1;
-  const S=fn=>ms.reduce((s,t)=>s+(t?fn(t):0),0),I=cfg.ins,ins=t=>{const b=insBase(t,I);return I.rows.reduce((s,r)=>{const cap=r.cap==='ref'?20*I.ref:r.cap==='minw'?20*I.minw:Infinity;return s+Math.min(b,cap)*(+r.dn||0)/100;},0);};
-  const lk=(c,txt)=>`<a href="#" data-go="${c}">${txt}</a>`,v=vars(J,cfg);
-  const rows=[];const add=(grp,l,y,why,c)=>rows.push({grp,l,y,why,c});
-  const srcQ1=q1?'Nhập tay Q1 '+fmt(q1):pr.src==='band'?`${lk('c11','Khung thu nhập')} “${band}” bậc L${man.bl}`:pr.src==='ng'||pr.src==='pos'||pr.src==='tit'?'Bình quân '+pr.label+' (chưa chọn khung)':'Chưa có khung – nhập tay Q1 hoặc chọn khung';
-  add('Comp1','Lương cơ bản (LCB)',S(t=>t.lcb),(lr?`${lk('c15','Rule LCB')}: ${lr.why} → ${fmt(lr.v)}`:`Tách từ Q1 theo ${srcQ1}`));
-  add('Comp1','Thưởng đánh giá tháng',S(t=>t.tdg),`= Q1 − LCB · Q1 theo ${srcQ1}`);
-  Object.entries(pr.pc.det||{}).forEach(([k,d])=>add('Comp2','PC '+d.n,S(()=>0)+d.v*n,`${lk('c9','Phụ cấp')}: ${d.src}`));
-  if(!Object.keys(pr.pc.det||{}).length)add('Comp2','Phụ cấp',0,`${lk('c9','Phụ cấp')}: không có khoản nào áp cho ngạch / địa điểm này`);
-  add('Comp3','Thưởng Q2 tháng',S(t=>t.q2),`Q2 tháng ${fmt(base.q2m||0)} × KPI tháng ${v.kpi}% (${lk('c1','Lương & KPI')})${q2Rep(J)?' · đang thuộc nhóm incentive nên = 0':''}`);
-  if(S(t=>t.q2q||0))add('Comp3','Thưởng Q2 quý',S(t=>t.q2q||0),`× KPI quý ${v.kpiq??v.kpi}%`);
-  add('Comp3','Thưởng Q2 cơ bản năm',S(t=>t.q2y),`${v.q2n} tháng × khoản thực nhận/tháng × số tháng chính thức/12 (${lk('c1','Lương & KPI')})`);
-  add('Comp3','Thưởng Q3 (thi đua)',S(t=>t.q3),`${lk('c2','Quỹ Q3')}: ${v.q3mode==='fixed'?'quỹ cố định chia đầu người':v.q3pct+'% × cơ sở'} × giải ngân ${v.q3}%`);
-  funds().filter(f=>f.on).forEach(f=>{const y=S(t=>(t.fd||{})[f.id]||0);const P=fundPar(f,J);add(isOT(f)?'Chi phí khác':'Comp3',(isOT(f)?'':'Quỹ ')+f.n,y,`${lk(isOT(f)?'c14':'c2',isOT(f)?'Làm thêm giờ':'Các quỹ Q3')}: ${(FMODES.find(x=>x[0]===f.mode)||['',''])[1]}${P.key!=='*'?' · mức riêng đơn vị':''}${y?'':' · không áp cho vị trí này'}`);});
-  add('Comp4','LTI',0,'Chưa có dữ liệu');
-  cfg.ben.filter(b=>b.on).forEach(b=>{const y=S(t=>(t.ben||{})[b.id]||0);if(y)add('Comp5','Phúc lợi – '+b.name,y,`${lk('c3','Phúc lợi')}: ${b.type==='event'?'tỷ lệ phát sinh '+(b.rate||0)+'%':'theo ngạch'}`);});
-  add('Chi phí khác','Bảo hiểm DN đóng (BHXH, BHYT, BHTN, KPCĐ)',S(ins),`${lk('c7','Bảo hiểm')}: trên ${(I.base||[]).join(' + ')} · trần 20 × ${fmt(I.ref)}`);
-  const tot=g=>rows.filter(r=>r.grp===g).reduce((s,r)=>s+r.y,0),c1=tot('Comp1'),c2=c1+tot('Comp2'),c3=c2+tot('Comp3'),c4=c3+tot('Comp4'),c5=c4+tot('Comp5'),cost=c5+tot('Chi phí khác');
-  const COL={Comp1:'#0a6bc4',Comp2:'#7aa7e8',Comp3:'#12805c',Comp4:'#6b3fc7',Comp5:'#9d174d','Chi phí khác':'#b54708'},cum={Comp1:c1,Comp2:c2,Comp3:c3,Comp4:c4,Comp5:c5,'Chi phí khác':cost};
-  const groups=['Comp1','Comp2','Comp3','Comp4','Comp5','Chi phí khác'];
-  out.innerHTML=`<div class="row" style="gap:10px;flex-wrap:wrap;margin-bottom:10px">${groups.map(g=>`<div class="kpi" style="min-width:150px;border-top:3px solid ${COL[g]}"><div class="l">${g==='Chi phí khác'?'Tổng chi phí DN':g} · /tháng</div><div class="v">${fmt(Math.round(cum[g]/n))}</div></div>`).join('')}</div>
-    <table class="pjt"><thead><tr><th class="l">Nhóm</th><th class="l">Khoản</th><th>Bình quân / tháng</th><th>Cả năm (${n} tháng)</th><th class="l">Lấy từ cấu hình nào</th></tr></thead><tbody>
-    ${groups.map(g=>rows.filter(r=>r.grp===g).map((r,i)=>`<tr><td class="l" style="color:${COL[g]};font-weight:600">${i===0?g:''}</td><td class="l">${r.l}</td><td>${fmt(Math.round(r.y/n))}</td><td>${fmt(Math.round(r.y))}</td><td class="l sub">${r.why}</td></tr>`).join('')+`<tr style="background:#f8fafc"><td></td><td class="l"><b>${g==='Chi phí khác'?'TỔNG CHI PHÍ DN':'= '+g}</b></td><td><b>${fmt(Math.round(cum[g]/n))}</b></td><td><b>${fmt(Math.round(cum[g]))}</b></td><td></td></tr>`).join('')}</tbody></table>`;
-  delete ST.manual[SMID];
+  const num=id=>+($(id).value||'').replace(/\D/g,'')||0,st=+$('#sm-start').value||0,band=$('#sm-band').value;
+  const J={id:SMID,name:$('#sm-name').value||'Vị trí thử',ng:$('#sm-ng').value,d:$('#sm-unit').value,kd:null,people:[],hc:M.map((_,m)=>m>=st?1:0)};
+  const man={bl:+$('#sm-bl').value,loc:$('#sm-loc').value,band:band||''},q1=num('#sm-q1'),q2=num('#sm-q2');
+  if(q1){man.lcb=Math.round(q1*0.4);man.tdg=q1-man.lcb;} if(q2)man.q2m=q2;
+  ST.manual[SMID]=man;try{out.innerHTML=compHTML(compCalc(J,st,cfg));}finally{delete ST.manual[SMID];}
 }
+
 document.addEventListener('click',e=>{const a=e.target.closest('#sm-out a[data-go]');if(!a)return;e.preventDefault();goCfg(a.dataset.go);});
 ['#sm-name','#sm-ng','#sm-unit','#sm-loc','#sm-band','#sm-bl','#sm-q1','#sm-q2','#sm-start'].forEach(id=>{const el=$(id);if(el){el.addEventListener('change',renderSim);if(el.tagName==='INPUT')el.addEventListener('input',()=>{clearTimeout(window.__smt);window.__smt=setTimeout(renderSim,350);});}});
 {const b=$('#sm-band');if(b)b.addEventListener('change',()=>{const B=(COMMON.bands||[]).find(x=>x.t===b.value);if(B&&B.ng&&GRADES.includes(B.ng))$('#sm-ng').value=B.ng;});}
