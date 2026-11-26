@@ -192,9 +192,11 @@ details.gsel{display:inline-block;position:relative}details.gsel summary{cursor:
             <tr><th>Quỹ Q3</th><td colspan="2" id="pm-q3q"></td></tr>
             <tr><th>Phúc lợi</th><td colspan="2" class="sub">theo từng khoản ở mục 2</td></tr>
           </tbody></table></div>
-        <div class="card cp hidden" id="c14"><div class="row between"><h3 style="margin:0">Làm thêm giờ (OT) <span class="scope g">Chung · giải ngân theo kịch bản</span> <span class="i" title="Không tính vào nền BH, Q2 năm, Q3. Cấu hình riêng được theo phòng / bộ phận / vị trí.">ⓘ</span></h3><button class="btn primary" id="ot-add">+ Thêm khoản OT</button></div>
+        <div class="card cp hidden" id="c14"><div class="row between"><h3 style="margin:0">Làm thêm giờ (OT) <span class="scope g">Chung · giải ngân theo kịch bản</span> <span class="i" title="Không tính vào nền BH, Q2 năm, Q3. Cấu hình riêng được theo phòng / bộ phận / vị trí.">ⓘ</span></h3><div class="row" style="gap:10px"><label style="white-space:nowrap"><input type="checkbox" id="ot-on"> Hoạch định OT</label><button class="btn primary" id="ot-add">+ Thêm khoản OT</button></div></div>
+          <div id="ot-body">
           <div class="sub" style="margin:6px 0 4px">Mỗi khoản chọn cách ước tính: <b>giờ OT × lương giờ (LCB/26/8) × hệ số</b> (150% ngày thường · 200% ngày nghỉ tuần · 300% lễ tết), hoặc % doanh thu / % quỹ lương / số tiền cố định. Trần luật: 40 giờ/tháng, 200 giờ/năm (một số ngành 300 giờ). Giải ngân % là của kịch bản <b id="ot-scn"></b>.</div>
-          <div id="funds-ot"></div></div>
+          <div class="row" style="gap:8px;align-items:center;margin:6px 0"><span class="sub">Nhóm mặc định <b>không OT</b>:</span><span id="ot-no"></span><span class="sub">– áp cho mọi khoản OT bên dưới</span></div>
+          <div id="funds-ot"></div></div></div>
         <div class="card cp hidden" id="c5"><div class="row between"><h3 style="margin:0">Tuỳ chỉnh theo phòng / vị trí / ngạch <span class="i" title="Khi một nơi khác mức chung. Phúc lợi, bảo hiểm và Q1 luôn theo mức chung. Ưu tiên: Vị trí › Bộ phận › Phòng › Ngạch › Chung.">ⓘ</span></h3>
             <div class="row"><span class="sub">Xem theo</span><div class="seg" id="ovr-view"><button data-v="item" class="on">Mục tuỳ chỉnh</button><button data-v="unit">Đơn vị</button></div><button class="btn primary" id="ovr-add">+ Thêm tuỳ chỉnh</button></div></div>
           <div id="ovr-form"></div>
@@ -423,7 +425,7 @@ const FUNDS0=()=>[{id:'chd',n:'Cờ Hải Đăng',on:true,mode:'rev',pct:0.1,rev
  {id:'tdt',n:'Thi đua tháng',on:true,mode:'rev',pct:0.15,rev:95e9,who:'nql',pm:[],dis:{A:100,B:90,C:70},rows:[{scope:'k:285',rev:60e9},{scope:'k:290',rev:45e9,pct:0.2}]},
  {id:'tdn',n:'Thi đua năm',on:true,mode:'pay',pct:5,base:['lcb','tdg'],who:'all',pm:[11],dis:{A:100,B:80,C:50},rows:[]},
  {id:'hhpc',n:'Hoa hồng PCs (Q2 incentive)',on:true,mode:'rev',pct:2.3,rev:0,who:'all',pm:[],dis:{A:100,B:85,C:65},q2rep:true,rows:[{scope:'j:9101',rev:3.6e9}]},
- {id:'ot',n:'Làm thêm giờ (OT)',on:true,mode:'ot',hrs:8,rate:150,who:'nql',pm:[],dis:{A:100,B:100,C:100},rows:[]}];
+ {id:'ot',kind:'ot',n:'Làm thêm giờ (OT)',on:true,mode:'ot',hrs:8,rate:150,who:'all',pm:[],dis:{A:100,B:100,C:100},rows:[]}];
 function funds(){if(typeof COMMON==='undefined')return [];if(!COMMON.funds)COMMON.funds=FUNDS0();return COMMON.funds;}
 const FMODES=[['rev','% doanh thu kế hoạch'],['pay','% quỹ lương'],['fixed','Số tiền cố định / năm'],['ot','Giờ OT × lương giờ × hệ số']];
 const FWHO={all:'Tất cả',nql:'Dưới quản lý (không QL)',ql:'Chỉ ngạch quản lý',cv:'Từ chuyên viên trở lên'};
@@ -436,17 +438,22 @@ function fundPar(f,job){let best=null,rk=-1;(f.rows||[]).forEach(r=>{if(!r.scope
   return {key:best?best.scope:'*',off:best?!!best.off:!!f.q2rep,pct:pick('pct'),hrs:pick('hrs'),rate:pick('rate'),rev:best?(+best.rev||0):(+f.rev||0),amt:best?(+best.amt||0):(+f.amt||0)};}
 const fWho=(w,job)=>!w||w==='all'||(w==='ql'&&/^QL/.test(job.ng||''))||(w==='nql'&&!/^QL/.test(job.ng||''))||(w==='cv'&&/^(CV|QL)/.test(job.ng||''));
 const isOT=f=>f.kind?f.kind==='ot':f.mode==='ot';
+// OT: bật/tắt hoạch định + nhóm ngạch mặc định không OT
+const otOn=()=>typeof COMMON==='undefined'||COMMON.otOn!==false;
+const otNo=()=>{if(typeof COMMON==='undefined')return [];if(!COMMON.otNo)COMMON.otNo=['QL1','QL2','QL3','QL4','QL5','QL6','LĐ'];return COMMON.otNo;};
+const otExcl=job=>{const g=(job.ng||'').toUpperCase();return otNo().some(x=>g===x||g.startsWith(x));};
+const fElig=(f,job)=>isOT(f)?(otOn()&&!otExcl(job)&&fWho(f.who,job)):fWho(f.who,job);
 const scnKey=cfg=>Object.keys(SCN).find(k=>SCN[k]===cfg)||CUR;
 const FPOOL=new Map();
-function fundHeads(f,key,m,cfg){const ck=scnKey(cfg)+'|'+f.id+'|'+key+'|'+m;if(FPOOL.has(ck))return FPOOL.get(ck);let h=0;JOBS.forEach(j=>{if(!fWho(f.who,j))return;const P=fundPar(f,j);if(P.key===key&&!P.off)h+=hcOf(j,cfg)[m];});FPOOL.set(ck,h);return h;}
+function fundHeads(f,key,m,cfg){const ck=scnKey(cfg)+'|'+f.id+'|'+key+'|'+m;if(FPOOL.has(ck))return FPOOL.get(ck);let h=0;JOBS.forEach(j=>{if(!fElig(f,j))return;const P=fundPar(f,j);if(P.key===key&&!P.off)h+=hcOf(j,cfg)[m];});FPOOL.set(ck,h);return h;}
 // số trích quỹ của 1 người (hoặc 1 đầu định biên) trong tháng m, chưa phân bổ tháng chi
-function fundAcc(f,job,t,m,cfg){if(!f.on||!job||!fWho(f.who,job))return 0;const P=fundPar(f,job);if(P.off)return 0;const dis=(+((f.dis||{})[scnKey(cfg)]??100))/100;let v=0;
+function fundAcc(f,job,t,m,cfg){if(!f.on||!job||!fElig(f,job))return 0;const P=fundPar(f,job);if(P.off)return 0;const dis=(+((f.dis||{})[scnKey(cfg)]??100))/100;let v=0;
   if(f.mode==='pay'){const B=new Set(f.base||['lcb','tdg']);v=((B.has('lcb')?t.lcb||0:0)+(B.has('tdg')?t.tdg||0:0)+(B.has('pc')?t.pc||0:0)+(B.has('q2m')?t.q2||0:0))*P.pct/100;}
   else if(f.mode==='ot'){v=P.hrs*(t.lcb||0)/26/8*P.rate/100;}
   else{const pool=f.mode==='rev'?P.rev*P.pct/100:P.amt,h=fundHeads(f,P.key,m,cfg);v=h?pool/12/h:0;}
   return v*dis;}
 // quỹ “thay Q2 tháng”: nhóm hưởng incentive / hoa hồng theo doanh thu → bỏ Q2 tháng cố định, chỉ áp cho đơn vị cấu hình riêng
-function q2Rep(job){return !!job&&funds().some(f=>f.on&&f.q2rep&&fWho(f.who,job)&&!fundPar(f,job).off);}
+function q2Rep(job){return !!job&&funds().some(f=>f.on&&f.q2rep&&fElig(f,job)&&!fundPar(f,job).off);}
 function fundAlloc(t,m,cfg,job){t.fd={};if(!job)return;funds().forEach(f=>{const v=fundAcc(f,job,t,m,cfg)*share(f.pm||[],m,cfg);if(v)t.fd[f.id]=v;});}
 function sumT(t){return t.q1+t.pc+t.q2+(t.q2q||0)+t.q2y+t.q3+Object.values(t.ben||{}).reduce((a,b)=>a+b,0)+Object.values(t.fd||{}).reduce((a,b)=>a+b,0);}
 const PK=[['lcb','Lương cơ bản'],['tdg','Thưởng đánh giá'],['q2m','Q2 tháng'],['q2q','Q2 quý']];
@@ -895,7 +902,7 @@ function renderSum(){
 }
 // ---- Ngân sách theo tháng × khoản ----
 const KHOAN0=[['lcb','Lương cơ bản'],['tdg','Thưởng đánh giá tháng'],['pc','Phụ cấp'],['q2','Thưởng Q2 tháng'],['q2q','Thưởng Q2 quý'],['q2y','Thưởng Q2 cơ bản năm'],['q3','Thưởng Q3 (thi đua)']];
-const KH=(cfg=CFG())=>[...KHOAN0,...funds().filter(f=>f.on&&!isOT(f)).map(f=>['f_'+f.id,'Q3 – '+f.n]),...funds().filter(f=>f.on&&isOT(f)).map(f=>['f_'+f.id,/OT|thêm giờ/i.test(f.n)?f.n:'OT – '+f.n]),...cfg.ben.filter(b=>b.on).map(b=>['b_'+b.id,'Phúc lợi – '+b.name]),['ins','Bảo hiểm & KPCĐ (DN đóng)'],['vac','Định biên mới (đơn giá + phúc lợi)']];
+const KH=(cfg=CFG())=>[...KHOAN0,...funds().filter(f=>f.on&&!isOT(f)).map(f=>['f_'+f.id,'Q3 – '+f.n]),...funds().filter(f=>f.on&&isOT(f)&&otOn()).map(f=>['f_'+f.id,/OT|thêm giờ/i.test(f.n)?f.n:'OT – '+f.n]),...cfg.ben.filter(b=>b.on).map(b=>['b_'+b.id,'Phúc lợi – '+b.name]),['ins','Bảo hiểm & KPCĐ (DN đóng)'],['vac','Định biên mới (đơn giá + phúc lợi)']];
 let BK={mode:'exp',cost:false,per:'m',dept:''};
 function breakdown(cfg,mode,cost,dept){
   const R=Object.fromEntries([...KH(cfg).map(([k])=>k),'nld','pit'].map(k=>[k,Array(12).fill(0)]));
@@ -1007,7 +1014,7 @@ function fParams(f,fi,r,ri){const R=r!=null,at=(fl)=>R?`data-fi="${fi}" data-ri=
   if(f.mode==='ot')return `<input class="num" style="width:50px" ${at('hrs')} value="${val('hrs')}" ${ph('hrs')}> giờ/người/tháng × lương giờ (LCB/26/8) × <input class="num" style="width:56px" ${at('rate')} value="${val('rate')}" ${ph('rate')}> %`;
   const B=f.base||['lcb','tdg'];return `<input class="num" style="width:60px" ${at('pct')} value="${val('pct')}" ${ph('pct')}> % × `+(R?'<span class="sub">cơ sở như mức chung</span>':[['lcb','LCB'],['tdg','Thưởng ĐG'],['pc','Phụ cấp'],['q2m','Q2 tháng']].map(([k,l])=>`<label style="white-space:nowrap"><input type="checkbox" data-fi="${fi}" data-fb="${k}" ${B.includes(k)?'checked':''}> ${l}</label>`).join(' '));}
 function renderFunds(){const box=$('#funds');if(!box)return;const cfg=CFG(),sk=scnKey(cfg);$('#fd-scn').textContent=cfg.name;{const o=$('#ot-scn');if(o)o.textContent=cfg.name;}const R={};funds().forEach(f=>R['f_'+f.id]=[0]);FPOOL.clear();JOBS.forEach(j=>{const hc=hcOf(j,cfg),pr=priceOf(j);for(let m=0;m<12;m++){const add=t=>{for(const [id,x] of Object.entries(t.fd||{}))if(R['f_'+id])R['f_'+id][0]+=x;};j.people.forEach((p,i)=>{if(i<hc[m])add(alloc(personMonth(p,m,j,'exp',cfg),m,cfg,j,p));});const ex=Math.max(0,hc[m]-j.people.length);if(ex){const t=alloc(personMonth(pr.p,m,j,'exp',cfg),m,cfg,j,null);for(const [id,x] of Object.entries(t.fd||{}))if(R['f_'+id])R['f_'+id][0]+=x*ex;}}});
-  const hd=(f,key)=>{let h=0;JOBS.forEach(j=>{if(!fWho(f.who,j))return;const P=fundPar(f,j);if(P.key===key&&!P.off)h+=hcOf(j,cfg)[11];});return h;};
+  const hd=(f,key)=>{let h=0;JOBS.forEach(j=>{if(!fElig(f,j))return;const P=fundPar(f,j);if(P.key===key&&!P.off)h+=hcOf(j,cfg)[11];});return h;};
   const card=(f,fi)=>{const yr=(R['f_'+f.id]||[]).reduce((a,b)=>a+b,0),pmk=(FPM.find(x=>JSON.stringify(x[2])===JSON.stringify(f.pm||[]))||FPM[0])[0],open=FOPEN.has(fi);
     const rows=(f.rows||[]).map((r,ri)=>`<tr style="${r.off?'opacity:.5':''}"><td class="l"><select data-fi="${fi}" data-ri="${ri}" data-rf="scope" style="max-width:260px">${fUnitOpts(r.scope||'')}</select></td><td><input type="checkbox" data-fi="${fi}" data-ri="${ri}" data-roff ${r.off?'':'checked'}></td><td class="l" style="white-space:nowrap">${fParams(f,fi,r,ri)}</td><td>${r.scope?hd(f,r.scope):''}</td><td><a href="#" class="sub" data-fi="${fi}" data-rdel="${ri}">✕</a></td></tr>`).join('');
     return `<div style="border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:8px 0;${f.on?'':'opacity:.55'}">
@@ -1021,7 +1028,8 @@ function renderFunds(){const box=$('#funds');if(!box)return;const cfg=CFG(),sk=s
         <span class="sub">Ước tính năm:</span><b>${fmt(Math.round(yr))} đ</b><span style="flex:1"></span><a href="#" class="sub" data-fdel="${fi}" title="Xoá quỹ">✕ Xoá quỹ</a></div>
       <div style="margin-top:6px"><a href="#" class="sub" data-fopen="${fi}">${open?'▾':'▸'} Cấu hình riêng theo phòng / bộ phận / vị trí${(f.rows||[]).length?' ('+f.rows.length+')':''}</a>
       ${open?`<table class="pjt" style="margin-top:6px"><thead><tr><th class="l">Đơn vị</th><th>Áp dụng</th><th class="l">Mức riêng <span class="sub">(để trống % = theo mức chung)</span></th><th>Người hưởng T12</th><th></th></tr></thead><tbody>${rows}</tbody></table><a href="#" class="sub" data-fi="${fi}" data-radd>+ Thêm đơn vị</a>
-      <div class="sub">${f.q2rep?'<b>Nhóm incentive:</b> chỉ áp cho các đơn vị/vị trí ở bảng trên (Q2 tháng cố định của họ được bỏ); mức chung ở trên chỉ là mặc định % cho các dòng. ':''}Phần còn lại (không cấu hình riêng) dùng mức chung ở trên${f.mode==='rev'?' – nhập DT KH của phần còn lại':''}${(f.mode==='rev'||f.mode==='fixed')?'; quỹ đơn vị nào chia cho người hưởng của đơn vị đó':''}. Người hưởng phần chung T12: <b>${hd(f,'*')}</b>.</div>`:''}</div></div>`;};const L=ot=>funds().map((f,fi)=>isOT(f)===ot?card(f,fi):'').join('');box.innerHTML=L(false)||'<div class="sub">Chưa có quỹ nào – bấm “+ Thêm quỹ”.</div>';{const bo=$('#funds-ot');if(bo)bo.innerHTML=L(true)||'<div class="sub">Chưa có khoản OT – bấm “+ Thêm khoản OT”.</div>';}
+      <div class="sub">${f.q2rep?'<b>Nhóm incentive:</b> chỉ áp cho các đơn vị/vị trí ở bảng trên (Q2 tháng cố định của họ được bỏ); mức chung ở trên chỉ là mặc định % cho các dòng. ':''}Phần còn lại (không cấu hình riêng) dùng mức chung ở trên${f.mode==='rev'?' – nhập DT KH của phần còn lại':''}${(f.mode==='rev'||f.mode==='fixed')?'; quỹ đơn vị nào chia cho người hưởng của đơn vị đó':''}. Người hưởng phần chung T12: <b>${hd(f,'*')}</b>.</div>`:''}</div></div>`;};const L=ot=>funds().map((f,fi)=>isOT(f)===ot?card(f,fi):'').join('');box.innerHTML=L(false)||'<div class="sub">Chưa có quỹ nào – bấm “+ Thêm quỹ”.</div>';{const on=otOn(),cb=$('#ot-on'),bd=$('#ot-body'),ad=$('#ot-add');if(cb)cb.checked=on;if(bd)bd.style.display=on?'':'none';if(ad)ad.style.display=on?'':'none';const nb=$('#ot-no');if(nb){const L=otNo();nb.innerHTML=`<details class="gsel" id="ot-no-d" ${window.OTNO?'open':''}><summary>${L.length?L.join(', '):'<span class="sub">— không loại trừ —</span>'}</summary><div class="gpanel">${GRADES.map(g=>`<label><input type="checkbox" data-otno value="${g}" ${L.includes(g)?'checked':''}> ${g}</label>`).join('')}</div></details>`;const d=$('#ot-no-d');d.ontoggle=()=>{window.OTNO=d.open;};}}
+  {const bo=$('#funds-ot');if(bo)bo.innerHTML=L(true)||'<div class="sub">Chưa có khoản OT – bấm “+ Thêm khoản OT”.</div>';}
 }
 function fundsChanged(){FPOOL.clear();renderFunds();renderAll();}
 (function(){const box=$('#funds');if(!box)return;const num=x=>{const t=String(x).trim();if(t==='')return '';return parseFloat(t.replace(/\./g,'').replace(',','.'))||0;},dec=x=>{const t=String(x).trim();return t===''?'':(parseFloat(t.replace(',','.'))||0);};
@@ -1040,7 +1048,8 @@ function fundsChanged(){FPOOL.clear();renderFunds();renderAll();}
     else if(x.dataset.fdel!=null){e.preventDefault();F.splice(+x.dataset.fdel,1);FOPEN.clear();fundsChanged();}
     else if(x.hasAttribute('data-radd')){e.preventDefault();const f=F[+x.dataset.fi];(f.rows=f.rows||[]).push({scope:''});FOPEN.add(+x.dataset.fi);renderFunds();}
     else if(x.dataset.rdel!=null){e.preventDefault();F[+x.dataset.fi].rows.splice(+x.dataset.rdel,1);fundsChanged();}});
-  {const oa=$('#ot-add');if(oa)oa.onclick=()=>{const F=funds();F.push({id:'f'+Date.now().toString(36),kind:'ot',n:'OT mới',on:true,mode:'ot',hrs:8,rate:150,who:'nql',pm:[],dis:{},rows:[]});FOPEN.add(F.length-1);fundsChanged();};}
+  document.addEventListener('change',e=>{const x=e.target;if(x.id==='ot-on'){COMMON.otOn=x.checked;fundsChanged();}else if(x.hasAttribute&&x.hasAttribute('data-otno')){const S=new Set(otNo());x.checked?S.add(x.value):S.delete(x.value);COMMON.otNo=GRADES.filter(g=>S.has(g));fundsChanged();}});
+  {const oa=$('#ot-add');if(oa)oa.onclick=()=>{const F=funds();F.push({id:'f'+Date.now().toString(36),kind:'ot',n:'OT mới',on:true,mode:'ot',hrs:8,rate:150,who:'all',pm:[],dis:{},rows:[]});FOPEN.add(F.length-1);fundsChanged();};}
   $('#fd-add').onclick=()=>{const F=funds();F.push({id:'f'+Date.now().toString(36),kind:'q3',n:'Quỹ mới',on:true,mode:'rev',pct:0,rev:0,who:'all',pm:[],dis:{},rows:[]});FOPEN.add(F.length-1);fundsChanged();};
 })();
 </script>
