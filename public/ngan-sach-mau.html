@@ -112,7 +112,7 @@ details.gsel{display:inline-block;position:relative}details.gsel summary{cursor:
     <div class="row"><b>Năm 2027 · Kịch bản:</b> <span id="scn-chips" class="row" style="gap:6px"></span>
       <button class="btn" data-admin id="scn-add" title="Nhân bản kịch bản đang chọn">+ Thêm kịch bản</button>
       <button class="btn" data-admin id="scn-ren">✎ Đổi tên</button><button class="btn" data-admin id="scn-del">✕ Xoá</button></div>
-    <div class="row"><button class="btn primary" id="save-btn" title="Lưu toàn bộ cấu hình (Ctrl+S)">💾 Lưu cấu hình</button><span class="sub" id="save-st" style="min-width:150px"></span><button class="btn" id="lk-xlsx" title="Xuất file Excel: Tổng hợp, Theo khoản, Chi tiết vị trí, Định biên đã dùng, Giả định – có đóng dấu người lập và kế hoạch nguồn">⤓ Xuất file ngân sách</button><span class="sub" id="lk-msg"></span><button class="btn" data-admin id="exp-btn" title="Tải file cấu hình để gửi / sao lưu">⤓ Xuất file</button><label class="btn" data-admin style="cursor:pointer" title="Nạp lại từ file đã xuất">⤒ Nạp file<input type="file" accept=".json" id="imp-file" style="display:none"></label><span class="sub">Xem với vai trò:</span><div class="seg" id="role"><button data-r="hr" class="on">Admin HR</button><button data-r="mgr">Quản lý đơn vị</button></div><span class="sub">Đơn vị:</span> <select id="unit-sel" autocomplete="off"></select></div>
+    <div class="row"><button class="btn primary" id="save-btn" title="Lưu toàn bộ cấu hình (Ctrl+S)">💾 Lưu cấu hình</button><span class="sub" id="save-st" style="min-width:150px"></span><button class="btn" id="bm-xlsx" title="Xuất Excel đúng mẫu BM Ngân sách nhân sự: Tổng hợp SS Biên, Định biên, Ngân sách chi tiết, Tổng hợp Ngân sách, TH_Phòng Ban, BM.07 gửi KT, TH Q2, Chính sách">⤓ Xuất theo BM</button><span class="sub" id="bm-msg"></span><button class="btn" id="lk-xlsx" title="Xuất file Excel: Tổng hợp, Theo khoản, Chi tiết vị trí, Định biên đã dùng, Giả định – có đóng dấu người lập và kế hoạch nguồn">⤓ Xuất file ngân sách</button><span class="sub" id="lk-msg"></span><button class="btn" data-admin id="exp-btn" title="Tải file cấu hình để gửi / sao lưu">⤓ Xuất file</button><label class="btn" data-admin style="cursor:pointer" title="Nạp lại từ file đã xuất">⤒ Nạp file<input type="file" accept=".json" id="imp-file" style="display:none"></label><span class="sub">Xem với vai trò:</span><div class="seg" id="role"><button data-r="hr" class="on">Admin HR</button><button data-r="mgr">Quản lý đơn vị</button></div><span class="sub">Đơn vị:</span> <select id="unit-sel" autocomplete="off"></select></div>
   </div>
 
   <div class="tabs" id="tabs"><button data-t="cfg" class="on">① Cấu hình biến số</button><button data-t="bud">② Ngân sách theo kế hoạch</button><button data-t="sum">③ Tổng hợp</button><button data-t="cmp">④ So sánh kịch bản</button></div>
@@ -1059,6 +1059,119 @@ function fundsChanged(){FPOOL.clear();renderFunds();renderAll();}
   {const oa=$('#ot-add');if(oa)oa.onclick=()=>{const F=funds();F.push({id:'f'+Date.now().toString(36),kind:'ot',n:'OT mới',on:true,mode:'ot',hrs:8,rate:150,who:'all',pm:[],dis:{},rows:[]});FOPEN.add(F.length-1);fundsChanged();};}
   $('#fd-add').onclick=()=>{const F=funds();F.push({id:'f'+Date.now().toString(36),kind:'q3',n:'Quỹ mới',on:true,mode:'rev',pct:0,rev:0,who:'all',pm:[],dis:{},rows:[]});FOPEN.add(F.length-1);fundsChanged();};
 })();
+// ---- Xuất file theo mẫu BM Ngân sách nhân sự (8 sheet) ----
+function bmLoad(){if(window.XLSX)return Promise.resolve(window.XLSX);return new Promise((ok,no)=>{const sc=document.createElement('script');sc.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';sc.onload=()=>ok(window.XLSX);sc.onerror=()=>no(new Error('Không tải được thư viện Excel (cần mạng internet)'));document.head.appendChild(sc);});}
+function bmUnits(j){const ch=(j.kd!=null&&typeof ancOf==='function'?ancOf(j.kd):[]).slice().reverse().map(id=>(CO_D[id]||{}).name||'');if(ch.length)return [ch[0]||'',ch[1]||'',ch.slice(2).join(' / ')];const d=(DEPTS.find(x=>x.id===j.d)||{}).name||'';const a=d.split(' / ');return [a[0]||'',a[1]||'',a.slice(2).join(' / ')];}
+function bmData(cfg){
+  const I=cfg.ins,F=funds(),rows=[];
+  const insSplit=t=>{const b=insBase(t,I);const o={};I.rows.forEach(r=>{const cap=r.cap==='ref'?20*I.ref:r.cap==='minw'?20*I.minw:Infinity;o[r.k]=Math.min(b,cap)*(+r.dn||0)/100;});return o;};
+  JOBS.forEach(j=>{FPOOL.clear();const hc=hcOf(j,cfg),pr=priceOf(j),v=vars(j,cfg),f=(v.fte??100)/100;
+    const mk=(p,getT,kOf)=>{const ms=[];for(let m=0;m<12;m++){const k=kOf(m);if(!k){ms.push(null);continue;}const t=getT(m);ms.push({t,k,ins:insSplit(t)});}return ms;};
+    j.people.forEach((p,i)=>rows.push({j,p,vac:false,n:1,ms:mk(p,m=>alloc(personMonth(p,m,j,'exp',cfg),m,cfg,j,p),m=>i<hc[m]?(v.ftemode==='all'?f:1):0),hc:M.map((_,m)=>i<hc[m]?1:0)}));
+    const ex=M.map((_,m)=>Math.max(0,hc[m]-j.people.length));
+    if(ex.some(x=>x))rows.push({j,p:null,vac:true,n:Math.max(...ex),ms:mk(null,m=>alloc(personMonth(pr.p,m,j,'exp',cfg),m,cfg,j,null),m=>ex[m]*f),hc:ex,price:pr});});
+  // giá trị 1 khoản của 1 dòng trong tháng m
+  const g=(r,m,fn)=>{const x=r.ms[m];return x?fn(x.t,x)*x.k:0;};
+  const K={
+    q1:t=>t.q1, q2:t=>t.q2, q2q:t=>t.q2q||0, q2y:t=>t.q2y, q3:t=>t.q3, pc:t=>t.pc,
+    q3f:t=>Object.entries(t.fd||{}).reduce((s,[id,x])=>{const ff=F.find(z=>z.id===id);return s+(ff&&!isOT(ff)?x:0);},0),
+    ot:t=>Object.entries(t.fd||{}).reduce((s,[id,x])=>{const ff=F.find(z=>z.id===id);return s+(ff&&isOT(ff)?x:0);},0),
+    ben:t=>Object.values(t.ben||{}).reduce((a,b)=>a+b,0),
+    trip:t=>Object.entries(t.ben||{}).reduce((s,[id,x])=>s+(/trip|tbql/.test(id)?x:0),0),
+    bhsk:t=>(t.ben||{}).bhsk||0,
+    ins:(t,x)=>Object.values(x.ins).reduce((a,b)=>a+b,0)};
+  return {rows,g,K,I,F};
+}
+async function bmExport(){
+  const st=$('#bm-msg');if(st)st.textContent='Đang tạo file theo BM…';
+  try{
+  const X=await bmLoad(),cfg=CFG(),D=bmData(cfg),{rows,g,K,I}=D,R=Math.round,wb=X.utils.book_new(),sum=a=>a.reduce((x,y)=>x+y,0);
+  const yr=(r,fn)=>sum(M.map((_,m)=>g(r,m,fn)));
+  const add=(name,aoa,cols,merges)=>{const ws=X.utils.aoa_to_sheet(aoa);if(cols)ws['!cols']=cols.map(w=>({wch:w}));if(merges)ws['!merges']=merges;X.utils.book_append_sheet(wb,ws,name);return ws;};
+  const nameOf=r=>r.vac?'(Định biên phát sinh mới)':r.p.name;
+  const dOf=r=>r.p&&DATES[r.p.name]?DATES[r.p.name]:['',''];
+  const title=`Kịch bản: ${cfg.name} · Năm ${YEAR} · Xuất ${new Date().toLocaleString('vi-VN')}`;
+
+  // 1. Tổng hợp SS Biên
+  {const a=[['TỔNG HỢP SO SÁNH ĐỊNH BIÊN','','','','','','','','',title],['Khối','Ban Phòng','Phòng Ban/Bộ phận','Vị trí','SL định biên '+(YEAR-1),'SL nhân sự hiện tại','SL định biên '+YEAR,'Chênh lệch (biên '+YEAR+' - biên '+(YEAR-1)+')','Chênh lệch (biên '+YEAR+' - hiện tại)','Lưu ý']];
+    let t=[0,0];JOBS.forEach(j=>{const u=bmUnits(j),hc=hcOf(j,cfg),now=j.people.length,nb=Math.max(...hc);t[0]+=now;t[1]+=nb;a.push(['',u[0],[u[1],u[2]].filter(Boolean).join(' / '),j.name,'',now,nb,'',nb-now,'']);});
+    a.push(['TỔNG','','','','',t[0],t[1],'',t[1]-t[0],'']);add('Tổng hợp SS Biên',a,[10,30,34,36,12,12,12,16,16,30]);}
+
+  // 2. Định biên
+  {const h=['STT','Đơn vị thành viên','Khối','Ban/phòng','Bộ phận','Tổ/Nhóm','Tỉnh','Mã tỉnh','Nhãn bán hàng','Điểm bán chính/Tuyến','Mã điểm bán chính','Điểm bán phụ','Mã điểm bán phụ','NPP','Mã NPP','Mã nhân viên','Họ và Tên','Vị trí chức danh','Ngày vào công ty','Ngạch','Đối tượng','Loại HĐLĐ','Lưu ý','Cơ sở đề xuất định biên','Đề xuất nguồn','Định biên '+(YEAR-1),'Nhân sự thực tế hiện tại',...M,'Bình quân năm'];
+    const a=[['ĐỊNH BIÊN – Năm '+YEAR+' · '+title],h];let i=0;
+    rows.forEach(r=>{const u=bmUnits(r.j);a.push([++i,'','',u[0],u[1],u[2],'','','','','','','','','','',nameOf(r),r.j.name,dOf(r)[0],r.j.ng,'','','',r.vac?'Định biên phát sinh mới':'',r.vac?'Tuyển mới':'','',r.vac?0:1,...r.hc,+(sum(r.hc)/12).toFixed(2)]);});
+    a.push(['','TỔNG',...Array(25).fill(''),rows.filter(r=>!r.vac).length,...M.map((_,m)=>sum(rows.map(r=>r.hc[m]))),+(sum(rows.map(r=>sum(r.hc)))/12).toFixed(2)]);
+    add('Định biên',a,[5,12,8,26,26,18,...Array(9).fill(8),10,26,32,12,7,10,10,16,22,14,10,10,...M.map(()=>6),10]);}
+
+  // 3. Ngân sách (chi tiết từng người)
+  {const B=cfg.ben.filter(b=>b.on),AL=ALW.filter(a=>a.mode!=='none'),FQ=D.F.filter(f=>f.on);
+    const h=['STT','Khối','Ban/phòng','Bộ phận','Tổ nhóm','Họ và tên','Vị trí','Số lượng','Ngày vào công ty','Ngày ký HĐ chính thức','Ngạch','Lương Q1','Lương Q2','Q1/Q2','Lương BHXH','Số tháng làm việc thực tế '+YEAR,'Mức tăng lương dự kiến','Q2 năm '+YEAR,
+      ...M.flatMap(t=>['Thu nhập '+t+' (Q1)','Thu nhập Q2 '+t]),'Tổng thu nhập lương cứng (Q1)','Tổng thu nhập (Q2 tháng + quý)','Quỹ lương Q2 năm',
+      ...I.rows.map(r=>r.n+' (DN, năm)'),'Tổng các khoản DN trích/năm',...B.map(b=>b.name),'Tổng các khoản phúc lợi/năm','Tổng các khoản phúc lợi/tháng',
+      ...AL.map(a=>'PC '+a.n+' (/tháng)'),'Tổng phụ cấp/năm',...FQ.map(f=>(isOT(f)?'OT – ':'Q3 – ')+f.n),'Thưởng Q3 (thi đua)','Chi phí lương/năm','Chi phí lương/tháng'];
+    const a=[['KẾ HOẠCH NGÂN SÁCH '+YEAR+' · '+title],h];let i=0;
+    rows.forEach(r=>{const u=bmUnits(r.j),p=r.vac?r.price.p:r.p,v=vars(r.j,cfg),m0=r.ms.findIndex(x=>x),t0=m0>=0?r.ms[m0].t:null;
+      const al=r.vac?(r.price.pc.det||{}):(alOf(r.p)||{}),alv=a=>R(r.vac?((al[a.k]||{}).v||0):(al[a.k]||0));
+      const q1=M.map((_,m)=>g(r,m,K.q1)),q2=M.map((_,m)=>g(r,m,t=>K.q2(t)+K.q2q(t)));
+      const insY=I.rows.map(ir=>R(sum(M.map((_,m)=>g(r,m,(t,x)=>x.ins[ir.k])))));
+      const benY=B.map(b=>R(sum(M.map((_,m)=>g(r,m,t=>(t.ben||{})[b.id]||0))))),benT=sum(benY);
+      const fdY=FQ.map(f=>R(sum(M.map((_,m)=>g(r,m,t=>(t.fd||{})[f.id]||0)))));
+      const tot=sum(M.map((_,m)=>g(r,m,(t,x)=>sumT(t)+K.ins(t,x))));
+      a.push([++i,'',u[0],u[1],u[2],nameOf(r),r.j.name,r.vac?r.n:1,r.vac?'':dOf(r)[0],r.vac?'':dOf(r)[1],r.j.ng,R(p.lcb+p.tdg),R(p.q2m),p.q2m?+((p.lcb+p.tdg)/(p.lcb+p.tdg+p.q2m)*100).toFixed(0)+'/'+(100-+((p.lcb+p.tdg)/(p.lcb+p.tdg+p.q2m)*100).toFixed(0)):'',t0?R(insBase(t0,I)):'',r.ms.filter(Boolean).length,(v.inc||0)+'% từ '+M[v.incm],
+        R(sum(M.map((_,m)=>g(r,m,K.q2y)))),...M.flatMap((_,m)=>[R(q1[m]),R(q2[m])]),R(sum(q1)),R(sum(q2)),R(sum(M.map((_,m)=>g(r,m,K.q2y)))),
+        ...insY,sum(insY),...benY,benT,R(benT/12),...AL.map(alv),R(sum(M.map((_,m)=>g(r,m,K.pc)))),...fdY,R(sum(M.map((_,m)=>g(r,m,K.q3)))),R(tot),R(tot/12)]);});
+    const n=h.length,tr=['','TỔNG','','','','','',sum(rows.map(r=>r.vac?r.n:1))];for(let c=8;c<n;c++){const col=a.slice(2).map(x=>x[c]);tr.push(col.every(x=>typeof x==='number')&&c>=17?sum(col):'');}a.push(tr);
+    add('Ngân sách',a,[5,8,24,24,16,26,30,8,12,12,7,...Array(n-11).fill(13)]);}
+
+  // tổng hợp theo tháng (toàn công ty) và theo bộ phận
+  const agg=(filter,fn)=>M.map((_,m)=>sum(rows.filter(filter).map(r=>g(r,m,fn))));
+  const all=()=>true;
+  const insK=k=>(t,x)=>x.ins[k]||0;
+  // 4. Tổng hợp Ngân sách
+  {const L=[['Doanh thu',null],['Định biên nhân sự','hc'],['Chi phí lương',t=>t.q1+t.q2+(t.q2q||0)+t.q3+K.q3f(t)+t.q2y],['Q1',K.q1],['Q2 tháng (gồm Q2 quý)',t=>t.q2+(t.q2q||0)],['Q3 (thưởng vượt, hoa hồng, các quỹ…)',t=>t.q3+K.q3f(t)],['Trích Q2 năm',K.q2y],
+      ['Phụ cấp và phúc lợi khác',t=>t.pc+K.ben(t)-K.bhsk(t)],['Phụ cấp',K.pc],['Phúc lợi (nghỉ mát, tết, quà tặng…)',t=>K.ben(t)-K.bhsk(t)],['Các khoản trích theo lương',K.ins],...I.rows.map(r=>[r.n,insK(r.k)]),['Bảo hiểm sức khỏe',K.bhsk],['Chi phí khác (làm thêm giờ – OT)',K.ot]];
+    const a=[['BẢNG XÁC NHẬN KẾ HOẠCH NGÂN SÁCH LƯƠNG, NĂNG SUẤT LAO ĐỘNG'],['KẾ HOẠCH NGÂN SÁCH NĂM '+YEAR+' · '+title],['STT','NỘI DUNG','TOTAL',...M.map((_,m)=>'Tháng '+String(m+1).padStart(2,'0'))]];
+    const r0=a.length;L.forEach(([l,fn],i)=>{let v;if(fn==='hc')v=M.map((_,m)=>sum(rows.map(r=>r.hc[m])));else if(fn)v=agg(all,fn).map(R);else v=M.map(()=>'');
+      const sub=i>=3&&i!==7&&i!==10;a.push([sub?'':['1','2','3'][i]||'',(sub?'   ':'')+l,fn==='hc'?+(sum(v)/12).toFixed(1):fn?sum(v):'',...v]);});
+    const tot=M.map((_,m)=>R(sum(rows.map(r=>g(r,m,(t,x)=>sumT(t)+K.ins(t,x))))));a.push(['','TỔNG CHI PHÍ NHÂN SỰ',sum(tot),...tot]);
+    const rDT=r0+1,rDB=r0+2,rCP=r0+3;a.push([]);
+    a.push(['4','NSLĐ – Chỉ tiêu ((4) = (1)/(2))',{f:`IFERROR(C${rDT}/C${rDB},"")`}]);a.push(['5','NSLĐ – Ngưỡng ((5) = (4) × 70%)',{f:`IFERROR(C${a.length}*70%,"")`}]);
+    a.push(['6','Chi phí lương/Doanh thu – Chỉ tiêu ((6) = (3)/(1))',{f:`IFERROR(C${rCP}/C${rDT},"")`}]);a.push(['7','Chi phí lương/Doanh thu – Ngưỡng ((7) = (6) × 120%)',{f:`IFERROR(C${a.length}*120%,"")`}]);
+    a.push([]);a.push(['','Ghi chú: nhập Doanh thu vào dòng 1 (các tháng) và ô TOTAL để tính NSLĐ và tỷ lệ chi phí lương/doanh thu.']);
+    const ws=add('Tổng hợp Ngân sách',a,[6,48,16,...M.map(()=>14)]);ws[`C${rDT}`]={f:`SUM(D${rDT}:O${rDT})`,t:'n'};}
+
+  // 5. TH_Phòng Ban
+  {const U=[...new Set(rows.map(r=>bmUnits(r.j).filter(Boolean).join(' / ')))];const C=[['Số lượng','hc'],['Q1',K.q1],['Q2 tháng',t=>t.q2+(t.q2q||0)],['Trích BHXH + CĐ',K.ins],['Phụ cấp',K.pc],['Phúc lợi (gồm BHSK)',K.ben],['Q3',t=>t.q3+K.q3f(t)],['OT',K.ot],['Q2 năm',K.q2y],['Tổng',(t,x)=>sumT(t)+K.ins(t,x)]];
+    const h1=[''],h2=['Phòng ban'];M.forEach((_,m)=>{h1.push('Tháng '+(m+1),...Array(C.length-1).fill(''));h2.push(...C.map(c=>c[0]));});h1.push('Tổng năm',...Array(C.length-1).fill(''));h2.push(...C.map(c=>c[0]));
+    const a=[h1,h2],line=f=>{const o=[];const yv=C.map(()=>0);M.forEach((_,m)=>C.forEach(([l,fn],ci)=>{const v=fn==='hc'?sum(rows.filter(f).map(r=>r.hc[m])):R(sum(rows.filter(f).map(r=>g(r,m,fn))));o.push(v);yv[ci]+=fn==='hc'?v/12:v;}));return [...o,...yv.map((v,ci)=>C[ci][1]==='hc'?+v.toFixed(1):v)];};
+    U.forEach(u=>a.push([u,...line(r=>bmUnits(r.j).filter(Boolean).join(' / ')===u)]));a.push(['Tổng',...line(all)]);
+    const mg=[];for(let k=0;k<=12;k++)mg.push({s:{r:0,c:1+k*C.length},e:{r:0,c:k*C.length+C.length}});add('TH_Phòng Ban',a,[36,...Array(13*C.length).fill(12)],mg);}
+
+  // 6. BM.07 – Chi phí nhân sự gửi Kế toán
+  {const U=[...new Set(rows.map(r=>bmUnits(r.j)[0]||'(Chưa gán)'))];const C=[['Chi phí lương (Q1)',K.q1],['Chi phí lương (Q2)',t=>t.q2+(t.q2q||0)],['Chi phí lương (Q3)',t=>t.q3+K.q3f(t)],['Lương làm thêm giờ',K.ot],['Các khoản BHXH (Công ty chịu)',K.ins],['Các khoản phụ cấp',K.pc],['Du lịch',K.trip],['Phúc lợi khác',t=>K.ben(t)-K.trip(t)],['Thưởng năm',K.q2y]];
+    const a=[['BM.07. CHI PHÍ NHÂN SỰ'],['Công ty:',''],['Kịch bản:',title],['(*): Tài khoản hạch toán Kế toán sẽ tự điền']];
+    const h1=['','','','BUDGET '+YEAR,...Array(C.length).fill('')],h2=['STT','Phòng/Ban','Tài khoản hạch toán (*)',...C.map(c=>c[0]),'TỔNG'];M.forEach((_,m)=>{h1.push('THÁNG '+(m+1),...Array(C.length).fill(''));h2.push(...C.map(c=>c[0]),'TỔNG');});a.push(h1,h2);
+    const line=f=>{const y=C.map(([,fn])=>R(sum(agg(f,fn)))),o=[...y,sum(y)];M.forEach((_,m)=>{const v=C.map(([,fn])=>R(sum(rows.filter(f).map(r=>g(r,m,fn)))));o.push(...v,sum(v));});return o;};
+    a.push(['TỔNG CỘNG','','',...line(all)]);U.forEach((u,i)=>a.push([i+1,u,'',...line(r=>(bmUnits(r.j)[0]||'(Chưa gán)')===u)]));
+    const w=C.length+1,mg=[];for(let k=0;k<=12;k++)mg.push({s:{r:4,c:3+k*w},e:{r:4,c:3+k*w+w-1}});add('BM.07 CP NS gửi KT',a,[6,34,14,...Array(13*w).fill(13)],mg);}
+
+  // 7. TH Q2
+  {const a=[['TỔNG HỢP Q2 THÁNG (gồm Q2 quý) · '+title],['STT','Họ và tên','Chức danh','Ngạch',...M,'Tổng năm','Q2 năm']];let i=0;
+    rows.forEach(r=>{const v=M.map((_,m)=>R(g(r,m,t=>t.q2+(t.q2q||0))));a.push([++i,nameOf(r),r.j.name,r.j.ng,...v,sum(v),R(sum(M.map((_,m)=>g(r,m,K.q2y))))]);});add('TH Q2',a,[5,26,32,7,...M.map(()=>12),14,14]);}
+
+  // 8. Chính sách (cấu hình đang dùng)
+  {const v=cfg.vars,a=[['CHÍNH SÁCH / GIẢ ĐỊNH ĐANG DÙNG · '+title],[],['BẢO HIỂM (DN đóng / NLĐ đóng)'],['Khoản','DN %','NLĐ %','Trần'],...I.rows.map(r=>[r.n,+r.dn,+r.nld,r.cap==='ref'?'20 × lương cơ sở':r.cap==='minw'?'20 × lương tối thiểu vùng':'không trần']),['Cơ sở đóng',(I.base||[]).join(', ')],
+      [],['BIẾN SỐ KỊCH BẢN'],['Tăng lương',(v.inc||0)+'% từ '+M[v.incm]],['KPI tháng / quý',`${v.kpi}% / ${v.kpiq??v.kpi}%`],['Q2 cơ bản năm',v.q2n+' tháng × khoản thực nhận/tháng × số tháng chính thức/12'],['Quỹ Q3 – % giải ngân',v.q3+'%'],['Tỷ lệ full FTE',(v.fte??100)+'%'],
+      [],['PHÚC LỢI'],['Khoản','Bật','Ghi chú'],...cfg.ben.map(b=>[b.name,b.on?'Có':'Không',b.type==='event'?'theo tỷ lệ phát sinh '+(b.rate||0)+'%':'']),
+      [],['PHỤ CẤP (định biên mới)'],['Loại','Cách hoạch định','Mức'],...ALW.map(a=>[a.n,a.mode,a.mode==='trip'?`${a.rate||0}đ/ngày × ${a.days||0} ngày/năm`:(a.amount||'')]),
+      [],['CÁC QUỸ Q3 & OT'],['Quỹ','Loại','Cách lập','Mức chung','Bật'],...D.F.map(f=>[f.n,isOT(f)?'OT':'Q3',(FMODES.find(x=>x[0]===f.mode)||['',''])[1],f.mode==='rev'?`${f.pct}% × ${fmt(f.rev||0)}`:f.mode==='pay'?`${f.pct}% quỹ lương`:f.mode==='fixed'?fmt(f.amt||0)+' đ/năm':`${f.hrs} giờ × ${f.rate}%`,f.on?'Có':'Không'])];
+    add('Chính sách',a,[40,22,40,28,8]);}
+
+  X.writeFile(wb,`BM-Ngan-sach-nhan-su-${YEAR}-${(cfg.name||'').split(' ')[0]}.xlsx`);
+  if(st)st.textContent='Đã xuất file theo BM ✓';}catch(e){console.error(e);if(st)st.textContent='Lỗi xuất BM: '+e.message;}
+}
+{const b=$('#bm-xlsx');if(b)b.onclick=bmExport;}
 </script>
 </body>
 </html>
