@@ -268,7 +268,7 @@ details.gsel{display:inline-block;position:relative}details.gsel summary{cursor:
   </section>
   <section data-p="sim" class="hidden">
     <div class="card"><div class="row between" style="flex-wrap:wrap;gap:8px"><h3 style="margin:0">Bảng thu nhập chuẩn theo vị trí <span class="scope g" id="sm-scn"></span> <span class="i" title="Đơn giá chuẩn cho 1 người của mỗi vị trí = khung thu nhập (bậc) + rule LCB + phụ cấp + KPI + quỹ Q3 + phúc lợi + bảo hiểm. Ngân sách định biên mới = bảng này × số định biên mới; người đang giữ vị trí vẫn tính theo lương thực tế.">ⓘ</span></h3>
-      <div class="row" style="gap:8px"><select id="std-unit"></select><input id="std-q" placeholder="Tìm vị trí…" style="width:180px"><button class="btn" id="std-xlsx">⤓ Excel</button></div></div>
+      <div class="row" style="gap:8px"><div class="seg" id="std-mode"><button data-v="0" class="on">Thu gọn</button><button data-v="1">Mở rộng – xem tất cả khoản</button></div><select id="std-unit"></select><input id="std-q" placeholder="Tìm vị trí…" style="width:180px"><button class="btn" id="std-xlsx">⤓ Excel</button></div></div>
       <div class="sub" style="margin:6px 0">Mỗi dòng = thu nhập chuẩn 1 người/tháng của vị trí. Chọn <b>khung + bậc</b> hoặc nhập tay Q1 / Q2 → Comp1–5 tính lại ngay và dùng làm đơn giá định biên mới. Vị trí tạo mới bên Định biên tự hiện ở đây. <b>Bấm vào dòng</b> để xem từng khoản lấy từ cấu hình nào.</div>
       <div style="overflow:auto;max-height:520px"><table class="pjt" id="std-tbl"></table></div>
       <div id="std-det" style="margin-top:12px"></div></div>
@@ -1370,11 +1370,17 @@ function compHTML(R,title){const {rows,cum,n}=R;
     <table class="pjt"><thead><tr><th class="l">Nhóm</th><th class="l">Khoản</th><th>Bình quân / tháng</th><th>Cả năm (${n} tháng)</th><th class="l">Lấy từ cấu hình nào</th></tr></thead><tbody>
     ${CGRP.map(g=>rows.filter(r=>r.grp===g).map((r,i)=>`<tr><td class="l" style="color:${CCOL[g]};font-weight:600">${i===0?g:''}</td><td class="l">${r.l}</td><td>${fmt(Math.round(r.y/n))}</td><td>${fmt(Math.round(r.y))}</td><td class="l sub">${r.why}</td></tr>`).join('')+`<tr style="background:#f8fafc"><td></td><td class="l"><b>${g==='Chi phí khác'?'TỔNG CHI PHÍ DN':'= '+g}</b></td><td><b>${fmt(Math.round(cum[g]/n))}</b></td><td><b>${fmt(Math.round(cum[g]))}</b></td><td></td></tr>`).join('')}</tbody></table>`;}
 // ---- Bảng thu nhập chuẩn theo vị trí ----
-const STD={q:'',unit:'',sel:null};
+const STD={q:'',unit:'',sel:null,exp:false};
+function stdCols(calcs){const cols=[];CGRP.forEach(g=>{const seen=[];calcs.forEach(R=>R.rows.filter(r=>r.grp===g).forEach(r=>{if(!seen.includes(r.l))seen.push(r.l);}));seen.forEach(l=>cols.push({g,l}));if(g!=='Chi phí khác')cols.push({g,l:'= '+g,tot:true});else cols.push({g,l:'Tổng chi phí DN',tot:true});});return cols;}
+function stdVal(R,c){if(c.tot)return R.cum[c.g]/R.n;const r=R.rows.find(x=>x.grp===c.g&&x.l===c.l);return r?r.y/R.n:0;}
 function renderStd(){const box=$('#std-tbl');if(!box)return;const cfg=CFG(),B=COMMON.bands||[];$('#sm-scn').textContent=cfg.name;
   const us=$('#std-unit');if(!us.dataset.ok){us.innerHTML='<option value="">Tất cả đơn vị</option>'+DEPTS.map(d=>`<option value="${d.id}">${d.name}</option>`).join('');us.dataset.ok=1;}
   const list=JOBS.filter(j=>(!STD.unit||j.d===STD.unit)&&(!STD.q||j.name.toLowerCase().includes(STD.q.toLowerCase())));
   const esc=x=>String(x??'').replace(/"/g,'&quot;');
+  if(STD.exp){const calcs=list.map(j=>({j,R:compCalc(j)})),cols=stdCols(calcs.map(x=>x.R)),span={};cols.forEach(c=>span[c.g]=(span[c.g]||0)+1);
+    box.innerHTML=`<thead><tr><th class="l" rowspan="2" style="position:sticky;left:0;background:var(--bg,#fff);z-index:2">Vị trí</th><th rowspan="2">Ngạch</th>${CGRP.map(g=>`<th colspan="${span[g]}" style="color:${CCOL[g]};border-bottom:2px solid ${CCOL[g]}">${g}</th>`).join('')}</tr><tr>${cols.map(c=>`<th style="white-space:normal;min-width:${c.tot?96:88}px;font-size:11px;${c.tot?'color:'+CCOL[c.g]:''}">${c.l.replace(/^Phúc lợi – /,'').replace(/^PC /,'PC ')}</th>`).join('')}</tr></thead>`+
+      `<tbody>${calcs.map(({j,R})=>`<tr class="std-r" data-j="${j.id}" style="cursor:pointer;${STD.sel===j.id?'background:#eef4ff':''}"><td class="l" style="position:sticky;left:0;background:var(--bg,#fff)"><b>${j.name}</b><div class="sub">${(DEPTS.find(d=>d.id===j.d)||{}).name||''}</div></td><td>${j.ng}</td>${cols.map(c=>`<td style="${c.tot?'font-weight:600;background:#f8fafc':''}">${fmt(Math.round(stdVal(R,c)))}</td>`).join('')}</tr>`).join('')}</tbody>`;
+    const sj=JOBS.find(j=>j.id===STD.sel);$('#std-det').innerHTML=sj?compHTML(compCalc(sj),'Chi tiết · '+sj.name+' ('+sj.ng+')')+stdPeople(sj):'<div class="sub" style="padding:8px 0">Bấm vào một vị trí để xem căn cứ từng khoản.</div>';return;}
   const rows=list.map(j=>{const R=compCalc(j),m=ST.manual[j.id]||{},bd=bandOf(j),n=R.n,c=g=>fmt(Math.round(R.cum[g]/n)),hc=hcOf(j,cfg),newp=Math.max(0,Math.max(...hc)-j.people.length);
     return `<tr class="std-r${STD.sel===j.id?' on':''}" data-j="${j.id}" style="cursor:pointer;${STD.sel===j.id?'background:#eef4ff':''}"><td class="l"><b>${j.name}</b><div class="sub">${(DEPTS.find(d=>d.id===j.d)||{}).name||''}</div></td><td>${j.ng}</td><td>${j.people.length}${newp?` <span class="tag t-pos" title="Định biên mới">+${newp}</span>`:''}</td>
       <td class="l" onclick="event.stopPropagation()"><select data-jb="${j.id}" style="max-width:200px"><option value="">${bd&&m.band==null?'(tự khớp) '+bd.t:'— chọn khung —'}</option>${B.map(b=>`<option value="${esc(b.t)}" ${m.band===b.t?'selected':''}>${b.t}</option>`).join('')}</select> <select data-jl="${j.id}">${[1,2,3,4,5].map(l=>`<option value="${l}" ${(m.bl||3)===l?'selected':''}>L${l}</option>`).join('')}</select></td>
@@ -1396,9 +1402,11 @@ document.addEventListener('change',e=>{const x=e.target;if(!x.closest||!x.closes
   else if(x.dataset.jq1!=null){if(x.value.trim()===''){delete m.lcb;delete m.tdg;}else{const j=JOBS.find(z=>z.id===id),a=(priceOf(j).auto||priceOf(j).p),r=(a.lcb+a.tdg)?a.lcb/(a.lcb+a.tdg):0.4,q=num(x.value);m.lcb=Math.round(q*r);m.tdg=q-m.lcb;}}
   else if(x.dataset.jq2!=null){if(x.value.trim()==='')delete m.q2m;else m.q2m=num(x.value);}
   if(!Object.keys(m).length)delete ST.manual[id];stdChanged();});
+$$('#std-mode button').forEach(b=>b.onclick=()=>{STD.exp=b.dataset.v==='1';$$('#std-mode button').forEach(x=>x.classList.toggle('on',x===b));renderStd();});
 {const u=$('#std-unit'),q=$('#std-q');if(u)u.onchange=()=>{STD.unit=u.value;renderStd();};if(q)q.oninput=()=>{STD.q=q.value;renderStd();};}
 $('#std-xlsx')&&($('#std-xlsx').onclick=async()=>{try{const X=await bmLoad(),h=['Vị trí','Đơn vị','Ngạch','Người hiện có','Khung','Bậc','Nguồn đơn giá',...CGRP.map(g=>(g==='Chi phí khác'?'Chi phí DN':g)+' /tháng')],a=[['BẢNG THU NHẬP CHUẨN THEO VỊ TRÍ · '+CFG().name],h];
-  JOBS.forEach(j=>{const R=compCalc(j),bd=bandOf(j);a.push([j.name,(DEPTS.find(d=>d.id===j.d)||{}).name||'',j.ng,j.people.length,bd?bd.t:'',(ST.manual[j.id]||{}).bl||3,R.pr.label,...CGRP.map(g=>Math.round(R.cum[g]/R.n))]);});
+  if(STD.exp){const calcs=JOBS.map(j=>({j,R:compCalc(j)})),cols=stdCols(calcs.map(x=>x.R));a[1]=['Vị trí','Đơn vị','Ngạch','Nguồn đơn giá',...cols.map(c=>c.g+' · '+c.l)];calcs.forEach(({j,R})=>a.push([j.name,(DEPTS.find(d=>d.id===j.d)||{}).name||'',j.ng,R.pr.label,...cols.map(c=>Math.round(stdVal(R,c)))]));}
+  else JOBS.forEach(j=>{const R=compCalc(j),bd=bandOf(j);a.push([j.name,(DEPTS.find(d=>d.id===j.d)||{}).name||'',j.ng,j.people.length,bd?bd.t:'',(ST.manual[j.id]||{}).bl||3,R.pr.label,...CGRP.map(g=>Math.round(R.cum[g]/R.n))]);});
   const ws=X.utils.aoa_to_sheet(a);ws['!cols']=[34,30,7,10,30,6,22,...CGRP.map(()=>14)].map(w=>({wch:w}));const wb=X.utils.book_new();X.utils.book_append_sheet(wb,ws,'Thu nhập chuẩn');X.writeFile(wb,'Bang-thu-nhap-chuan-theo-vi-tri.xlsx');}catch(e){alert(e.message);}});
 function renderSim(){const out=$('#sm-out');if(!out)return;const cfg=CFG();
   const fill=(id,html)=>{const el=$(id);if(!el.dataset.ok){el.innerHTML=html;el.dataset.ok=1;}};
