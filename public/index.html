@@ -89,7 +89,7 @@ th.qs{border-left:2px solid #d0d5dd} td.qs{border-left:2px solid #eef0f3}
 <header>
   <h1>Định biên & Ngân sách</h1>
   <span class="sub">bản local độc lập · không kết nối KOI</span>
-  <nav class="top" id="topnav"><button data-v="plan" class="on">Tạo và xem Kế hoạch định biên</button><button data-v="dash">Dashboard hoạch định nhân sự</button><button data-v="org">Cơ cấu tổ chức</button><button data-v="users" class="hidden" id="nav-users">Người dùng</button><button data-v="budget">Ngân sách</button></nav>
+  <nav class="top" id="topnav"><button data-v="plan" class="on">Tạo và xem Kế hoạch định biên</button><button data-v="dash">Dashboard hoạch định nhân sự</button><button data-v="org">Cơ cấu tổ chức</button><button data-v="users" class="hidden" id="nav-users">Người dùng</button><button data-v="income">Hoạch định thu nhập</button><button data-v="budget">Ngân sách</button></nav>
   <div class="me" id="me">Đang tải…</div>
   <button class="btn hidden" id="u-pw">Đổi mật khẩu</button><button class="btn hidden" id="u-out">Đăng xuất</button><button class="btn" id="d-backup" title="Tải toàn bộ dữ liệu về máy">Sao lưu</button>
   <label class="btn" style="flex-direction:row;color:var(--text);font-size:13.5px" title="Nạp lại từ file sao lưu">Khôi phục<input type="file" id="d-restore" accept=".json" hidden></label>
@@ -536,11 +536,12 @@ function showView(v){
   msg('');
   $$('#topnav button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
   $('#dash').classList.toggle('hidden',v!=='dash');
-  $('#budget').classList.toggle('hidden',v!=='budget');
+  $('#budget').classList.toggle('hidden',v!=='budget'&&v!=='income');
   $('#org').classList.toggle('hidden',v!=='org');$('#users').classList.toggle('hidden',v!=='users');
-  if(v==='budget'&&(!$('#budget-frame').src||window.__hcChanged)){$('#budget-frame').src='/ngan-sach-mau.html?embed=1&t='+Date.now();window.__hcChanged=false;}
+  if((v==='budget'||v==='income')&&(!$('#budget-frame').src||window.__hcChanged)){$('#budget-frame').src='/ngan-sach-mau.html?embed=1&sheet='+(v==='income'?'inc':'bud')+'&t='+Date.now();window.__hcChanged=false;}
+  else if(v==='budget'||v==='income'){try{const fw=$('#budget-frame').contentWindow;fw&&fw.setSheet&&fw.setSheet(v==='income'?'inc':'bud');}catch(e){}}
   ['#planbar','#kpis','#work'].forEach(x=>$(x).classList.toggle('hidden',v!=='plan'||!S.data));
-  $('#filters').classList.toggle('hidden',['budget','org','users'].includes(v));$('#pending').classList.toggle('hidden',['budget','org','users'].includes(v));
+  $('#filters').classList.toggle('hidden',['budget','income','org','users'].includes(v));$('#pending').classList.toggle('hidden',['budget','income','org','users'].includes(v));
   try{history.replaceState(null,'',v==='plan'?location.pathname:'#'+v)}catch(e){}
   if(v==='dash')loadDash();
   if(v==='org')loadOrg();
@@ -693,6 +694,6 @@ $('#d-backup').onclick=async()=>{const d=await api('/api/data');const a=document
 $('#d-restore').onchange=async e=>{const f=e.target.files[0];if(!f)return;if(!confirm('Thay toàn bộ dữ liệu hiện tại bằng file "'+f.name+'"? (dữ liệu hiện tại được tự sao lưu trước)'))return;
   try{await api('/api/data',JSON.parse(await f.text()));msg('Đã khôi phục dữ liệu.','ok');S.data&&openPlan();}catch(err){msg('Không khôi phục được: '+esc(err.message));}e.target.value='';};
 </script>
-<script>(function(){const v=location.hash.slice(1);const v0=v;if(v==='link')v='budget';if(!['dash','budget','org'].includes(v))return;let n=0;const t=setInterval(()=>{n++;const app=document.querySelector('#app');if((app&&!app.classList.contains('hidden')&&document.querySelector('#f-dept').options.length)||n>40){clearInterval(t);setTimeout(()=>showView(v),200);}},150);})();</script>
+<script>(function(){const v=location.hash.slice(1);const v0=v;if(v==='link')v='budget';if(!['dash','budget','income','org'].includes(v))return;let n=0;const t=setInterval(()=>{n++;const app=document.querySelector('#app');if((app&&!app.classList.contains('hidden')&&document.querySelector('#f-dept').options.length)||n>40){clearInterval(t);setTimeout(()=>showView(v),200);}},150);})();</script>
 </body>
 </html>

@@ -115,7 +115,8 @@ details.gsel{display:inline-block;position:relative}details.gsel summary{cursor:
     <div class="row"><button class="btn primary" id="save-btn" title="Lưu toàn bộ cấu hình (Ctrl+S)">💾 Lưu cấu hình</button><span class="sub" id="save-st" style="min-width:150px"></span><button class="btn" id="bm-xlsx" title="Xuất Excel đúng mẫu BM Ngân sách nhân sự: Tổng hợp SS Biên, Định biên, Ngân sách chi tiết, Tổng hợp Ngân sách, TH_Phòng Ban, BM.07 gửi KT, TH Q2, Chính sách">⤓ Xuất theo BM</button><span class="sub" id="bm-msg"></span><button class="btn" id="lk-xlsx" title="Xuất file Excel: Tổng hợp, Theo khoản, Chi tiết vị trí, Định biên đã dùng, Giả định – có đóng dấu người lập và kế hoạch nguồn">⤓ Xuất file ngân sách</button><span class="sub" id="lk-msg"></span><button class="btn" data-admin id="exp-btn" title="Tải file cấu hình để gửi / sao lưu">⤓ Xuất file</button><label class="btn" data-admin style="cursor:pointer" title="Nạp lại từ file đã xuất">⤒ Nạp file<input type="file" accept=".json" id="imp-file" style="display:none"></label><span class="sub">Xem với vai trò:</span><div class="seg" id="role"><button data-r="hr" class="on">Admin HR</button><button data-r="mgr">Quản lý đơn vị</button></div><span class="sub">Đơn vị:</span> <select id="unit-sel" autocomplete="off"></select></div>
   </div>
 
-  <div class="tabs" id="tabs"><button data-t="cfg" class="on">① Hoạch định thu nhập</button><button data-t="bud">② Ngân sách theo kế hoạch</button><button data-t="sum">③ Tổng hợp</button><button data-t="cmp">④ So sánh kịch bản</button><button data-t="emp">⑤ Nhân viên &amp; 5 Comp</button><button data-t="sim">⑥ Thu nhập chuẩn theo vị trí</button></div>
+  <div class="row" style="gap:12px;align-items:center;margin:4px 0 8px"><div class="seg" id="sheet-sw" style="font-weight:600"><button data-s="inc" class="on">A · Hoạch định thu nhập</button><button data-s="bud">B · Xây ngân sách</button></div><span class="sub" id="sheet-hint">Bước 1: định ra các khoản thu nhập → kết quả theo vị trí và theo người</span></div>
+  <div class="tabs" id="tabs"><button data-t="cfg" data-s="inc" class="on">① Chính sách thu nhập</button><button data-t="sim" data-s="inc">② Thu nhập chuẩn theo vị trí</button><button data-t="emp" data-s="inc">③ Thu nhập theo nhân viên</button><button data-t="bud" data-s="bud">① Ngân sách theo kế hoạch</button><button data-t="sum" data-s="bud">② Tổng hợp</button><button data-t="cmp" data-s="bud">③ So sánh kịch bản</button></div>
 
   <!-- ① CẤU HÌNH -->
   <section data-p="cfg">
@@ -132,7 +133,7 @@ details.gsel{display:inline-block;position:relative}details.gsel summary{cursor:
         <button data-admin data-c="c8"><b>4</b> Tháng chi thưởng</button>
         <button data-admin data-c="c11"><b>5</b> Khung thu nhập</button>
         <button data-admin data-c="c15"><b>5+</b> Lương cơ bản (rule)</button>
-        <button data-c="c6"><b data-n="6">6</b> Thu nhập chuẩn theo vị trí</button>
+        <button data-c="c6" style="display:none"><b data-n="6">6</b> Thu nhập chuẩn theo vị trí</button>
         <div class="ng" data-admin style="margin-top:8px"><span class="dot" id="ng-dot"></span>Biến số kịch bản<div class="sub" id="ng-scn"></div></div>
         <button data-admin data-c="c1"><b>7</b> Lương &amp; KPI</button>
         <button data-admin data-c="c2"><b>8</b> Quỹ Q3 &amp; các quỹ</button>
@@ -260,7 +261,7 @@ details.gsel{display:inline-block;position:relative}details.gsel summary{cursor:
     <div class="card"><h3>Định biên theo kịch bản <span class="sub">– sửa trực tiếp ô để thử (định biên mỗi kịch bản sẽ lấy từ kế hoạch định biên cùng kịch bản trên app)</span></h3><div class="wrap"><table id="cmp-hc"></table></div></div>
   </section>
   <section data-p="emp" class="hidden">
-    <div class="card"><div class="row between" style="flex-wrap:wrap;gap:8px"><h3 style="margin:0">Nhân viên &amp; chi phí theo 5 Comp <span class="scope g" id="ec-scn"></span> <span class="i" title="Lấy từ dữ liệu nhân viên (cấu trúc lương KOI/Odoo) và cấu hình ngân sách. Comp1 = LCB + Thưởng đánh giá · Comp2 = Comp1 + Phụ cấp · Comp3 = Comp2 + Thưởng ngắn hạn (Q2 tháng/quý/năm, Q3 & các quỹ) · Comp4 = Comp3 + LTI · Comp5 = Comp4 + Phúc lợi năm. Chi phí DN = Comp5 + Bảo hiểm DN đóng + OT.">ⓘ</span></h3>
+    <div class="card"><div class="row between" style="flex-wrap:wrap;gap:8px"><h3 style="margin:0">Thu nhập theo nhân viên (5 Comp) <span class="scope g" id="ec-scn"></span> <span class="i" title="Lấy từ dữ liệu nhân viên (cấu trúc lương KOI/Odoo) và cấu hình ngân sách. Comp1 = LCB + Thưởng đánh giá · Comp2 = Comp1 + Phụ cấp · Comp3 = Comp2 + Thưởng ngắn hạn (Q2 tháng/quý/năm, Q3 & các quỹ) · Comp4 = Comp3 + LTI · Comp5 = Comp4 + Phúc lợi năm. Chi phí DN = Comp5 + Bảo hiểm DN đóng + OT.">ⓘ</span></h3>
       <div class="row" style="gap:8px;flex-wrap:wrap"><select id="ec-unit"></select><input id="ec-q" placeholder="Tìm tên / vị trí…" style="width:180px"><div class="seg" id="ec-per"><button data-v="m" class="on">Bình quân tháng</button><button data-v="y">Cả năm</button></div><label style="white-space:nowrap"><input type="checkbox" id="ec-det"> Chi tiết khoản</label><label style="white-space:nowrap"><input type="checkbox" id="ec-vac" checked> Gồm định biên mới</label><button class="btn" id="ec-xlsx">⤓ Excel</button></div></div>
       <div id="ec-kpi" class="row" style="gap:10px;flex-wrap:wrap;margin:10px 0"></div>
       <div style="overflow:auto;max-height:640px"><table class="pjt" id="ec-tbl"></table></div>
@@ -1393,7 +1394,7 @@ function renderStd(){const box=$('#std-tbl');if(!box)return;const cfg=CFG(),B=CO
 function stdPeople(j){if(!j.people.length)return '';const R=ecRows().filter(x=>x.r.j.id===j.id&&!x.vac),std=compCalc(j),sc={Comp1:'c1',Comp2:'c2',Comp3:'c3',Comp4:'c4',Comp5:'c5','Chi phí khác':'cost'};
   const row=(name,vals,bold)=>`<tr${bold?' style="background:#f8fafc;font-weight:600"':''}><td class="l">${name}</td>${CGRP.map(g=>`<td>${fmt(Math.round(vals[g]))}</td>`).join('')}</tr>`;
   return `<h4 style="margin:16px 0 6px">Người đang giữ vị trí – thu nhập thực tế (bình quân tháng trong năm) so với chuẩn</h4><table class="pjt"><thead><tr><th class="l">Họ và tên</th>${CGRP.map(g=>`<th style="color:${CCOL[g]}">${g==='Chi phí khác'?'Chi phí DN':g}</th>`).join('')}</tr></thead><tbody>
-  ${R.map(x=>{const n=x.mo||12;return row(x.name,Object.fromEntries(CGRP.map(g=>[g,x.v[sc[g]]/n])));}).join('')}${row('Chuẩn của vị trí',Object.fromEntries(CGRP.map(g=>[g,std.cum[g]/std.n])),true)}</tbody></table><div class="sub">Người đang giữ vị trí tính theo lương thực tế của họ (cấu trúc lương KOI). Bấm tab ⑤ để xem chi tiết từng khoản của từng người.</div>`;}
+  ${R.map(x=>{const n=x.mo||12;return row(x.name,Object.fromEntries(CGRP.map(g=>[g,x.v[sc[g]]/n])));}).join('')}${row('Chuẩn của vị trí',Object.fromEntries(CGRP.map(g=>[g,std.cum[g]/std.n])),true)}</tbody></table><div class="sub">Người đang giữ vị trí tính theo lương thực tế của họ (cấu trúc lương KOI). Bấm tab ③ Thu nhập theo nhân viên để xem chi tiết từng khoản của từng người.</div>`;}
 function stdChanged(){renderStd();if(typeof renderPrice==='function')renderPrice();renderAll();}
 document.addEventListener('click',e=>{const tr=e.target.closest('#std-tbl tr.std-r');if(!tr)return;STD.sel=+tr.dataset.j;renderStd();$('#std-det').scrollIntoView({behavior:'smooth',block:'nearest'});});
 document.addEventListener('change',e=>{const x=e.target;if(!x.closest||!x.closest('#std-tbl'))return;const id=+(x.dataset.jb||x.dataset.jl||x.dataset.jq1||x.dataset.jq2);const m=ST.manual[id]=ST.manual[id]||{};const num=v=>+String(v).replace(/\D/g,'')||0;
@@ -1425,6 +1426,14 @@ function renderSim(){const out=$('#sm-out');if(!out)return;const cfg=CFG();
 document.addEventListener('click',e=>{const a=e.target.closest('#sm-out a[data-go]');if(!a)return;e.preventDefault();goCfg(a.dataset.go);});
 ['#sm-name','#sm-ng','#sm-unit','#sm-loc','#sm-band','#sm-bl','#sm-q1','#sm-q2','#sm-start'].forEach(id=>{const el=$(id);if(el){el.addEventListener('change',renderSim);if(el.tagName==='INPUT')el.addEventListener('input',()=>{clearTimeout(window.__smt);window.__smt=setTimeout(renderSim,350);});}});
 {const b=$('#sm-band');if(b)b.addEventListener('change',()=>{const B=(COMMON.bands||[]).find(x=>x.t===b.value);if(B&&B.ng&&GRADES.includes(B.ng))$('#sm-ng').value=B.ng;});}
+
+// ---- Tách 2 sheet: A Hoạch định thu nhập · B Xây ngân sách ----
+function setSheet(sh){sh=sh==='bud'?'bud':'inc';$$('#sheet-sw button').forEach(b=>b.classList.toggle('on',b.dataset.s===sh));
+  $$('#tabs button').forEach(b=>b.style.display=b.dataset.s===sh?'':'none');
+  $('#sheet-hint').textContent=sh==='inc'?'Bước 1: định ra các khoản thu nhập → kết quả theo vị trí và theo người':'Bước 2: thu nhập × định biên từng tháng → ngân sách, tổng hợp, so sánh kịch bản';
+  const cur=$('#tabs button.on');if(!cur||cur.dataset.s!==sh){const f=$(`#tabs button[data-s="${sh}"]`);f&&f.click();}}
+$$('#sheet-sw button').forEach(b=>b.onclick=()=>setSheet(b.dataset.s));
+setSheet(new URLSearchParams(location.search).get('sheet')||'inc');if(new URLSearchParams(location.search).get('embed')){const r=$('#sheet-sw');if(r)r.parentElement.style.display='none';}
 </script>
 </body>
 </html>
