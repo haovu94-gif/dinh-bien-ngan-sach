@@ -115,7 +115,7 @@ details.gsel{display:inline-block;position:relative}details.gsel summary{cursor:
     <div class="row"><button class="btn primary" id="save-btn" title="Lưu toàn bộ cấu hình (Ctrl+S)">💾 Lưu cấu hình</button><span class="sub" id="save-st" style="min-width:150px"></span><button class="btn" id="bm-xlsx" title="Xuất Excel đúng mẫu BM Ngân sách nhân sự: Tổng hợp SS Biên, Định biên, Ngân sách chi tiết, Tổng hợp Ngân sách, TH_Phòng Ban, BM.07 gửi KT, TH Q2, Chính sách">⤓ Xuất theo BM</button><span class="sub" id="bm-msg"></span><button class="btn" id="lk-xlsx" title="Xuất file Excel: Tổng hợp, Theo khoản, Chi tiết vị trí, Định biên đã dùng, Giả định – có đóng dấu người lập và kế hoạch nguồn">⤓ Xuất file ngân sách</button><span class="sub" id="lk-msg"></span><button class="btn" data-admin id="exp-btn" title="Tải file cấu hình để gửi / sao lưu">⤓ Xuất file</button><label class="btn" data-admin style="cursor:pointer" title="Nạp lại từ file đã xuất">⤒ Nạp file<input type="file" accept=".json" id="imp-file" style="display:none"></label><span class="sub">Xem với vai trò:</span><div class="seg" id="role"><button data-r="hr" class="on">Admin HR</button><button data-r="mgr">Quản lý đơn vị</button></div><span class="sub">Đơn vị:</span> <select id="unit-sel" autocomplete="off"></select></div>
   </div>
 
-  <div class="tabs" id="tabs"><button data-t="cfg" class="on">① Cấu hình biến số</button><button data-t="bud">② Ngân sách theo kế hoạch</button><button data-t="sum">③ Tổng hợp</button><button data-t="cmp">④ So sánh kịch bản</button><button data-t="emp">⑤ Nhân viên &amp; 5 Comp</button><button data-t="sim">⑥ Thu nhập chuẩn theo vị trí</button></div>
+  <div class="tabs" id="tabs"><button data-t="cfg" class="on">① Hoạch định thu nhập</button><button data-t="bud">② Ngân sách theo kế hoạch</button><button data-t="sum">③ Tổng hợp</button><button data-t="cmp">④ So sánh kịch bản</button><button data-t="emp">⑤ Nhân viên &amp; 5 Comp</button><button data-t="sim">⑥ Thu nhập chuẩn theo vị trí</button></div>
 
   <!-- ① CẤU HÌNH -->
   <section data-p="cfg">
@@ -125,7 +125,7 @@ details.gsel{display:inline-block;position:relative}details.gsel summary{cursor:
         <button data-mgr data-c="c10" style="display:none"><b>1</b> Chính sách đang áp dụng</button>
         <div class="ng" data-admin><span class="dot" style="background:#0a6bc4"></span>Nguồn dữ liệu<div class="sub">định biên lấy từ màn Định biên</div></div>
         <button data-admin data-c="c12"><b>↧</b> Nguồn định biên</button>
-        <div class="ng" data-admin style="margin-top:8px"><span class="dot" style="background:#475467"></span>Chính sách chung<div class="sub">toàn công ty · mọi kịch bản</div></div>
+        <div class="ng" data-admin style="margin-top:8px"><span class="dot" style="background:#475467"></span>Chính sách thu nhập chung<div class="sub">toàn công ty · mọi kịch bản</div></div>
         <button data-admin data-c="c7" class="on"><b>1</b> Bảo hiểm &amp; thuế</button>
         <button data-admin data-c="c3"><b>2</b> Phúc lợi</button>
         <button data-admin data-c="c9"><b>3</b> Phụ cấp</button>
